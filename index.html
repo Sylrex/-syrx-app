@@ -1,440 +1,149 @@
-<!doctype html>
-<html lang="en" dir="ltr">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SYRX Mini App</title>
-  <style>
-    :root{
-      --bg:#0b1020;
-      --card:#121832;
-      --card-2:#0f1a3a;
-      --text:#eaf1ff;
-      --muted:#b7c3ff;
-      --accent:#7aa2ff;
-      --accent-2:#27e1c1;
-      --danger:#ff5577;
-      --success:#27e1a1;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --radius: 18px;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji", "Segoe UI Symbol";
-      color:var(--text);
-      background:
-        radial-gradient(1200px 600px at 10% -10%, #1e2d6f33, transparent 60%),
-        radial-gradient(1200px 600px at 110% 10%, #1e6f5f33, transparent 60%),
-        linear-gradient(180deg,#0b1020 0%, #070b16 100%);
-      display:flex; justify-content:center;
-    }
-    .app{
-      width:100%; max-width:740px; padding:18px; padding-bottom:24px;
-    }
-    .nav{
-      display:flex; gap:10px; position:sticky; top:0; z-index:5;
-      backdrop-filter: blur(8px);
-      padding-bottom:10px; margin-bottom:16px;
-    }
-    .tab{
-      flex:1; text-align:center; padding:12px 10px; border-radius:14px;
-      background: #0d1430; color:var(--muted); border:1px solid #18224f;
-      cursor:pointer; user-select:none; transition:.2s transform ease, .2s background ease;
-    }
-    .tab.active{ color:#fff; background: linear-gradient(180deg,#1a2b6a,#0e163a); border-color:#2a3aa0; box-shadow: var(--shadow) }
-    .tab:active{ transform:scale(.98) }
-    .card{
-      background:linear-gradient(180deg, var(--card), var(--card-2));
-      border:1px solid #1e2a66; border-radius: var(--radius); padding:18px; box-shadow:var(--shadow)
-    }
-    .hero{
-      display:grid; gap:18px; text-align:center; padding:16px 10px;
-    }
-    .logo{
-      width:96px; height:96px; margin:0 auto; border-radius:30%;
-      display:grid; place-items:center;
-      background: conic-gradient(from 0deg, #2f7bff, #27e1c1, #2f7bff);
-      box-shadow:0 0 80px #2f7bff33 inset, 0 10px 40px #0008;
-    }
-    .logo-inner{
-      width:84px; height:84px; border-radius:26%;
-      display:grid; place-items:center; background:#0b1020; color:#8fb6ff;
-      border:2px solid #3c6cff;
-      font-weight:800; font-size:28px; letter-spacing:1px;
-      text-shadow:0 0 12px #2f7bff66;
-    }
-    h1{margin:10px 0 4px; font-size:28px}
-    p{margin:0; color:var(--muted); line-height:1.5}
-    .grid{display:grid; gap:12px}
-    .grid.two{grid-template-columns:1fr 1fr}
-    @media (max-width:640px){ .grid.two{grid-template-columns:1fr} }
-    .btn{
-      appearance:none; border:none; outline:none; cursor:pointer;
-      padding:12px 14px; border-radius:14px; font-weight:600; width:100%;
-      background: linear-gradient(180deg,#2b47c8,#1c2a7a); color:white;
-      border:1px solid #3c56e8; box-shadow: var(--shadow); transition:.2s transform ease,.2s filter ease;
-    }
-    .btn.secondary{
-      background: linear-gradient(180deg,#10324a,#0b1f31); color:#d8e9ff; border-color:#1f445f;
-    }
-    .btn.ghost{
-      background: #0d1430; color:#cfe2ff; border:1px dashed #29408b;
-    }
-    .btn:active{ transform:scale(.98) }
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      background:#0e1a3b; border:1px solid #22316f; padding:8px 12px; border-radius:999px; color:#c9d6ff; font-size:13px;
-    }
-    .item{
-      display:flex; align-items:center; justify-content:space-between; gap:14px;
-      background:#0d1430; border:1px solid #1a2a66; border-radius:14px; padding:12px;
-    }
-    .left{display:flex; align-items:center; gap:12px}
-    .icon{
-      width:38px; height:38px; border-radius:12px; display:grid; place-items:center;
-      background: #132054; color:#9fc0ff; border:1px solid #25388a; font-size:18px;
-    }
-    .meta{display:flex; flex-direction:column; gap:4px}
-    .title{font-weight:700}
-    .muted{color:var(--muted); font-size:13px}
-    .state{font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid #2840a0; background:#0d1b4d; color:#b7ccff}
-    .hidden{display:none}
-    .center{text-align:center}
-    .small{font-size:12px; color:var(--muted)}
-    .success{color:var(--success)}
-    .danger{color:var(--danger)}
-    .countdown{font-variant-numeric: tabular-nums; font-weight:700}
-    footer{margin-top:18px; text-align:center; color:#8aa2ff77; font-size:12px}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYRX Mini App</title>
+<style>
+body{margin:0;font-family:sans-serif;background:#0b1020;color:#fff;display:flex;justify-content:center;}
+.app{max-width:700px;width:100%;padding:20px;}
+.card{background:#121832;border-radius:18px;padding:20px;margin-bottom:16px;text-align:center;}
+.logo-inner{font-size:28px;font-weight:800;color:#8fb6ff;}
+img{border-radius:50%;}
+.btn{padding:12px 20px;border:none;border-radius:14px;cursor:pointer;margin:8px 0;background:#2b47c8;color:#fff;font-weight:600;}
+.tab{cursor:pointer;padding:12px;background:#0d1430;margin:0 4px;border-radius:12px;display:inline-block;}
+.tab.active{background:linear-gradient(180deg,#1a2b6a,#0e163a);}
+.hidden{display:none;}
+.grid{display:grid;gap:12px;}
+</style>
 </head>
 <body>
-  <div class="app">
-    <!-- Tabs -->
-    <div class="nav">
-      <div class="tab active" data-tab="home">🏠 Home</div>
-      <div class="tab" data-tab="tasks">✅ Tasks</div>
-      <div class="tab" data-tab="wallet">🔗 Wallet</div>
-    </div>
-
-    <!-- HOME -->
-    <section id="home" class="page">
-      <div class="card hero">
-        <div class="logo"><div class="logo-inner">SYRX</div></div>
-        <h1>Welcome to SYRX</h1>
-        <p>Your gateway to the future of digital currency.</p>
-        <div class="grid">
-          <button class="btn" id="startBtn">Start Now</button>
-          <div class="pill">User: <span id="userTag">guest</span></div>
-        </div>
-      </div>
-      <footer>SYRX © <span id="year"></span></footer>
-    </section>
-
-    <!-- TASKS -->
-    <section id="tasks" class="page hidden">
-      <div class="card" style="margin-bottom:12px;">
-        <div class="grid two">
-          <div class="pill">Claim every 6 hours ⏳</div>
-          <div class="pill">Balance: <span id="points">0</span> pts</div>
-        </div>
-      </div>
-
-      <div class="grid" id="taskList">
-        <!-- Tasks injected by JS -->
-      </div>
-
-      <div class="card" style="margin-top:12px;">
-        <div class="grid">
-          <div class="center">
-            <div class="muted">Next claim in</div>
-            <div class="countdown" id="cooldownText">—</div>
-          </div>
-          <button class="btn" id="claimBtn">💎 Claim Reward</button>
-          <div class="small">Claim gives <b>100 pts</b>. Cooldown: 6 hours.</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- WALLET -->
-    <section id="wallet" class="page hidden">
-      <div class="card grid">
-        <h2 style="margin:0">Connect Your Wallet</h2>
-        <p>Link your real Telegram Wallet (TON) or any TON-compatible wallet to access rewards and manage your SYRX tokens.</p>
-
-        <!-- Quick connect (opens Telegram Wallet) -->
-        <button class="btn" id="tgWalletBtn">Open Telegram Wallet</button>
-
-        <!-- TON Connect (optional, requires manifest URL) -->
-        <div class="card" style="background:#0c1433; border-style:dashed;">
-          <div class="grid">
-            <div class="muted">Advanced: TON Connect</div>
-            <div id="ton-connect-ui"></div>
-            <button class="btn secondary" id="initTonConnectBtn">Initialize TON Connect</button>
-            <div class="small">Set your <code>TON_CONNECT_MANIFEST_URL</code> in the code, then press initialize.</div>
-          </div>
-        </div>
-
-        <div id="walletState" class="small">Wallet: <b>disconnected</b></div>
-      </div>
-    </section>
+<div class="app">
+  <!-- Navigation Tabs -->
+  <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;">
+    <div class="tab active" data-tab="home">🏠 Home</div>
+    <div class="tab" data-tab="tasks">✅ Tasks</div>
+    <div class="tab" data-tab="leaderboard">🏆 Leaderboard</div>
   </div>
 
-  <!-- Telegram WebApp SDK (loads only inside Telegram) -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- TON Connect UI (used only if you press Initialize) -->
-  <script defer src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+  <!-- Home Page -->
+  <section id="home" class="page">
+    <div class="card">
+      <div class="logo-inner">SYRX</div>
+      <h2>Welcome, <span id="playerName">Guest</span>!</h2>
+      <img id="playerAvatar" src="default-avatar.png" style="width:100px;height:100px;">
+      <p>Your Points: <span id="playerPoints">0</span></p>
+      <p>Your Referral Code: <span id="playerReferral">—</span></p>
+      <button class="btn" id="claimBtn">💎 Claim Reward</button>
+    </div>
+  </section>
 
-  <script>
-    /**********************
-     * Basic App State
-     **********************/
-    const state = {
-      userId: 'guest',
-      points: 0,
-      lastClaimAt: null,
-      cooldownHours: 6,
-    };
+  <!-- Tasks Page -->
+  <section id="tasks" class="page hidden">
+    <div class="card">
+      <h3>Daily Tasks</h3>
+      <div id="taskList"></div>
+    </div>
+  </section>
 
-    const STORAGE_KEY = 'syrx_app_state_v1';
+  <!-- Leaderboard Page -->
+  <section id="leaderboard" class="page hidden">
+    <div class="card">
+      <h3>Leaderboard</h3>
+      <div id="leaderList"></div>
+    </div>
+  </section>
+</div>
 
-    function loadState(){
-      try{
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if(raw){
-          const s = JSON.parse(raw);
-          Object.assign(state, s);
-        }
-      }catch(e){}
-    }
-    function saveState(){
-      try{
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      }catch(e){}
-    }
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+const tg = window.Telegram?.WebApp;
+tg?.ready();
 
-    /**********************
-     * Telegram Integration
-     **********************/
-    const tg = window.Telegram ? window.Telegram.WebApp : null;
-    if(tg){
-      tg.ready();
-      tg.expand && tg.expand();
+let telegramId = null;
+let playerName = 'Guest';
+let playerAvatar = 'default-avatar.png';
+let playerUsername = '';
 
-      const user = tg.initDataUnsafe?.user;
-      if(user?.id){
-        state.userId = String(user.id);
-        saveState();
-      }
-      // Set theme to match Telegram (optional)
-      document.documentElement.style.setProperty('--bg', tg.themeParams?.bg_color || getComputedStyle(document.documentElement).getPropertyValue('--bg'));
-    }
+if(tg?.initDataUnsafe?.user){
+  const user = tg.initDataUnsafe.user;
+  telegramId = user.id;
+  playerName = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+  playerUsername = user.username || '';
+  if(user.photo_url) playerAvatar = user.photo_url;
+}
 
-    /**********************
-     * UI Helpers
-     **********************/
-    const $ = (q)=>document.querySelector(q);
-    const $$ = (q)=>Array.from(document.querySelectorAll(q));
-    const yearEl = $('#year'); yearEl.textContent = new Date().getFullYear();
-    const userTagEl = $('#userTag');
+document.getElementById('playerName').textContent = playerName;
+document.getElementById('playerAvatar').src = playerAvatar;
 
-    function setUserTag(){
-      userTagEl.textContent = state.userId === 'guest' ? 'guest' : 'tg:' + state.userId;
-    }
+// Navigation Tabs
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
+    document.getElementById(tab.dataset.tab).classList.remove('hidden');
+  });
+});
 
-    // Tabs
-    $$('.tab').forEach(tab=>{
-      tab.addEventListener('click', ()=>{
-        const sel = tab.getAttribute('data-tab');
-        $$('.tab').forEach(t=>t.classList.toggle('active', t===tab));
-        $$('.page').forEach(p=>p.classList.add('hidden'));
-        document.getElementById(sel).classList.remove('hidden');
-        // haptic
-        tg?.HapticFeedback?.impactOccurred('light');
-      });
-    });
-    $('#startBtn').addEventListener('click', ()=>{
-      document.querySelector('.tab[data-tab="tasks"]').click();
-    });
+// API Helpers
+async function fetchUserData(){
+  if(!telegramId) return;
+  const res = await fetch(`/api/user/${telegramId}`);
+  const data = await res.json();
+  document.getElementById('playerPoints').textContent = data.points;
+  document.getElementById('playerReferral').textContent = data.referral_code;
+  renderTasks(data.tasks);
+  renderLeaderboard(data.leaderboard);
+}
 
-    /**********************
-     * Tasks
-     **********************/
-    // Configure your tasks here
-    const TASKS = [
-      { id:'tg',   title:'Follow on Telegram', sub:'Join our official channel', icon:'📣', url:'https://t.me/Creative_WorldX' },
-      { id:'x',    title:'Follow on X (Twitter)', sub:'Stay updated with news', icon:'🐦', url:'https://x.com' },
-      { id:'yt',   title:'Subscribe on YouTube', sub:'Watch tutorials & AMAs', icon:'▶️', url:'https://youtube.com' },
-    ];
-    // completed flags persist per user
-    function completedKey(id){ return `task_${id}_done_${state.userId}`; }
+async function claimReward(){
+  if(!telegramId) return;
+  const res = await fetch('/api/claim', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ telegram_id: telegramId })
+  });
+  const data = await res.json();
+  alert(data.message);
+  fetchUserData();
+}
 
-    function isCompleted(id){
-      return localStorage.getItem(completedKey(id)) === '1';
-    }
-    function setCompleted(id, v){
-      localStorage.setItem(completedKey(id), v ? '1' : '0');
-    }
+// Tasks Rendering
+function renderTasks(tasks){
+  const container = document.getElementById('taskList');
+  container.innerHTML = '';
+  tasks.forEach(task=>{
+    const btn = document.createElement('button');
+    btn.textContent = task.completed ? '✅ Completed' : 'Open';
+    btn.className = 'btn';
+    btn.addEventListener('click',()=>window.open(task.url,'_blank'));
+    container.appendChild(document.createTextNode(task.title + ' '));
+    container.appendChild(btn);
+    container.appendChild(document.createElement('br'));
+  });
+}
 
-    function openLink(url){
-      if(tg?.openLink){
-        tg.openLink(url, { try_instant_view: false });
-      }else{
-        window.open(url, '_blank');
-      }
-    }
+// Leaderboard Rendering
+function renderLeaderboard(leaderboard){
+  const container = document.getElementById('leaderList');
+  container.innerHTML = '';
+  leaderboard.forEach(player=>{
+    const div = document.createElement('div');
+    div.style.display='flex';
+    div.style.alignItems='center';
+    div.style.gap='12px';
+    div.innerHTML = `<img src="${player.photo_url||'default-avatar.png'}" width="50" height="50" style="border-radius:50%;"> 
+                     <b>${player.first_name} ${player.last_name}</b> - ${player.points} pts`;
+    container.appendChild(div);
+  });
+}
 
-    function renderTasks(){
-      const list = $('#taskList');
-      list.innerHTML = '';
-      TASKS.forEach(task=>{
-        const done = isCompleted(task.id);
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.innerHTML = `
-          <div class="left">
-            <div class="icon">${task.icon}</div>
-            <div class="meta">
-              <div class="title">${task.title}</div>
-              <div class="muted">${task.sub}</div>
-            </div>
-          </div>
-          <div class="right">
-            <button class="btn ${done?'secondary':''}" data-action="go" style="margin-bottom:8px;">${done?'Open':'Open'}</button>
-            <div class="center"><span class="state">${done?'✅ Completed':'⬜ Not done'}</span></div>
-          </div>
-        `;
-        const openBtn = div.querySelector('[data-action="go"]');
-        openBtn.addEventListener('click', async ()=>{
-          openLink(task.url);
-          // simple UX: after user clicks, allow them to mark as done
-          setTimeout(()=> {
-            if(confirm('Mark this task as completed?')){
-              setCompleted(task.id, true);
-              // reward small points once per task
-              if(!done){
-                state.points += 20;
-                saveState();
-                updatePoints();
-              }
-              renderTasks();
-              tg?.HapticFeedback?.notificationOccurred('success');
-            }
-          }, 500);
-        });
-        list.appendChild(div);
-      });
-    }
+// Button Events
+document.getElementById('claimBtn').addEventListener('click', claimReward);
 
-    function updatePoints(){
-      $('#points').textContent = state.points;
-    }
-
-    /**********************
-     * Claim Cooldown (6h)
-     **********************/
-    function canClaim(){
-      if(!state.lastClaimAt) return true;
-      const last = new Date(state.lastClaimAt).getTime();
-      const diffMs = Date.now() - last;
-      const need = state.cooldownHours * 3600 * 1000;
-      return diffMs >= need;
-    }
-    function msToHHMMSS(ms){
-      const total = Math.max(0, Math.floor(ms/1000));
-      const h = Math.floor(total/3600);
-      const m = Math.floor((total%3600)/60);
-      const s = total%60;
-      const pad = (n)=>String(n).padStart(2,'0');
-      return `${pad(h)}:${pad(m)}:${pad(s)}`;
-    }
-    function refreshCooldownUI(){
-      const cd = $('#cooldownText');
-      if(canClaim()){
-        cd.textContent = 'Ready';
-        cd.classList.remove('danger');
-        cd.classList.add('success');
-      }else{
-        const last = new Date(state.lastClaimAt).getTime();
-        const need = state.cooldownHours * 3600 * 1000;
-        const remain = (last + need) - Date.now();
-        cd.textContent = msToHHMMSS(remain);
-        cd.classList.add('danger');
-        cd.classList.remove('success');
-      }
-    }
-    let cdTimer = setInterval(refreshCooldownUI, 1000);
-
-    $('#claimBtn').addEventListener('click', ()=>{
-      if(!canClaim()){
-        alert('Claim not ready yet. Please wait until the cooldown ends.');
-        tg?.HapticFeedback?.notificationOccurred('error');
-        return;
-      }
-      state.points += 100;
-      state.lastClaimAt = new Date().toISOString();
-      saveState();
-      updatePoints();
-      refreshCooldownUI();
-      tg?.HapticFeedback?.notificationOccurred('success');
-    });
-
-    /**********************
-     * Wallet
-     **********************/
-    const TON_CONNECT_MANIFEST_URL = ""; // <-- If you host a manifest.json, paste its URL here.
-
-    $('#tgWalletBtn').addEventListener('click', ()=>{
-      // Quick path: open Telegram Wallet (TON Space)
-      const url = "https://t.me/wallet";
-      openLink(url);
-    });
-
-    let tonConnectUI = null;
-    $('#initTonConnectBtn').addEventListener('click', async ()=>{
-      if(!window.TonConnectUI){
-        alert('TON Connect UI script not loaded yet.');
-        return;
-      }
-      if(!TON_CONNECT_MANIFEST_URL){
-        alert('Please set TON_CONNECT_MANIFEST_URL in the code first.');
-        return;
-      }
-      if(tonConnectUI) return;
-
-      tonConnectUI = new TonConnectUI.TonConnectUI({
-        manifestUrl: TON_CONNECT_MANIFEST_URL,
-        buttonRootId: 'ton-connect-ui'
-      });
-
-      const updateWalletState = async ()=>{
-        const connected = await tonConnectUI.connected;
-        const el = document.getElementById('walletState');
-        if(connected){
-          const acc = tonConnectUI.account;
-          el.innerHTML = `Wallet: <b class="success">connected</b><br/><span class="small">Address: ${acc?.address?.slice(0,6)}…${acc?.address?.slice(-4) || ''}</span>`;
-        }else{
-          el.innerHTML = `Wallet: <b>disconnected</b>`;
-        }
-      };
-
-      tonConnectUI.onStatusChange(updateWalletState);
-      updateWalletState();
-
-      tg?.HapticFeedback?.impactOccurred('light');
-    });
-
-    /**********************
-     * Init
-     **********************/
-    function init(){
-      loadState();
-      setUserTag();
-      updatePoints();
-      renderTasks();
-      refreshCooldownUI();
-    }
-    init();
-  </script>
+// Initial Fetch
+fetchUserData();
+</script>
 </body>
-                                                              </html>
+  </html>
