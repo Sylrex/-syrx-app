@@ -4,146 +4,182 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SYRX Mini App</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <style>
-body{margin:0;font-family:sans-serif;background:#0b1020;color:#fff;display:flex;justify-content:center;}
-.app{max-width:700px;width:100%;padding:20px;}
-.card{background:#121832;border-radius:18px;padding:20px;margin-bottom:16px;text-align:center;}
-.logo-inner{font-size:28px;font-weight:800;color:#8fb6ff;}
-img{border-radius:50%;}
-.btn{padding:12px 20px;border:none;border-radius:14px;cursor:pointer;margin:8px 0;background:#2b47c8;color:#fff;font-weight:600;}
-.tab{cursor:pointer;padding:12px;background:#0d1430;margin:0 4px;border-radius:12px;display:inline-block;}
-.tab.active{background:linear-gradient(180deg,#1a2b6a,#0e163a);}
-.hidden{display:none;}
-.grid{display:grid;gap:12px;}
+body { margin:0; font-family:'Segoe UI',sans-serif; background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%); color:#fff; display:flex; justify-content:center; min-height:100vh;}
+.app { max-width:700px; width:100%; padding:20px;}
+.card { background:linear-gradient(145deg,#2d4a7a 0%,#1e3c72 100%); border-radius:20px; padding:28px; margin-bottom:20px; text-align:center; box-shadow:0 8px 25px rgba(0,0,0,0.3); border:1px solid #4a6fa5;}
+.logo-inner { font-size:36px; font-weight:900; color:#64b5f6; text-shadow:0 0 20px rgba(100,181,246,0.5); margin-bottom:20px;}
+.avatar { width:100px; height:100px; border-radius:50%; border:3px solid #8fb6ff; margin:16px auto; display:flex; align-items:center; justify-content:center; font-size:48px; background:linear-gradient(45deg,#2b47c8,#8fb6ff);}
+.btn { padding:12px 20px; border:none; border-radius:12px; cursor:pointer; margin:8px 4px; background:linear-gradient(45deg,#42a5f5,#1976d2); color:#fff; font-weight:600; font-size:14px; transition:all 0.3s ease; box-shadow:0 4px 15px rgba(66,165,245,0.3);}
+.btn:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(66,165,245,0.4);}
+.btn:disabled { opacity:0.6; cursor:not-allowed;}
+.tab { cursor:pointer; padding:14px 16px; background:#1e3c72; margin:0 4px; border-radius:12px; display:inline-block; transition:all 0.3s ease; font-weight:500; border:1px solid #4a6fa5; color:rgba(255,255,255,0.8);}
+.tab.active { background:linear-gradient(45deg,#42a5f5,#1976d2); border-color:#64b5f6; color:#fff;}
+.tab:hover:not(.active){ background:#2d4a7a;}
+.hidden{ display:none;}
+.grid{ display:grid; gap:12px;}
+.task-item{ background:rgba(100,181,246,0.1); border-radius:12px; padding:16px; margin:8px 0; display:flex; justify-content:space-between; align-items:center; border:1px solid rgba(100,181,246,0.2);}
+.task-item:hover{ background:rgba(100,181,246,0.15);}
+.task-info{ text-align:left;}
+.task-title{ font-weight:600; margin-bottom:4px;}
+.task-reward{ color:#8fb6ff; font-size:14px;}
+.leaderboard-item{ background:rgba(100,181,246,0.1); border-radius:12px; padding:16px; margin:8px 0; display:flex; align-items:center; gap:16px; border:1px solid rgba(100,181,246,0.2);}
+.rank{ font-size:24px; font-weight:800; color:#8fb6ff; min-width:40px;}
+.user-info{ flex:1; text-align:left;}
+.points-display{ font-size:24px; font-weight:700; color:#64b5f6; margin:16px 0;}
+.referral-code{ background:rgba(100,181,246,0.2); padding:12px; border-radius:8px; font-family:monospace; font-size:18px; font-weight:600; margin:16px 0; border:1px solid #64b5f6;}
 </style>
 </head>
 <body>
 <div class="app">
-  <!-- Navigation Tabs -->
-  <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;">
+<div class="grid" style="grid-template-columns:repeat(3,1fr); margin-bottom:20px;">
     <div class="tab active" data-tab="home">🏠 Home</div>
     <div class="tab" data-tab="tasks">✅ Tasks</div>
     <div class="tab" data-tab="leaderboard">🏆 Leaderboard</div>
-  </div>
-
-  <!-- Home Page -->
-  <section id="home" class="page">
-    <div class="card">
-      <div class="logo-inner">SYRX</div>
-      <h2>Welcome, <span id="playerName">Guest</span>!</h2>
-      <img id="playerAvatar" src="default-avatar.png" style="width:100px;height:100px;">
-      <p>Your Points: <span id="playerPoints">0</span></p>
-      <p>Your Referral Code: <span id="playerReferral">—</span></p>
-      <button class="btn" id="claimBtn">💎 Claim Reward</button>
-    </div>
-  </section>
-
-  <!-- Tasks Page -->
-  <section id="tasks" class="page hidden">
-    <div class="card">
-      <h3>Daily Tasks</h3>
-      <div id="taskList"></div>
-    </div>
-  </section>
-
-  <!-- Leaderboard Page -->
-  <section id="leaderboard" class="page hidden">
-    <div class="card">
-      <h3>Leaderboard</h3>
-      <div id="leaderList"></div>
-    </div>
-  </section>
 </div>
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<section id="home" class="page">
+<div class="card">
+    <div class="logo-inner">SYRX</div>
+    <h2>Welcome, <span id="playerName">Guest</span>!</h2>
+    <div class="avatar" id="playerAvatar">👤</div>
+    <div class="points-display">
+        <div>Your Points</div>
+        <div id="playerPoints">0</div>
+    </div>
+    <div>
+        <strong>Your Referral Code:</strong>
+        <div class="referral-code" id="playerReferral">-</div>
+    </div>
+
+    <button class="btn" id="claimBtn">💎 Claim Daily Reward</button>
+    <button class="btn" onclick="shareReferral()">📤 Share Link</button>
+    <button class="btn" id="connectWalletBtn">🔗 Connect TON Wallet</button>
+    <div id="walletAddress" style="margin-top:12px;"></div>
+</div>
+</section>
+
+<section id="tasks" class="page hidden">
+<div class="card">
+    <h3>📋 Tasks</h3>
+    <div id="taskList"></div>
+</div>
+</section>
+
+<section id="leaderboard" class="page hidden">
+<div class="card">
+    <h3>🏆 Top Players</h3>
+    <div id="leaderList"></div>
+</div>
+</section>
+</div>
+
+<script src="https://unpkg.com/@tonconnect/sdk/dist/tonconnect-sdk.min.js"></script>
 <script>
-const tg = window.Telegram?.WebApp;
-tg?.ready();
+let playerName='Guest';
+let gameData={points:0,referralCode:'',lastClaim:null,walletAddress:'',tasks:[],leaderboard:[]};
 
-let telegramId = null;
-let playerName = 'Guest';
-let playerAvatar = 'default-avatar.png';
-let playerUsername = '';
+function generateReferralCode(){ return 'SYRX-'+Math.random().toString(36).substring(2,8).toUpperCase(); }
+let storedCode=localStorage.getItem('referralCode');
+if(!storedCode){ storedCode=generateReferralCode(); localStorage.setItem('referralCode',storedCode);}
+gameData.referralCode=storedCode;
+document.getElementById('playerReferral').textContent=gameData.referralCode;
 
-if(tg?.initDataUnsafe?.user){
-  const user = tg.initDataUnsafe.user;
-  telegramId = user.id;
-  playerName = user.first_name + (user.last_name ? ' ' + user.last_name : '');
-  playerUsername = user.username || '';
-  if(user.photo_url) playerAvatar = user.photo_url;
-}
-
-document.getElementById('playerName').textContent = playerName;
-document.getElementById('playerAvatar').src = playerAvatar;
-
-// Navigation Tabs
 document.querySelectorAll('.tab').forEach(tab=>{
-  tab.addEventListener('click',()=>{
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    tab.classList.add('active');
-    document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
-    document.getElementById(tab.dataset.tab).classList.remove('hidden');
-  });
+    tab.addEventListener('click',()=>{
+        document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+        tab.classList.add('active');
+        document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
+        document.getElementById(tab.dataset.tab).classList.remove('hidden');
+    });
 });
 
-// API Helpers
-async function fetchUserData(){
-  if(!telegramId) return;
-  const res = await fetch(`/api/user/${telegramId}`);
-  const data = await res.json();
-  document.getElementById('playerPoints').textContent = data.points;
-  document.getElementById('playerReferral').textContent = data.referral_code;
-  renderTasks(data.tasks);
-  renderLeaderboard(data.leaderboard);
+gameData.tasks=[
+    {id:1,title:'Join Telegram',reward:100,completed:false,icon:'fab fa-telegram',url:'https://t.me/SylrexOfficial'},
+    {id:2,title:'Follow X',reward:120,completed:false,icon:'fab fa-x-twitter',url:'https://x.com/SylrexOfficial?t=xMY6eEauM0DXY5VllXdT-w&s=09'},
+    {id:3,title:'Like Facebook',reward:90,completed:false,icon:'fab fa-facebook',url:'https://www.facebook.com/share/1JYzm6CGsS/'},
+    {id:4,title:'Subscribe YouTube',reward:80,completed:false,icon:'fab fa-youtube',url:'https://www.youtube.com/@SylrexOfficial'}
+];
+
+function renderTasks(){
+    const container=document.getElementById('taskList'); container.innerHTML='';
+    gameData.tasks.forEach(task=>{
+        const div=document.createElement('div'); div.className='task-item';
+        div.innerHTML=`<div style="display:flex; align-items:center; gap:12px;">
+            <i class="${task.icon}" style="font-size:24px;"></i>
+            <div class="task-info">
+                <div class="task-title">${task.title}</div>
+                <div class="task-reward">+${task.reward} points</div>
+            </div>
+        </div>
+        <button class="btn" onclick="openTask('${task.id}')">${task.completed?'✅ Completed':'▶️ Open'}</button>`;
+        container.appendChild(div);
+    });
 }
 
-async function claimReward(){
-  if(!telegramId) return;
-  const res = await fetch('/api/claim', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({ telegram_id: telegramId })
-  });
-  const data = await res.json();
-  alert(data.message);
-  fetchUserData();
+function openTask(taskId){
+    const task=gameData.tasks.find(t=>t.id==taskId);
+    if(task && !task.completed){
+        window.open(task.url,'_blank');
+        task.completed=true;
+        gameData.points+=task.reward;
+        document.getElementById('playerPoints').textContent=gameData.points;
+        renderTasks();
+    }
 }
 
-// Tasks Rendering
-function renderTasks(tasks){
-  const container = document.getElementById('taskList');
-  container.innerHTML = '';
-  tasks.forEach(task=>{
-    const btn = document.createElement('button');
-    btn.textContent = task.completed ? '✅ Completed' : 'Open';
-    btn.className = 'btn';
-    btn.addEventListener('click',()=>window.open(task.url,'_blank'));
-    container.appendChild(document.createTextNode(task.title + ' '));
-    container.appendChild(btn);
-    container.appendChild(document.createElement('br'));
-  });
+gameData.leaderboard=[
+    {rank:1,name:'CryptoKing',points:15420},
+    {rank:2,name:'GameMaster',points:12890},
+    {rank:3,name:'Player1',points:gameData.points},
+    {rank:4,name:'TokenHunter',points:8760},
+    {rank:5,name:'BlockchainPro',points:7340}
+];
+
+function renderLeaderboard(){
+    const container=document.getElementById('leaderList'); container.innerHTML='';
+    gameData.leaderboard.forEach(player=>{
+        let rankEmoji='🥉'; if(player.rank===1) rankEmoji='🥇'; else if(player.rank===2) rankEmoji='🥈';
+        const div=document.createElement('div'); div.className='leaderboard-item';
+        div.innerHTML=`<div class="rank">${rankEmoji}</div>
+        <div class="user-info">
+            <div style="font-weight:600;">${player.name}</div>
+            <div style="color:#8fb6ff;">${player.points.toLocaleString()} points</div>
+        </div>`;
+        container.appendChild(div);
+    });
 }
 
-// Leaderboard Rendering
-function renderLeaderboard(leaderboard){
-  const container = document.getElementById('leaderList');
-  container.innerHTML = '';
-  leaderboard.forEach(player=>{
-    const div = document.createElement('div');
-    div.style.display='flex';
-    div.style.alignItems='center';
-    div.style.gap='12px';
-    div.innerHTML = `<img src="${player.photo_url||'default-avatar.png'}" width="50" height="50" style="border-radius:50%;"> 
-                     <b>${player.first_name} ${player.last_name}</b> - ${player.points} pts`;
-    container.appendChild(div);
-  });
+document.getElementById('claimBtn').addEventListener('click',()=>{
+    const now=new Date();
+    const lastClaim=gameData.lastClaim?new Date(gameData.lastClaim):null;
+    if(!lastClaim || now.getDate()!=lastClaim.getDate()){
+        const reward=50; gameData.points+=reward;
+        gameData.lastClaim=now.toISOString();
+        document.getElementById('playerPoints').textContent=gameData.points;
+        alert(`🎉 Daily reward claimed! +${reward} points`);
+        document.getElementById('claimBtn').disabled=true;
+        document.getElementById('claimBtn').textContent='✅ Claimed Today';
+    } else { alert('⏰ Daily reward already claimed!'); }
+});
+
+function shareReferral(){
+    const message=`🚀 Join SYRX! Use referral code: ${gameData.referralCode} \nLink: https://t.me/Creative_WorldX_bot/SYRXApp?ref=${gameData.referralCode}`;
+    if(navigator.share){ navigator.share({title:'Join SYRX', text:message}); }
+    else{ navigator.clipboard.writeText(message).then(()=>alert('📋 Referral copied!')); }
 }
 
-// Button Events
-document.getElementById('claimBtn').addEventListener('click', claimReward);
+const tonConnect=new TonConnect.TonConnect({appName:'SYRXApp'});
+document.getElementById('connectWalletBtn').addEventListener('click', async ()=>{
+    const provider=await tonConnect.connect();
+    const address=provider.account.address;
+    gameData.walletAddress=address;
+    document.getElementById('walletAddress').textContent='Wallet: '+address;
+});
 
-// Initial Fetch
-fetchUserData();
+renderTasks();
+renderLeaderboard();
 </script>
 </body>
   </html>
