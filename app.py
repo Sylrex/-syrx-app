@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 import sqlite3
-from datetime import datetime, date
 
 app = Flask(__name__)
 
