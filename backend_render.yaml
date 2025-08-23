@@ -1,12 +1,13 @@
+# Backend Service
 services:
   - type: web
     name: syrx-backend
     env: python
-    plan: free
     buildCommand: pip install -r backend_requirements.txt
-    startCommand: gunicorn -w 4 -k uvicorn.workers.UvicornWorker app:app
-    repo: https://github.com/your-repo/syrx-app
-    branch: main
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.8
+      - key: DATABASE_URL
+        fromDatabase: your-database-name
+      - key: SECRET_KEY
+        value: your-secret-key
+    autoDeploy: true
