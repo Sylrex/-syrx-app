@@ -23,9 +23,7 @@
             display: block;
         }
         .logo {
-            font-size: 48px;
-            color: #ffd700;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            width: 100px;
             margin-bottom: 20px;
         }
         .user-photo {
@@ -119,7 +117,7 @@
 </head>
 <body>
     <div id="home" class="page active">
-        <div class="logo">SYRX</div>
+        <img src="/public/icon.png" class="logo" alt="SYRX Logo">
         <img id="user-photo" class="user-photo" src="" alt="User Photo">
         <h2 id="user-name">Welcome!</h2>
         <p>User ID: <span id="user-id">Loading...</span></p>
@@ -169,33 +167,46 @@
             }
         }
 
-        // Points fetch
+        // Fetch points
         async function fetchPoints() {
-            const response = await fetch(`https://syrx.onrender.com/api/points/${userId}`);
-            const data = await response.json();
-            document.getElementById('points').innerText = data.points || 0;
+            try {
+                const response = await fetch(`https://syrx.onrender.com/api/points/${userId}`);
+                const data = await response.json();
+                document.getElementById('points').innerText = data.points || 0;
+            } catch (error) {
+                console.error('Error fetching points:', error);
+            }
         }
         fetchPoints();
 
         // Daily Login
         const dailyLoginBtn = document.getElementById('daily-login');
         async function checkDailyLogin() {
-            const response = await fetch(`https://syrx.onrender.com/api/daily-login/${userId}`);
-            const data = await response.json();
-            if (!data.canLogin) {
-                dailyLoginBtn.disabled = true;
-                dailyLoginBtn.innerText = 'Already Logged In Today';
+            try {
+                const response = await fetch(`https://syrx.onrender.com/api/daily-login/${userId}`);
+                const data = await response.json();
+                if (!data.can_login) {
+                    dailyLoginBtn.disabled = true;
+                    dailyLoginBtn.innerText = 'Already Logged In Today';
+                }
+            } catch (error) {
+                console.error('Error checking daily login:', error);
             }
         }
         checkDailyLogin();
         dailyLoginBtn.onclick = async () => {
-            const response = await fetch(`https://syrx.onrender.com/api/daily-login/${userId}`, { method: 'POST' });
-            const data = await response.json();
-            if (data.success) {
-                document.getElementById('points').innerText = data.points;
-                dailyLoginBtn.disabled = true;
-                dailyLoginBtn.innerText = 'Already Logged In Today';
-                WebApp.showAlert(' +10 points added!');
+            try {
+                const response = await fetch(`https://syrx.onrender.com/api/daily-login/${userId}`, { method: 'POST' });
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('points').innerText = data.points;
+                    dailyLoginBtn.disabled = true;
+                    dailyLoginBtn.innerText = 'Already Logged In Today';
+                    WebApp.showAlert('+10 points added!');
+                }
+            } catch (error) {
+                console.error('Error during daily login:', error);
+                WebApp.showAlert('Error during login. Try again.');
             }
         };
 
@@ -207,12 +218,16 @@
             youtube2: 'https://www.youtube.com/@Sylrex_Official'
         };
         async function completeTask(task) {
-            WebApp.openLink(taskLinks[task]);
-            const response = await fetch(`https://syrx.onrender.com/api/task/${userId}/${task}`, { method: 'POST' });
-            const data = await response.json();
-            if (data.success) {
-                document.getElementById('points').innerText = data.points;
-                WebApp.showAlert('Task completed! +5 points');
+            try {
+                WebApp.openLink(taskLinks[task]);
+                const response = await fetch(`https://syrx.onrender.com/api/task/${userId}/${task}`, { method: 'POST' });
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('points').innerText = data.points;
+                    WebApp.showAlert('Task completed! +5 points');
+                }
+            } catch (error) {
+                console.error('Error completing task:', error);
             }
         }
 
@@ -230,8 +245,8 @@
                 fetch(`https://syrx.onrender.com/api/wallet/${userId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ walletAddress: walletInfo.account.address })
-                });
+                    body: JSON.stringify({ wallet_address: walletInfo.account.address })
+                }).then(() => fetchPoints());
             } else {
                 walletStatus.innerText = 'Not Connected';
                 connectBtn.innerText = 'Connect TON Wallet';
@@ -244,22 +259,31 @@
         const refLink = `https://t.me/${botUsername}?start=ref_${userId}`;
         refLinkElem.innerText = refLink;
         async function shareRefLink() {
-            WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=Join SYRX and earn points!`);
-            await fetch(`https://syrx.onrender.com/api/referral/${userId}`, { method: 'POST' });
+            try {
+                WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=Join SYRX and earn points!`);
+                await fetch(`https://syrx.onrender.com/api/referral/${userId}`, { method: 'POST' });
+                fetchPoints();
+            } catch (error) {
+                console.error('Error sharing referral:', error);
+            }
         }
 
         // Leaderboard
         async function fetchLeaderboard() {
-            const response = await fetch('https://syrx.onrender.com/api/leaderboard');
-            const data = await response.json();
-            const leaderboard = document.getElementById('leaderboard');
-            leaderboard.innerHTML = '';
-            data.forEach((item, index) => {
-                const div = document.createElement('div');
-                div.className = 'leaderboard-item';
-                div.innerText = `#${index + 1} User${item.userId} - ${item.points} points`;
-                leaderboard.appendChild(div);
-            });
+            try {
+                const response = await fetch('https://syrx.onrender.com/api/leaderboard');
+                const data = await response.json();
+                const leaderboard = document.getElementById('leaderboard');
+                leaderboard.innerHTML = '';
+                data.forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'leaderboard-item';
+                    div.innerText = `#${index + 1} User${item.user_id} - ${item.points} points`;
+                    leaderboard.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Error fetching leaderboard:', error);
+            }
         }
         fetchLeaderboard();
 
@@ -270,4 +294,4 @@
         }
     </script>
 </body>
-                </html>
+    </html>
