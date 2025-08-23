@@ -5,15 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SYRX Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f4f8;
-            color: #333;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 20px;
+            background: linear-gradient(135deg, #1e3a8a, #10b981);
+            color: #fff;
             text-align: center;
+            min-height: 100vh;
         }
         .page {
             display: none;
@@ -23,50 +24,96 @@
         }
         .logo {
             font-size: 48px;
-            color: #007bff;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             margin-bottom: 20px;
         }
         .user-photo {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
-            margin-bottom: 10px;
+            border: 3px solid #fff;
+            margin-bottom: 15px;
+        }
+        .task-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 300px;
+            margin: 0 auto;
         }
         button {
-            background-color: #28a745;
-            color: white;
+            padding: 12px 20px;
             border: none;
-            padding: 10px 20px;
-            margin: 10px;
-            border-radius: 5px;
-            cursor: pointer;
+            border-radius: 8px;
             font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
         }
         button:hover {
-            background-color: #218838;
+            transform: scale(1.05);
+        }
+        .task-btn {
+            background-color: #3b82f6;
+            color: #fff;
+        }
+        .task-btn:hover {
+            background-color: #2563eb;
+        }
+        .daily-btn {
+            background-color: #10b981;
+            color: #fff;
+        }
+        .daily-btn:hover {
+            background-color: #059669;
+        }
+        .wallet-btn {
+            background-color: #f97316;
+            color: #fff;
+        }
+        .wallet-btn:hover {
+            background-color: #ea580c;
         }
         .nav-buttons {
             position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
-            background: #fff;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
             padding: 10px;
-            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-around;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .nav-buttons button {
+            background-color: #6b7280;
+            color: #fff;
+        }
+        .nav-buttons button:hover {
+            background-color: #4b5563;
         }
         .leaderboard {
             max-height: 300px;
             overflow-y: auto;
-            margin: 20px 0;
+            margin: 20px auto;
+            max-width: 300px;
         }
         .leaderboard-item {
-            background: #fff;
+            background: rgba(255, 255, 255, 0.2);
             padding: 10px;
             margin: 5px 0;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            color: #fff;
+        }
+        .referral-section {
+            margin: 20px 0;
+        }
+        .referral-section button {
+            background-color: #8b5cf6;
+        }
+        .referral-section button:hover {
+            background-color: #7c3aed;
         }
     </style>
 </head>
@@ -75,24 +122,29 @@
         <div class="logo">SYRX</div>
         <img id="user-photo" class="user-photo" src="" alt="User Photo">
         <h2 id="user-name">Welcome!</h2>
-        <p>Your points: <span id="points">0</span></p>
+        <p>User ID: <span id="user-id">Loading...</span></p>
+        <p>Your Points: <span id="points">0</span></p>
     </div>
 
     <div id="tasks" class="page">
         <h2>Tasks</h2>
-        <button onclick="openLink('https://x.com/SylrexOfficial?t=xMY6eEauM0DXY5VllXdT-w&s=09')">Follow X Account</button>
-        <button onclick="openLink('https://www.facebook.com/share/1JYzm6CGsS/')">Follow Facebook</button>
-        <button onclick="openLink('https://www.youtube.com/@SylrexOfficial')">Follow YouTube 1</button>
-        <button onclick="openLink('https://www.youtube.com/@Sylrex_Official')">Follow YouTube 2</button>
-        <button id="daily-login">Daily Login ( +10 points )</button>
-        <button id="connect-wallet">Connect TON Wallet</button>
+        <div class="task-buttons">
+            <button class="task-btn" onclick="completeTask('x')">Follow X Account</button>
+            <button class="task-btn" onclick="completeTask('facebook')">Follow Facebook</button>
+            <button class="task-btn" onclick="completeTask('youtube1')">Follow YouTube 1</button>
+            <button class="task-btn" onclick="completeTask('youtube2')">Follow YouTube 2</button>
+            <button class="daily-btn" id="daily-login">Daily Login (+10 points)</button>
+            <button class="wallet-btn" id="connect-wallet">Connect TON Wallet</button>
+        </div>
         <p>Wallet Status: <span id="wallet-status">Not Connected</span></p>
     </div>
 
     <div id="referrals" class="page">
         <h2>Referrals</h2>
-        <p>Your Referral Link: <span id="ref-link">Generating...</span></p>
-        <button onclick="shareRefLink()">Share Link</button>
+        <div class="referral-section">
+            <p>Your Referral Link: <span id="ref-link">Generating...</span></p>
+            <button onclick="shareRefLink()">Share Referral Link</button>
+        </div>
         <h3>Top 100 Leaderboard</h3>
         <div class="leaderboard" id="leaderboard"></div>
     </div>
@@ -108,93 +160,108 @@
         WebApp.ready();
 
         const user = WebApp.initDataUnsafe.user;
+        let userId = user ? user.id : 'guest';
         if (user) {
             document.getElementById('user-name').innerText = `Welcome, ${user.first_name || 'User'}!`;
+            document.getElementById('user-id').innerText = userId;
             if (user.photo_url) {
                 document.getElementById('user-photo').src = user.photo_url;
             }
         }
 
-        // Theme for attractive colors
-        const theme = WebApp.themeParams;
-        document.body.style.backgroundColor = theme.bg_color || '#f0f4f8';
-        document.body.style.color = theme.text_color || '#333';
-
-        // Points mock (use localStorage)
-        let points = localStorage.getItem('points') || 0;
-        document.getElementById('points').innerText = points;
+        // Points fetch
+        async function fetchPoints() {
+            const response = await fetch(`https://syrx.onrender.com/api/points/${userId}`);
+            const data = await response.json();
+            document.getElementById('points').innerText = data.points || 0;
+        }
+        fetchPoints();
 
         // Daily Login
         const dailyLoginBtn = document.getElementById('daily-login');
-        const lastLogin = localStorage.getItem('lastLogin');
-        const today = new Date().toDateString();
-        if (lastLogin === today) {
-            dailyLoginBtn.disabled = true;
-            dailyLoginBtn.innerText = 'Already Logged In Today';
+        async function checkDailyLogin() {
+            const response = await fetch(`https://syrx.onrender.com/api/daily-login/${userId}`);
+            const data = await response.json();
+            if (!data.canLogin) {
+                dailyLoginBtn.disabled = true;
+                dailyLoginBtn.innerText = 'Already Logged In Today';
+            }
         }
-        dailyLoginBtn.onclick = () => {
-            points = parseInt(points) + 10;
-            localStorage.setItem('points', points);
-            localStorage.setItem('lastLogin', today);
-            document.getElementById('points').innerText = points;
-            dailyLoginBtn.disabled = true;
-            dailyLoginBtn.innerText = 'Already Logged In Today';
-            alert(' +10 points added!');
+        checkDailyLogin();
+        dailyLoginBtn.onclick = async () => {
+            const response = await fetch(`https://syrx.onrender.com/api/daily-login/${userId}`, { method: 'POST' });
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById('points').innerText = data.points;
+                dailyLoginBtn.disabled = true;
+                dailyLoginBtn.innerText = 'Already Logged In Today';
+                WebApp.showAlert(' +10 points added!');
+            }
         };
 
-        // TON Wallet Connection
-        const connector = new TonConnectSDK.TonConnect();
-        const walletStatus = document.getElementById('wallet-status');
-        const connectBtn = document.getElementById('connect-wallet');
+        // Tasks
+        const taskLinks = {
+            x: 'https://x.com/SylrexOfficial?t=xMY6eEauM0DXY5VllXdT-w&s=09',
+            facebook: 'https://www.facebook.com/share/1JYzm6CGsS/',
+            youtube1: 'https://www.youtube.com/@SylrexOfficial',
+            youtube2: 'https://www.youtube.com/@Sylrex_Official'
+        };
+        async function completeTask(task) {
+            WebApp.openLink(taskLinks[task]);
+            const response = await fetch(`https://syrx.onrender.com/api/task/${userId}/${task}`, { method: 'POST' });
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById('points').innerText = data.points;
+                WebApp.showAlert('Task completed! +5 points');
+            }
+        }
 
-        connector.onStatusChange(walletInfo => {
+        // TON Wallet Connection
+        const tonConnectUI = new TONConnectUI.TonConnectUI({
+            manifestUrl: 'https://syrx.onrender.com/tonconnect-manifest.json',
+            buttonRootId: 'connect-wallet'
+        });
+        tonConnectUI.onStatusChange(walletInfo => {
+            const walletStatus = document.getElementById('wallet-status');
+            const connectBtn = document.getElementById('connect-wallet');
             if (walletInfo) {
-                walletStatus.innerText = 'Connected: ' + walletInfo.account.address;
+                walletStatus.innerText = `Connected: ${walletInfo.account.address.slice(0, 6)}...${walletInfo.account.address.slice(-4)}`;
                 connectBtn.innerText = 'Disconnect Wallet';
-                connectBtn.onclick = () => connector.disconnect();
+                fetch(`https://syrx.onrender.com/api/wallet/${userId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ walletAddress: walletInfo.account.address })
+                });
             } else {
                 walletStatus.innerText = 'Not Connected';
                 connectBtn.innerText = 'Connect TON Wallet';
-                connectBtn.onclick = connectWallet;
             }
         });
 
-        async function connectWallet() {
-            const wallets = await connector.getWallets();
-            // For simplicity, connect to first wallet (e.g., Tonkeeper)
-            const link = connector.connect({ jsBridgeKey: 'tonkeeper' }); // Adjust for other wallets
-            WebApp.openLink(link); // Open in Telegram
-        }
-        connectBtn.onclick = connectWallet;
-
-        // Open Links
-        function openLink(url) {
-            WebApp.openLink(url);
-            // Add points mock for completing task
-            points = parseInt(points) + 5;
-            localStorage.setItem('points', points);
-            document.getElementById('points').innerText = points;
-            alert('Task completed! +5 points');
-        }
-
         // Referral System
         const refLinkElem = document.getElementById('ref-link');
-        const botUsername = '@SYRXApp_bot'; // Replace with your bot's username
-        const refLink = `https://t.me/${botUsername}?start=ref_${user ? user.id : 'guest'}`;
+        const botUsername = 'SYRXApp_bot';
+        const refLink = `https://t.me/${botUsername}?start=ref_${userId}`;
         refLinkElem.innerText = refLink;
-
-        function shareRefLink() {
+        async function shareRefLink() {
             WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=Join SYRX and earn points!`);
+            await fetch(`https://syrx.onrender.com/api/referral/${userId}`, { method: 'POST' });
         }
 
-        // Leaderboard Mock (Top 100 by points)
-        const leaderboard = document.getElementById('leaderboard');
-        for (let i = 1; i <= 100; i++) {
-            const item = document.createElement('div');
-            item.className = 'leaderboard-item';
-            item.innerText = `#${i} User${i} - ${1000 - i * 10} points`;
-            leaderboard.appendChild(item);
+        // Leaderboard
+        async function fetchLeaderboard() {
+            const response = await fetch('https://syrx.onrender.com/api/leaderboard');
+            const data = await response.json();
+            const leaderboard = document.getElementById('leaderboard');
+            leaderboard.innerHTML = '';
+            data.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'leaderboard-item';
+                div.innerText = `#${index + 1} User${item.userId} - ${item.points} points`;
+                leaderboard.appendChild(div);
+            });
         }
+        fetchLeaderboard();
 
         // Navigation
         function showPage(pageId) {
@@ -203,4 +270,4 @@
         }
     </script>
 </body>
-</html>
+                </html>
