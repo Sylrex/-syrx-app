@@ -1,389 +1,206 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SylrexOfficial - متابعة الحسابات</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>SYRX Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
         body {
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-            color: #fff;
-            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            margin: 0;
             padding: 20px;
-        }
-        
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-        
-        header {
             text-align: center;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.5);
         }
-        
-        .logo {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 15px;
-            background: linear-gradient(135deg, #fdbb2d, #b21f1f);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            font-weight: bold;
-            border: 5px solid white;
-        }
-        
-        h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-            color: #fdbb2d;
-        }
-        
         .page {
             display: none;
-            padding: 20px;
         }
-        
         .active {
             display: block;
         }
-        
-        .social-links {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            margin: 20px 0;
+        .logo {
+            font-size: 48px;
+            color: #007bff;
+            margin-bottom: 20px;
         }
-        
-        .social-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: white;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 15px;
+        .user-photo {
             width: 100px;
-            transition: all 0.3s;
-        }
-        
-        .social-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-5px);
-        }
-        
-        .social-icon {
-            font-size: 30px;
+            height: 100px;
+            border-radius: 50%;
             margin-bottom: 10px;
         }
-        
-        .twitter { color: #1DA1F2; }
-        .facebook { color: #4267B2; }
-        .youtube { color: #FF0000; }
-        
-        .nav {
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .nav-buttons {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #fff;
+            padding: 10px;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-around;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 15px;
         }
-        
-        .nav-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 16px;
-            padding: 10px 15px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .nav-btn.active {
-            background: rgba(253, 187, 45, 0.3);
-        }
-        
-        .nav-btn:hover {
-            background: rgba(253, 187, 45, 0.2);
-        }
-        
-        .task-btn {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            background: linear-gradient(to right, #b21f1f, #fdbb2d);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-            text-align: right;
-            transition: all 0.3s;
-        }
-        
-        .task-btn:hover {
-            opacity: 0.9;
-            transform: scale(1.02);
-        }
-        
-        .task-btn i {
-            margin-left: 10px;
-        }
-        
-        .daily-login {
-            text-align: center;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
+        .leaderboard {
+            max-height: 300px;
+            overflow-y: auto;
             margin: 20px 0;
         }
-        
-        .wallet-connect {
-            background: #0088cc;
-        }
-        
         .leaderboard-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px;
-            margin: 10px 0;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-        
-        .rank {
-            font-weight: bold;
-            color: #fdbb2d;
-        }
-        
-        .points {
-            background: #b21f1f;
-            padding: 5px 10px;
-            border-radius: 20px;
-        }
-        
-        .user-rank {
-            background: rgba(253, 187, 45, 0.2);
-            border: 2px solid #fdbb2d;
-        }
-        
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.8);
-            border-left: 5px solid #fdbb2d;
+            background: #fff;
+            padding: 10px;
+            margin: 5px 0;
             border-radius: 5px;
-            display: none;
-            max-width: 300px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="logo">SYRX</div>
-            <h1>SylrexOfficial</h1>
-            <p>تابعنا على منصات التواصل الاجتماعي</p>
-        </header>
-        
-        <div class="nav">
-            <button class="nav-btn active" onclick="showPage(0)">الرئيسية</button>
-            <button class="nav-btn" onclick="showPage(1)">المهام</button>
-            <button class="nav-btn" onclick="showPage(2)">التصنيف</button>
-        </div>
-        
-        <!-- الصفحة الرئيسية -->
-        <div class="page active">
-            <div class="social-links">
-                <a href="https://x.com/SylrexOfficial" class="social-btn" target="_blank">
-                    <i class="fab fa-x-twitter social-icon twitter"></i>
-                    <span>تويتر</span>
-                </a>
-                <a href="https://www.facebook.com/share/1JYzm6CGsS/" class="social-btn" target="_blank">
-                    <i class="fab fa-facebook social-icon facebook"></i>
-                    <span>فيسبوك</span>
-                </a>
-                <a href="https://www.youtube.com/@SylrexOfficial" class="social-btn" target="_blank">
-                    <i class="fab fa-youtube social-icon youtube"></i>
-                    <span>يوتيوب 1</span>
-                </a>
-                <a href="https://www.youtube.com/@Sylrex_Official" class="social-btn" target="_blank">
-                    <i class="fab fa-youtube social-icon youtube"></i>
-                    <span>يوتيوب 2</span>
-                </a>
-            </div>
-            
-            <div style="text-align: center; margin-top: 20px;">
-                <h2>مرحباً بك في SylrexOfficial</h2>
-                <p style="margin: 15px 0; line-height: 1.6;">انضم إلى مجتمعنا وكن جزءاً من رحلتنا على منصات التواصل الاجتماعي المختلفة واكسب النقاط من خلال المهام اليومية.</p>
-                
-                <div style="background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 15px;">
-                    <h3>إحصائياتك</h3>
-                    <div style="display: flex; justify-content: space-around; margin-top: 15px;">
-                        <div>
-                            <div style="font-size: 24px; color: #fdbb2d;">0</div>
-                            <div>النقاط</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 24px; color: #fdbb2d;">0</div>
-                            <div>المهام</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 24px; color: #fdbb2d;">-</div>
-                            <div>المستوى</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- صفحة المهام -->
-        <div class="page">
-            <h2 style="text-align: center; margin-bottom: 20px;">المهام اليومية</h2>
-            
-            <button class="task-btn">
-                <i class="fas fa-check-circle"></i> متابعة حساب تويتر
-            </button>
-            
-            <button class="task-btn">
-                <i class="fas fa-check-circle"></i> متابعة حساب فيسبوك
-            </button>
-            
-            <button class="task-btn">
-                <i class="fas fa-check-circle"></i> الإعجاب بفيديو على يوتيوب
-            </button>
-            
-            <button class="task-btn">
-                <i class="fas fa-check-circle"></i> مشاركة منشور
-            </button>
-            
-            <button class="task-btn">
-                <i class="fas fa-check-circle"></i> التعليق على منشور
-            </button>
-            
-            <div class="daily-login">
-                <h3>تسجيل الدخول اليومي</h3>
-                <p style="margin: 15px 0;">سجل دخولك اليومي لتحصل على 10 نقاط إضافية!</p>
-                <button class="task-btn" style="background: linear-gradient(to right, #1a2a6c, #b21f1f);">
-                    <i class="fas fa-gift"></i> تسجيل الدخول اليومي
-                </button>
-                <p style="margin-top: 15px;">You have logged in for 0 consecutive days</p>
-            </div>
-            
-            <button class="task-btn wallet-connect">
-                <i class="fas fa-wallet"></i> الاتصال بمحفظة تيليجرام TON
-            </button>
-        </div>
-        
-        <!-- صفحة التصنيف -->
-        <div class="page">
-            <h2 style="text-align: center; margin-bottom: 20px;">تصنيف أفضل 100</h2>
-            
-            <div class="leaderboard-item user-rank">
-                <div>أنت <span class="rank">#0</span></div>
-                <div class="points">0 نقاط</div>
-            </div>
-            
-            <div id="leaderboard">
-                <!-- سيتم إضافة العناصر هنا via JavaScript -->
-            </div>
-        </div>
+    <div id="home" class="page active">
+        <div class="logo">SYRX</div>
+        <img id="user-photo" class="user-photo" src="" alt="User Photo">
+        <h2 id="user-name">Welcome!</h2>
+        <p>Your points: <span id="points">0</span></p>
     </div>
-    
-    <div class="notification" id="notification">
-        تم تنفيذ المهمة بنجاح! لقد ربحت 5 نقاط.
+
+    <div id="tasks" class="page">
+        <h2>Tasks</h2>
+        <button onclick="openLink('https://x.com/SylrexOfficial?t=xMY6eEauM0DXY5VllXdT-w&s=09')">Follow X Account</button>
+        <button onclick="openLink('https://www.facebook.com/share/1JYzm6CGsS/')">Follow Facebook</button>
+        <button onclick="openLink('https://www.youtube.com/@SylrexOfficial')">Follow YouTube 1</button>
+        <button onclick="openLink('https://www.youtube.com/@Sylrex_Official')">Follow YouTube 2</button>
+        <button id="daily-login">Daily Login ( +10 points )</button>
+        <button id="connect-wallet">Connect TON Wallet</button>
+        <p>Wallet Status: <span id="wallet-status">Not Connected</span></p>
+    </div>
+
+    <div id="referrals" class="page">
+        <h2>Referrals</h2>
+        <p>Your Referral Link: <span id="ref-link">Generating...</span></p>
+        <button onclick="shareRefLink()">Share Link</button>
+        <h3>Top 100 Leaderboard</h3>
+        <div class="leaderboard" id="leaderboard"></div>
+    </div>
+
+    <div class="nav-buttons">
+        <button onclick="showPage('home')">Home</button>
+        <button onclick="showPage('tasks')">Tasks</button>
+        <button onclick="showPage('referrals')">Referrals</button>
     </div>
 
     <script>
-        // بيانات التصنيف
-        const leaderboardData = [
-            { name: "أحمد", points: 1250 },
-            { name: "محمد", points: 1150 },
-            { name: "فاطمة", points: 980 },
-            { name: "علي", points: 875 },
-            { name: "يوسف", points: 760 },
-            { name: "سارة", points: 650 },
-            { name: "مريم", points: 540 },
-            { name: "خالد", points: 430 },
-            { name: "نورة", points: 320 },
-            { name: "عمر", points: 210 }
-        ];
-        
-        // عرض التصنيف
+        const WebApp = window.Telegram.WebApp;
+        WebApp.ready();
+
+        const user = WebApp.initDataUnsafe.user;
+        if (user) {
+            document.getElementById('user-name').innerText = `Welcome, ${user.first_name || 'User'}!`;
+            if (user.photo_url) {
+                document.getElementById('user-photo').src = user.photo_url;
+            }
+        }
+
+        // Theme for attractive colors
+        const theme = WebApp.themeParams;
+        document.body.style.backgroundColor = theme.bg_color || '#f0f4f8';
+        document.body.style.color = theme.text_color || '#333';
+
+        // Points mock (use localStorage)
+        let points = localStorage.getItem('points') || 0;
+        document.getElementById('points').innerText = points;
+
+        // Daily Login
+        const dailyLoginBtn = document.getElementById('daily-login');
+        const lastLogin = localStorage.getItem('lastLogin');
+        const today = new Date().toDateString();
+        if (lastLogin === today) {
+            dailyLoginBtn.disabled = true;
+            dailyLoginBtn.innerText = 'Already Logged In Today';
+        }
+        dailyLoginBtn.onclick = () => {
+            points = parseInt(points) + 10;
+            localStorage.setItem('points', points);
+            localStorage.setItem('lastLogin', today);
+            document.getElementById('points').innerText = points;
+            dailyLoginBtn.disabled = true;
+            dailyLoginBtn.innerText = 'Already Logged In Today';
+            alert(' +10 points added!');
+        };
+
+        // TON Wallet Connection
+        const connector = new TonConnectSDK.TonConnect();
+        const walletStatus = document.getElementById('wallet-status');
+        const connectBtn = document.getElementById('connect-wallet');
+
+        connector.onStatusChange(walletInfo => {
+            if (walletInfo) {
+                walletStatus.innerText = 'Connected: ' + walletInfo.account.address;
+                connectBtn.innerText = 'Disconnect Wallet';
+                connectBtn.onclick = () => connector.disconnect();
+            } else {
+                walletStatus.innerText = 'Not Connected';
+                connectBtn.innerText = 'Connect TON Wallet';
+                connectBtn.onclick = connectWallet;
+            }
+        });
+
+        async function connectWallet() {
+            const wallets = await connector.getWallets();
+            // For simplicity, connect to first wallet (e.g., Tonkeeper)
+            const link = connector.connect({ jsBridgeKey: 'tonkeeper' }); // Adjust for other wallets
+            WebApp.openLink(link); // Open in Telegram
+        }
+        connectBtn.onclick = connectWallet;
+
+        // Open Links
+        function openLink(url) {
+            WebApp.openLink(url);
+            // Add points mock for completing task
+            points = parseInt(points) + 5;
+            localStorage.setItem('points', points);
+            document.getElementById('points').innerText = points;
+            alert('Task completed! +5 points');
+        }
+
+        // Referral System
+        const refLinkElem = document.getElementById('ref-link');
+        const botUsername = '@SYRXApp_bot'; // Replace with your bot's username
+        const refLink = `https://t.me/${botUsername}?start=ref_${user ? user.id : 'guest'}`;
+        refLinkElem.innerText = refLink;
+
+        function shareRefLink() {
+            WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=Join SYRX and earn points!`);
+        }
+
+        // Leaderboard Mock (Top 100 by points)
         const leaderboard = document.getElementById('leaderboard');
-        leaderboardData.forEach((user, index) => {
+        for (let i = 1; i <= 100; i++) {
             const item = document.createElement('div');
             item.className = 'leaderboard-item';
-            item.innerHTML = `
-                <div>${index+1}. ${user.name}</div>
-                <div class="points">${user.points} نقاط</div>
-            `;
+            item.innerText = `#${i} User${i} - ${1000 - i * 10} points`;
             leaderboard.appendChild(item);
-        });
-        
-        // وظيفة تبديل الصفحات
-        function showPage(pageIndex) {
-            document.querySelectorAll('.page').forEach((page, index) => {
-                if (index === pageIndex) {
-                    page.classList.add('active');
-                } else {
-                    page.classList.remove('active');
-                }
-            });
-            
-            document.querySelectorAll('.nav-btn').forEach((btn, index) => {
-                if (index === pageIndex) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
         }
-        
-        // محاكاة إكمال المهام
-        document.querySelectorAll('.task-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                if (this.textContent.includes('تسجيل الدخول اليومي')) {
-                    showNotification('تم تسجيل الدخول اليومي بنجاح! لقد ربحت 10 نقاط.');
-                } else if (this.textContent.includes('محفظة')) {
-                    showNotification('جاري الاتصال بمحفظة تيليجرام TON...');
-                } else {
-                    showNotification('تم تنفيذ المهمة بنجاح! لقد ربحت 5 نقاط.');
-                }
-            });
-        });
-        
-        // عرض الإشعارات
-        function showNotification(message) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.style.display = 'block';
-            
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 3000);
+
+        // Navigation
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
         }
     </script>
 </body>
-    </html>
+</html>
