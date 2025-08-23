@@ -1,112 +1,107 @@
-import logging
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQueryHandler
-import requests
+from flask import Flask, request, jsonify
+import sqlite3
+from datetime import datetime, date
 
-# إعداد التسجيل (logging)
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-logger = logging.getLogger(__name__)
+app = Flask(__name__)
 
-# استبدل هذا برمز API Token الخاص بك من BotFather
-BOT_TOKEN = 'YOUR_BOT_TOKEN_HERE'
+# إعداد قاعدة بيانات SQLite
+def init_db():
+    conn = sqlite3.connect('syrx.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS users
+                 (user_id TEXT PRIMARY KEY, points INTEGER DEFAULT 0, last_login TEXT, wallet_address TEXT)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS tasks
+                 (user_id TEXT, task TEXT, completed BOOLEAN, PRIMARY KEY (user_id, task))''')
+    conn.commit()
+    conn.close()
 
-# رابط الخادم الخلفي (Backend API)
-BACKEND_URL = 'https://your-backend.onrender.com/api'
+init_db()
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user = update.effective_user
-    user_id = user.id
-    user_name = user.first_name or 'User'
+@app.route('/api/points/<user_id>', methods=['GET'])
+def get_points(user_id):
+    conn = sqlite3.connect('syrx.db')
+    c = conn.cursor()
+    c.execute('SELECT points FROM users WHERE user_id = ?', (user_id,))
+    result = c.fetchone()
+    conn.close()
+    points = result[0] if result else 0
+    return jsonify({'points': points})
 
-    # جلب النقاط من الخادم
-    try:
-        response = requests.get(f'{BACKEND_URL}/points/{user_id}')
-        data = response.json()
-        points = data.get('points', 0)
-    except Exception as e:
-        logger.error(f'Error fetching points: {e}')
-        points = 0
+@app.route('/api/daily-login/<user_id>', methods=['GET', 'POST'])
+def daily_login(user_id):
+    conn = sqlite3.connect('syrx.db')
+    c = conn.cursor()
+    c.execute('SELECT last_login, points FROM users WHERE user_id = ?', (user_id,))
+    result = c.fetchone()
 
-    # إنشاء رابط التطبيق المصغر
-    mini_app_url = f'https://your-mini-app-url.com'  # استبدل برابط التطبيق المصغر الخاص بك
-    
-    # إنشاء لوحة مفاتيح مع زر لفتح التطبيق المصغر
-    keyboard = [
-        [InlineKeyboardButton("فتح التطبيق المصغر", web_app={'url': mini_app_url})],
-        [InlineKeyboardButton("عرض المهام", callback_data='tasks')],
-        [InlineKeyboardButton("رابط الإحالة", callback_data='referrals')]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
+    today = str(date.today())
 
-    # إرسال رسالة ترحيب
-    await update.message.reply_text(
-        f"مرحبًا {user_name}!\nمعرفك: {user_id}\nنقاطك: {points}\nاضغط لفتح التطبيق المصغر أو اختر أمرًا.",
-        reply_markup=reply_markup
-    )
+    if request.method == 'GET':
+        can_login = not result or result[0] != today
+        conn.close()
+        return jsonify({'can_login': can_login})
 
-async def tasks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user_id = update.effective_user.id
+    if request.method == 'POST':
+        if not result or result[0] != today:
+            new_points = (result[1] if result else 0) + 10
+            c.execute('INSERT OR REPLACE INTO users (user_id, points, last_login) VALUES (?, ?, ?)',
+                      (user_id, new_points, today))
+            conn.commit()
+            conn.close()
+            return jsonify({'success': True, 'points': new_points})
+        conn.close()
+        return jsonify({'success': False})
 
-    # جلب حالة تسجيل الدخول اليومي
-    try:
-        response = requests.get(f'{BACKEND_URL}/daily-login/{user_id}')
-        data = response.json()
-        daily_login_text = "تسجيل الدخول اليومي: تم" if not data.get('can_login', True) else "تسجيل الدخول اليومي: متاح (+10 نقاط)"
-    except Exception as e:
-        logger.error(f'Error checking daily login: {e}')
-        daily_login_text = "تسجيل الدخول اليومي: متاح (+10 نقاط)"
+@app.route('/api/task/<user_id>/<task>', methods=['POST'])
+def complete_task(user_id, task):
+    conn = sqlite3.connect('syrx.db')
+    c = conn.cursor()
+    c.execute('SELECT completed FROM tasks WHERE user_id = ? AND task = ?', (user_id, task))
+    if not c.fetchone():
+        c.execute('INSERT INTO tasks (user_id, task, completed) VALUES (?, ?, ?)', (user_id, task, True))
+        c.execute('UPDATE users SET points = points + 5 WHERE user_id = ?', (user_id,))
+        c.execute('SELECT points FROM users WHERE user_id = ?', (user_id,))
+        points = c.fetchone()[0]
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True, 'points': points})
+    conn.close()
+    return jsonify({'success': False})
 
-    # قائمة المهام
-    tasks_text = (
-        "📋 المهام المتاحة:\n"
-        "1. متابعة حساب X: +5 نقاط\n"
-        "2. متابعة صفحة فيسبوك: +5 نقاط\n"
-        "3. متابعة قناة يوتيوب 1: +5 نقاط\n"
-        "4. متابعة قناة يوتيوب 2: +5 نقاط\n"
-        f"5. {daily_login_text}\n"
-        "6. ربط محفظة TON: +10 نقاط"
-    )
-    await update.message.reply_text(tasks_text)
+@app.route('/api/leaderboard', methods=['GET'])
+def leaderboard():
+    conn = sqlite3.connect('syrx.db')
+    c = conn.cursor()
+    c.execute('SELECT user_id, points FROM users ORDER BY points DESC LIMIT 100')
+    result = [{'user_id': row[0], 'points': row[1]} for row in c.fetchall()]
+    conn.close()
+    return jsonify(result)
 
-async def referrals(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user_id = update.effective_user.id
-    bot_username = context.bot.username
-    ref_link = f"https://t.me/{bot_username}?start=ref_{user_id}"
+@app.route('/api/wallet/<user_id>', methods=['POST'])
+def save_wallet(user_id):
+    data = request.json
+    wallet_address = data.get('wallet_address')
+    if wallet_address:
+        conn = sqlite3.connect('syrx.db')
+        c = conn.cursor()
+        c.execute('UPDATE users SET wallet_address = ? WHERE user_id = ?', (wallet_address, user_id))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    return jsonify({'success': False})
 
-    # جلب لوحة المتصدرين
-    try:
-        response = requests.get(f'{BACKEND_URL}/leaderboard')
-        data = response.json()
-        leaderboard = "\n".join([f"#{i+1} User{item['user_id']} - {item['points']} نقاط" for i, item in enumerate(data[:5])])
-    except Exception as e:
-        logger.error(f'Error fetching leaderboard: {e}')
-        leaderboard = "غير متاح حاليًا"
-
-    await update.message.reply_text(
-        f"🔗 رابط الإحالة الخاص بك:\n{ref_link}\n\n🏆 أفضل 5 متصدرين:\n{leaderboard}"
-    )
-
-async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    await query.answer()
-
-    if query.data == 'tasks':
-        await tasks(update, context)
-    elif query.data == 'referrals':
-        await referrals(update, context)
-
-def main() -> None:
-    # إنشاء التطبيق
-    application = Application.builder().token(BOT_TOKEN).build()
-
-    # إضافة معالجات الأوامر
-    application.add_handler(CommandHandler('start', start))
-    application.add_handler(CommandHandler('tasks', tasks))
-    application.add_handler(CommandHandler('referrals', referrals))
-    application.add_handler(CallbackQueryHandler(button_callback))
-
-    # بدء البوت
-    application.run_polling()
+@app.route('/api/referral/<user_id>', methods=['POST'])
+def handle_referral(user_id):
+    data = request.json
+    referred_user = data.get('referred_user')
+    if referred_user:
+        conn = sqlite3.connect('syrx.db')
+        c = conn.cursor()
+        c.execute('UPDATE users SET points = points + 10 WHERE user_id = ?', (user_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    return jsonify({'success': False})
 
 if __name__ == '__main__':
-    main()
+    app.run(host='0.0.0.0', port=5000, debug=True)
