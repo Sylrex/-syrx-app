@@ -1,84 +1,88 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
-const bodyParser = require('body-parser');
+const { Pool } = require('pg');
 const cors = require('cors');
-const path = require('path');
+require('dotenv').config();
 
 const app = express();
-const port = process.env.PORT || 3000;
-
 app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
 
-// قاعدة بيانات SQLite
-const db = new sqlite3.Database('./database.sqlite', (err) => {
-    if (err) console.error(err.message);
-    else console.log('Connected to SQLite database.');
+// PostgreSQL connection
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
 });
 
-// إنشاء الجداول إذا لم تكن موجودة
-db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        telegram_id TEXT UNIQUE,
-        name TEXT,
+// Create users table
+pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+        userId TEXT PRIMARY KEY,
         points INTEGER DEFAULT 0,
-        referral_code TEXT UNIQUE,
-        wallet_address TEXT
-    )`);
+        lastLogin DATE,
+        walletAddress TEXT,
+        referrals INTEGER DEFAULT 0
+    )
+`);
 
-    db.run(`CREATE TABLE IF NOT EXISTS tasks (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        task_name TEXT,
-        completed INTEGER DEFAULT 0,
-        FOREIGN KEY(user_id) REFERENCES users(id)
-    )`);
+// Get user points
+app.get('/api/points/:userId', async (req, res) => {
+    const { userId } = req.params;
+    const result = await pool.query('SELECT points FROM users WHERE userId = $1', [userId]);
+    if (result.rows.length === 0) {
+        await pool.query('INSERT INTO users (userId, points) VALUES ($1, 0)', [userId]);
+        return res.json({ points: 0 });
+    }
+    res.json({ points: result.rows[0].points });
 });
 
-// تسجيل مستخدم جديد أو استرجاعه
-app.post('/api/user', (req, res) => {
-    const { telegram_id, name } = req.body;
-    db.get("SELECT * FROM users WHERE telegram_id = ?", [telegram_id], (err, row) => {
-        if (err) return res.status(500).send(err.message);
-        if (row) res.json(row);
-        else {
-            const referral_code = 'SYRX-' + Math.random().toString(36).substring(2,8).toUpperCase();
-            db.run("INSERT INTO users (telegram_id, name, referral_code) VALUES (?, ?, ?)", [telegram_id, name, referral_code], function(err){
-                if(err) return res.status(500).send(err.message);
-                db.get("SELECT * FROM users WHERE id = ?", [this.lastID], (err2, newUser)=>{
-                    res.json(newUser);
-                });
-            });
-        }
-    });
+// Daily login
+app.get('/api/daily-login/:userId', async (req, res) => {
+    const { userId } = req.params;
+    const result = await pool.query('SELECT lastLogin FROM users WHERE userId = $1', [userId]);
+    const today = new Date().toISOString().split('T')[0];
+    if (result.rows.length === 0) {
+        await pool.query('INSERT INTO users (userId, points, lastLogin) VALUES ($1, 0, $2)', [userId, today]);
+        return res.json({ canLogin: true });
+    }
+    const lastLogin = result.rows[0].lastLogin;
+    res.json({ canLogin: !lastLogin || lastLogin !== today });
+});
+app.post('/api/daily-login/:userId', async (req, res) => {
+    const { userId } = req.params;
+    const today = new Date().toISOString().split('T')[0];
+    await pool.query('UPDATE users SET points = points + 10, lastLogin = $1 WHERE userId = $2', [today, userId]);
+    const result = await pool.query('SELECT points FROM users WHERE userId = $1', [userId]);
+    res.json({ success: true, points: result.rows[0].points });
 });
 
-// تحديث النقاط أو المحفظة
-app.post('/api/update', (req,res)=>{
-    const { telegram_id, points, wallet_address } = req.body;
-    db.run("UPDATE users SET points = ?, wallet_address = ? WHERE telegram_id = ?", [points, wallet_address, telegram_id], function(err){
-        if(err) return res.status(500).send(err.message);
-        res.json({success:true});
-    });
+// Tasks
+app.post('/api/task/:userId/:task', async (req, res) => {
+    const { userId, task } = req.params;
+    await pool.query('UPDATE users SET points = points + 5 WHERE userId = $1', [userId]);
+    const result = await pool.query('SELECT points FROM users WHERE userId = $1', [userId]);
+    res.json({ success: true, points: result.rows[0].points });
 });
 
-// تسجيل اكتمال مهمة
-app.post('/api/complete-task', (req,res)=>{
-    const { telegram_id, task_name, reward } = req.body;
-    db.get("SELECT id, points FROM users WHERE telegram_id = ?", [telegram_id], (err,row)=>{
-        if(err) return res.status(500).send(err.message);
-        if(!row) return res.status(404).send("User not found");
-        db.run("INSERT INTO tasks (user_id, task_name, completed) VALUES (?, ?, 1)", [row.id, task_name], (err2)=>{
-            if(err2) return res.status(500).send(err2.message);
-            const newPoints = row.points + reward;
-            db.run("UPDATE users SET points = ? WHERE id = ?", [newPoints, row.id], (err3)=>{
-                if(err3) return res.status(500).send(err3.message);
-                res.json({success:true, points:newPoints});
-            });
-        });
-    });
+// Wallet connection
+app.post('/api/wallet/:userId', async (req, res) => {
+    const { userId } = req.params;
+    const { walletAddress } = req.body;
+    await pool.query('UPDATE users SET walletAddress = $1, points = points + 5 WHERE userId = $2', [walletAddress, userId]);
+    res.json({ success: true });
 });
 
-app.listen(port, ()=>console.log(`Server running on port ${port}`));
+// Referrals
+app.post('/api/referral/:userId', async (req, res) => {
+    const { userId } = req.params;
+    await pool.query('UPDATE users SET referrals = referrals + 1, points = points + 10 WHERE userId = $1', [userId]);
+    res.json({ success: true });
+});
+
+// Leaderboard
+app.get('/api/leaderboard', async (req, res) => {
+    const result = await pool.query('SELECT userId, points FROM users ORDER BY points DESC LIMIT 100');
+    res.json(result.rows);
+});
+
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
