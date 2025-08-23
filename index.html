@@ -1,55 +1,389 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SYRX Web App</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://unpkg.com/@tonconnect/sdk/dist/tonconnect-sdk.umd.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SylrexOfficial - متابعة الحسابات</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, #fdbb2d, #b21f1f);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: bold;
+            border: 5px solid white;
+        }
+        
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: #fdbb2d;
+        }
+        
+        .page {
+            display: none;
+            padding: 20px;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        .social-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .social-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            width: 100px;
+            transition: all 0.3s;
+        }
+        
+        .social-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+        }
+        
+        .social-icon {
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+        
+        .twitter { color: #1DA1F2; }
+        .facebook { color: #4267B2; }
+        .youtube { color: #FF0000; }
+        
+        .nav {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+        }
+        
+        .nav-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            padding: 10px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn.active {
+            background: rgba(253, 187, 45, 0.3);
+        }
+        
+        .nav-btn:hover {
+            background: rgba(253, 187, 45, 0.2);
+        }
+        
+        .task-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: linear-gradient(to right, #b21f1f, #fdbb2d);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: right;
+            transition: all 0.3s;
+        }
+        
+        .task-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+        
+        .task-btn i {
+            margin-left: 10px;
+        }
+        
+        .daily-login {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        .wallet-connect {
+            background: #0088cc;
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .rank {
+            font-weight: bold;
+            color: #fdbb2d;
+        }
+        
+        .points {
+            background: #b21f1f;
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+        
+        .user-rank {
+            background: rgba(253, 187, 45, 0.2);
+            border: 2px solid #fdbb2d;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border-left: 5px solid #fdbb2d;
+            border-radius: 5px;
+            display: none;
+            max-width: 300px;
+        }
+    </style>
 </head>
 <body>
-<div class="app">
-    <!-- Tabs -->
-    <div class="grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 20px;">
-        <div class="tab active" data-tab="home">🏠 Home</div>
-        <div class="tab" data-tab="tasks">✅ Tasks</div>
-        <div class="tab" data-tab="leaderboard">🏆 Leaderboard</div>
+    <div class="container">
+        <header>
+            <div class="logo">SYRX</div>
+            <h1>SylrexOfficial</h1>
+            <p>تابعنا على منصات التواصل الاجتماعي</p>
+        </header>
+        
+        <div class="nav">
+            <button class="nav-btn active" onclick="showPage(0)">الرئيسية</button>
+            <button class="nav-btn" onclick="showPage(1)">المهام</button>
+            <button class="nav-btn" onclick="showPage(2)">التصنيف</button>
+        </div>
+        
+        <!-- الصفحة الرئيسية -->
+        <div class="page active">
+            <div class="social-links">
+                <a href="https://x.com/SylrexOfficial" class="social-btn" target="_blank">
+                    <i class="fab fa-x-twitter social-icon twitter"></i>
+                    <span>تويتر</span>
+                </a>
+                <a href="https://www.facebook.com/share/1JYzm6CGsS/" class="social-btn" target="_blank">
+                    <i class="fab fa-facebook social-icon facebook"></i>
+                    <span>فيسبوك</span>
+                </a>
+                <a href="https://www.youtube.com/@SylrexOfficial" class="social-btn" target="_blank">
+                    <i class="fab fa-youtube social-icon youtube"></i>
+                    <span>يوتيوب 1</span>
+                </a>
+                <a href="https://www.youtube.com/@Sylrex_Official" class="social-btn" target="_blank">
+                    <i class="fab fa-youtube social-icon youtube"></i>
+                    <span>يوتيوب 2</span>
+                </a>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <h2>مرحباً بك في SylrexOfficial</h2>
+                <p style="margin: 15px 0; line-height: 1.6;">انضم إلى مجتمعنا وكن جزءاً من رحلتنا على منصات التواصل الاجتماعي المختلفة واكسب النقاط من خلال المهام اليومية.</p>
+                
+                <div style="background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 15px;">
+                    <h3>إحصائياتك</h3>
+                    <div style="display: flex; justify-content: space-around; margin-top: 15px;">
+                        <div>
+                            <div style="font-size: 24px; color: #fdbb2d;">0</div>
+                            <div>النقاط</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 24px; color: #fdbb2d;">0</div>
+                            <div>المهام</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 24px; color: #fdbb2d;">-</div>
+                            <div>المستوى</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- صفحة المهام -->
+        <div class="page">
+            <h2 style="text-align: center; margin-bottom: 20px;">المهام اليومية</h2>
+            
+            <button class="task-btn">
+                <i class="fas fa-check-circle"></i> متابعة حساب تويتر
+            </button>
+            
+            <button class="task-btn">
+                <i class="fas fa-check-circle"></i> متابعة حساب فيسبوك
+            </button>
+            
+            <button class="task-btn">
+                <i class="fas fa-check-circle"></i> الإعجاب بفيديو على يوتيوب
+            </button>
+            
+            <button class="task-btn">
+                <i class="fas fa-check-circle"></i> مشاركة منشور
+            </button>
+            
+            <button class="task-btn">
+                <i class="fas fa-check-circle"></i> التعليق على منشور
+            </button>
+            
+            <div class="daily-login">
+                <h3>تسجيل الدخول اليومي</h3>
+                <p style="margin: 15px 0;">سجل دخولك اليومي لتحصل على 10 نقاط إضافية!</p>
+                <button class="task-btn" style="background: linear-gradient(to right, #1a2a6c, #b21f1f);">
+                    <i class="fas fa-gift"></i> تسجيل الدخول اليومي
+                </button>
+                <p style="margin-top: 15px;">You have logged in for 0 consecutive days</p>
+            </div>
+            
+            <button class="task-btn wallet-connect">
+                <i class="fas fa-wallet"></i> الاتصال بمحفظة تيليجرام TON
+            </button>
+        </div>
+        
+        <!-- صفحة التصنيف -->
+        <div class="page">
+            <h2 style="text-align: center; margin-bottom: 20px;">تصنيف أفضل 100</h2>
+            
+            <div class="leaderboard-item user-rank">
+                <div>أنت <span class="rank">#0</span></div>
+                <div class="points">0 نقاط</div>
+            </div>
+            
+            <div id="leaderboard">
+                <!-- سيتم إضافة العناصر هنا via JavaScript -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        تم تنفيذ المهمة بنجاح! لقد ربحت 5 نقاط.
     </div>
 
-    <!-- Home -->
-    <section id="home" class="page">
-        <div class="card">
-            <div class="logo-inner">SYRX</div>
-            <h2>Welcome, <span id="playerName">Guest</span>!</h2>
-            <div class="avatar" id="playerAvatar">👤</div>
-            <div class="points-display">
-                <div>Your Points</div>
-                <div id="playerPoints">0</div>
-            </div>
-            <div>
-                <strong>Your Referral Code:</strong>
-                <div class="referral-code" id="playerReferral">-</div>
-            </div>
-            <button class="btn" id="connectWalletBtn">💳 Connect TON Wallet</button>
-        </div>
-    </section>
-
-    <!-- Tasks -->
-    <section id="tasks" class="page hidden">
-        <div class="card">
-            <h3>📋 Daily Tasks</h3>
-            <div id="taskList"></div>
-        </div>
-    </section>
-
-    <!-- Leaderboard -->
-    <section id="leaderboard" class="page hidden">
-        <div class="card">
-            <h3>🏆 Top Players</h3>
-            <div id="leaderList"></div>
-        </div>
-    </section>
-</div>
-<script src="app.js"></script>
+    <script>
+        // بيانات التصنيف
+        const leaderboardData = [
+            { name: "أحمد", points: 1250 },
+            { name: "محمد", points: 1150 },
+            { name: "فاطمة", points: 980 },
+            { name: "علي", points: 875 },
+            { name: "يوسف", points: 760 },
+            { name: "سارة", points: 650 },
+            { name: "مريم", points: 540 },
+            { name: "خالد", points: 430 },
+            { name: "نورة", points: 320 },
+            { name: "عمر", points: 210 }
+        ];
+        
+        // عرض التصنيف
+        const leaderboard = document.getElementById('leaderboard');
+        leaderboardData.forEach((user, index) => {
+            const item = document.createElement('div');
+            item.className = 'leaderboard-item';
+            item.innerHTML = `
+                <div>${index+1}. ${user.name}</div>
+                <div class="points">${user.points} نقاط</div>
+            `;
+            leaderboard.appendChild(item);
+        });
+        
+        // وظيفة تبديل الصفحات
+        function showPage(pageIndex) {
+            document.querySelectorAll('.page').forEach((page, index) => {
+                if (index === pageIndex) {
+                    page.classList.add('active');
+                } else {
+                    page.classList.remove('active');
+                }
+            });
+            
+            document.querySelectorAll('.nav-btn').forEach((btn, index) => {
+                if (index === pageIndex) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+        
+        // محاكاة إكمال المهام
+        document.querySelectorAll('.task-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.textContent.includes('تسجيل الدخول اليومي')) {
+                    showNotification('تم تسجيل الدخول اليومي بنجاح! لقد ربحت 10 نقاط.');
+                } else if (this.textContent.includes('محفظة')) {
+                    showNotification('جاري الاتصال بمحفظة تيليجرام TON...');
+                } else {
+                    showNotification('تم تنفيذ المهمة بنجاح! لقد ربحت 5 نقاط.');
+                }
+            });
+        });
+        
+        // عرض الإشعارات
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+    </script>
 </body>
-</html>
+    </html>
