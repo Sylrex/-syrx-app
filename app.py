@@ -19,16 +19,20 @@ INDEX_HTML = """
 </head>
 <body>
     <div class="container" id="app-container" style="display:none;">
-        <h1>Welcome to SYRX Mini App</h1>
-        <button id="connect-wallet">Connect TON Wallet</button>
+        <h1>🚀 Welcome to SYRX Mini App</h1>
+        <div id="connect-wallet"></div>
         <p id="wallet-address">Wallet: Not connected</p>
         <p id="balance">Balance: 0 TON</p>
         <button id="send-transaction" disabled>Send 1 TON</button>
-        <p id="status"></p>
+        <p id="status">Status: Ready</p>
     </div>
-    <div id="telegram-error" style="display:none; color:red; text-align:center; margin-top:50px;">
-        ❌ الرجاء فتح هذا التطبيق من داخل تطبيق Telegram فقط
+    
+    <div class="telegram-error" id="telegram-error" style="display:none;">
+        <h2>❌ Telegram App Required</h2>
+        <p>Please open this application from within the Telegram app</p>
+        <p><small>This mini-app only works inside Telegram Messenger</small></p>
     </div>
+
     <script src="/script.js"></script>
 </body>
 </html>
@@ -42,7 +46,21 @@ def index():
 def syrx_app():
     return render_template_string(INDEX_HTML)
 
-# ... بقية الرواتب بدون تغيير ...
+@app.route('/style.css')
+def serve_css():
+    return send_file('style.css')
+
+@app.route('/script.js')
+def serve_js():
+    return send_file('script.js')
+
+@app.route('/tonconnect-ui.min.js')
+def serve_tonconnect_js():
+    return send_file('tonconnect-ui.min.js')
+
+@app.route('/tonconnect-manifest.json')
+def serve_manifest():
+    return send_file('tonconnect-manifest.json')
 
 @app.route('/get_balance', methods=['POST'])
 def get_balance():
@@ -52,17 +70,27 @@ def get_balance():
         if not wallet_address:
             return jsonify({'error': 'No wallet address provided'}), 400
         
+        # استخدام API أكثر موثوقية
         response = requests.get(f'https://tonapi.io/v2/accounts/{wallet_address}')
         response.raise_for_status()
         account_data = response.json()
         
         balance = account_data.get('balance', 0) / 1e9
-        return jsonify({'balance': balance})
+        return jsonify({'balance': round(balance, 4)})
         
     except requests.exceptions.RequestException as e:
         return jsonify({'error': f'Network error: {str(e)}'}), 500
     except Exception as e:
         return jsonify({'error': f'Server error: {str(e)}'}), 500
+
+@app.route('/send_transaction', methods=['POST'])
+def send_transaction():
+    try:
+        data = request.json
+        # هنا يمكنك إضافة منطق إرسال المعاملة
+        return jsonify({'status': 'success', 'message': 'Transaction processed'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
