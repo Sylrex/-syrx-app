@@ -1,5 +1,7 @@
 {
-  "url": "https://YOUR_GITHUB_USERNAME.github.io/YOUR_REPO_NAME",
-  "name": "My Telegram Mini App",
-  "iconUrl": "https://YOUR_GITHUB_USERNAME.github.io/YOUR_REPO_NAME/icon.png"
+    "url": "https://syrx.onrender.com/SYRXApp",
+    "name": "SYRX Mini App",
+    "iconUrl": "https://syrx.onrender.com/icon.png",
+    "termsOfUseUrl": "https://syrx.onrender.com/terms",
+    "privacyPolicyUrl": "https://syrx.onrender.com/privacy"
 }
