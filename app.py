@@ -13,7 +13,7 @@ INDEX_HTML = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYRX-like Mini App</title>
+    <title>SYRX Mini App</title>
     <link rel="stylesheet" href="/style.css">
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 </head>
@@ -39,17 +39,29 @@ def index():
 @app.route('/style.css')
 def serve_css():
     logger.info("Serving style.css")
-    return send_file('style.css')
+    try:
+        return send_file('style.css')
+    except FileNotFoundError:
+        logger.error("style.css not found")
+        return "CSS file not found", 404
 
 @app.route('/script.js')
 def serve_js():
     logger.info("Serving script.js")
-    return send_file('script.js')
+    try:
+        return send_file('script.js')
+    except FileNotFoundError:
+        logger.error("script.js not found")
+        return "JS file not found", 404
 
 @app.route('/tonconnect-manifest.json')
 def serve_manifest():
     logger.info("Serving tonconnect-manifest.json")
-    return send_file('tonconnect-manifest.json')
+    try:
+        return send_file('tonconnect-manifest.json')
+    except FileNotFoundError:
+        logger.error("tonconnect-manifest.json not found")
+        return "Manifest file not found", 404
 
 @app.route('/get_balance', methods=['POST'])
 def get_balance():
