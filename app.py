@@ -20,14 +20,11 @@ INDEX_HTML = """
 <body>
     <div class="container" id="app-container" style="display:none;">
         <h1>🚀 Welcome to SYRX Mini App</h1>
-        
-        <!-- زر الاتصال - يجب أن يكون div -->
         <div id="connect-wallet" style="margin: 20px 0;"></div>
-        
         <p id="wallet-address">Wallet: Not connected</p>
         <p id="balance">Balance: 0 TON</p>
         <button id="send-transaction" disabled>Send 1 TON</button>
-        <p id="status">Status: Ready</p>
+        <p id="status">Status: Loading wallet system...</p>
     </div>
     
     <div class="telegram-error" id="telegram-error" style="display:none;">
@@ -68,15 +65,15 @@ def serve_icon():
 @app.route('/terms')
 def terms():
     return """
-    <h1>شروط الاستخدام</h1>
-    <p>هذا التطبيق لا يخزن أي بيانات شخصية. جميع المعاملات تتم على blockchain.</p>
+    <h1>Terms of Use</h1>
+    <p>This application does not store any personal data. All transactions are on blockchain.</p>
     """
 
 @app.route('/privacy')
 def privacy():
     return """
-    <h1>سياسة الخصوصية</h1>
-    <p>نحن نحترم خصوصيتك. لا نجمع أو نخزن أي بيانات شخصية.</p>
+    <h1>Privacy Policy</h1>
+    <p>We respect your privacy. We do not collect or store any personal data.</p>
     """
 
 @app.route('/get_balance', methods=['POST'])
