@@ -1,9 +1,10 @@
 const tonConnectUI = new TONConnectUI({
-    manifestUrl: 'https://your-app.onrender.com/tonconnect-manifest.json',
+    manifestUrl: 'https://syrx.onrender.com/tonconnect-manifest.json',
     buttonRootId: 'connect-wallet'
 });
 
 tonConnectUI.onStatusChange(wallet => {
+    console.log('Wallet status changed:', wallet);
     if (wallet) {
         document.getElementById('wallet-address').textContent = `Wallet: ${wallet.account.address}`;
         document.getElementById('send-transaction').disabled = false;
@@ -16,6 +17,7 @@ tonConnectUI.onStatusChange(wallet => {
 });
 
 async function fetchBalance(address) {
+    console.log('Fetching balance for:', address);
     try {
         const response = await fetch('/get_balance', {
             method: 'POST',
@@ -29,11 +31,13 @@ async function fetchBalance(address) {
             document.getElementById('balance').textContent = 'Error fetching balance';
         }
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error fetching balance:', error);
+        document.getElementById('balance').textContent = 'Error fetching balance';
     }
 }
 
 document.getElementById('send-transaction').addEventListener('click', async () => {
+    console.log('Send transaction clicked');
     try {
         const transaction = {
             validUntil: Math.floor(Date.now() / 1000) + 60,
@@ -49,6 +53,7 @@ document.getElementById('send-transaction').addEventListener('click', async () =
         const response = await fetch('/send_transaction', { method: 'POST', body: JSON.stringify({}) });
         console.log(await response.json());
     } catch (error) {
+        console.error('Error sending transaction:', error);
         document.getElementById('status').textContent = 'Error: ' + error.message;
     }
 });
