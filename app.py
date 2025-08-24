@@ -22,6 +22,11 @@ INDEX_HTML = """
             if (typeof TONConnectUI === 'undefined') {
                 document.getElementById('status').textContent = 'Error: TON Connect SDK not loaded';
             }
+            // تهيئة Telegram WebApp
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.ready();
+                console.log('Telegram WebApp initialized');
+            }
         });
     </script>
 </head>
