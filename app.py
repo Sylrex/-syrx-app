@@ -3,7 +3,6 @@ import os
 
 app = Flask(__name__)
 
-# أبسط HTML ممكن
 INDEX_HTML = """
 <!DOCTYPE html>
 <html>
@@ -60,18 +59,10 @@ INDEX_HTML = """
             color: #666;
             font-style: italic;
         }
-        .telegram-error {
-            color: red;
-            text-align: center;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            border: 2px solid #ff4444;
-        }
     </style>
 </head>
 <body>
-    <div class="container" id="app-container">
+    <div class="container">
         <h1>🚀 SYRX App</h1>
         <div id="connect-wallet" style="margin: 20px 0;"></div>
         <p id="wallet-address">Wallet: Not connected</p>
@@ -81,53 +72,40 @@ INDEX_HTML = """
     </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="/tonconnect-ui.min.js"></script>
     <script>
-        // كود JavaScript مدمج مباشرة
         let tonConnectUI = null;
 
         function initializeApp() {
-            console.log('🔍 Checking Telegram environment...');
+            console.log('🔍 Initializing app...');
             
             if (window.Telegram && window.Telegram.WebApp) {
                 console.log('✅ Telegram WebApp detected');
-                document.getElementById('status').textContent = 'Status: Telegram detected';
                 
                 window.Telegram.WebApp.ready();
                 window.Telegram.WebApp.expand();
                 
-                loadTONConnect();
+                initializeTONConnect();
             } else {
                 console.log('❌ Not in Telegram');
-                document.getElementById('status').textContent = '❌ Please open in Telegram app';
+                document.getElementById('status').textContent = 'Please open in Telegram app';
             }
         }
 
-        function loadTONConnect() {
-            console.log('🔄 Loading TON Connect...');
-            document.getElementById('status').textContent = 'Status: Loading wallet...';
-            
-            const script = document.createElement('script');
-            script.src = '/tonconnect-ui.min.js?' + new Date().getTime();
-            script.onload = function() {
-                console.log('✅ TON Connect loaded');
-                initializeTONConnect();
-            };
-            script.onerror = function() {
-                console.log('❌ Failed to load TON Connect');
-                document.getElementById('status').textContent = '❌ Wallet load failed. Refresh page.';
-            };
-            document.head.appendChild(script);
-        }
-
         function initializeTONConnect() {
+            console.log('🔄 Checking TON Connect...');
+            
             if (typeof TONConnectUI === 'undefined') {
-                document.getElementById('status').textContent = '❌ TON Connect not available';
+                console.log('❌ TONConnectUI not defined');
+                document.getElementById('status').textContent = 'TON Connect not loaded';
                 return;
             }
 
             try {
+                console.log('✅ TONConnectUI found, initializing...');
+                
                 tonConnectUI = new TONConnectUI({
-                    manifestUrl: '/tonconnect-manifest.json',
+                    manifestUrl: window.location.origin + '/tonconnect-manifest.json',
                     buttonRootId: 'connect-wallet'
                 });
 
@@ -145,13 +123,41 @@ INDEX_HTML = """
                     }
                 });
 
+                document.getElementById('send-transaction').addEventListener('click', function() {
+                    if (!tonConnectUI.connected) {
+                        document.getElementById('status').textContent = 'Please connect wallet first';
+                        return;
+                    }
+
+                    const transaction = {
+                        validUntil: Math.floor(Date.now() / 1000) + 60,
+                        messages: [{
+                            address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+                            amount: '1000000000'
+                        }]
+                    };
+
+                    document.getElementById('status').textContent = 'Status: Signing...';
+                    
+                    tonConnectUI.sendTransaction(transaction)
+                        .then(function() {
+                            document.getElementById('status').textContent = 'Transaction sent! ✅';
+                        })
+                        .catch(function(error) {
+                            document.getElementById('status').textContent = 'Error: ' + error.message;
+                        });
+                });
+
             } catch (error) {
+                console.error('TON Connect error:', error);
                 document.getElementById('status').textContent = 'Error: ' + error.message;
             }
         }
 
-        // بدء التطبيق
-        setTimeout(initializeApp, 1000);
+        // بدء التطبيق بعد تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initializeApp, 1000);
+        });
     </script>
 </body>
 </html>
@@ -170,7 +176,7 @@ def serve_tonconnect_js():
     try:
         return send_file('tonconnect-ui.min.js')
     except FileNotFoundError:
-        return "File not found", 404
+        return "TON Connect SDK not found", 404
 
 @app.route('/tonconnect-manifest.json')
 def serve_manifest():
@@ -182,6 +188,21 @@ def serve_manifest():
             "name": "SYRX App", 
             "iconUrl": "https://syrx.onrender.com/icon.png"
         })
+
+@app.route('/terms')
+def terms():
+    return "Terms of Use: This app connects to TON wallet"
+
+@app.route('/privacy') 
+def privacy():
+    return "Privacy Policy: No user data is stored"
+
+@app.route('/icon.png')
+def serve_icon():
+    try:
+        return send_file('icon.png')
+    except FileNotFoundError:
+        return "Icon not found", 404
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
