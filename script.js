@@ -9,16 +9,40 @@ function isTelegramWebApp() {
             window.Telegram.WebApp.platform);
 }
 
-function initializeApp() {
+function loadTONConnectSDK() {
+    return new Promise((resolve, reject) => {
+        if (typeof TONConnectUI !== 'undefined') {
+            resolve();
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
+
+async function initializeApp() {
     if (isTelegramWebApp()) {
-        console.log('Telegram WebApp detected');
-        document.getElementById('app-container').style.display = 'block';
-        document.getElementById('telegram-error').style.display = 'none';
-        
-        window.Telegram.WebApp.ready();
-        window.Telegram.WebApp.expand();
-        
-        initializeTONConnect();
+        try {
+            console.log('Telegram WebApp detected');
+            document.getElementById('app-container').style.display = 'block';
+            document.getElementById('telegram-error').style.display = 'none';
+            
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+            
+            document.getElementById('status').textContent = 'Status: Loading wallet SDK...';
+            await loadTONConnectSDK();
+            
+            initializeTONConnect();
+            
+        } catch (error) {
+            console.error('Failed to load TON Connect SDK:', error);
+            document.getElementById('status').textContent = '❌ Failed to load wallet system. Please refresh.';
+        }
     } else {
         console.log('Not in Telegram environment');
         document.getElementById('app-container').style.display = 'none';
@@ -27,16 +51,14 @@ function initializeApp() {
 }
 
 function initializeTONConnect() {
-    // تأكد من وجود عنصر connect-wallet
     const connectButton = document.getElementById('connect-wallet');
     if (!connectButton) {
-        console.error('❌ Element #connect-wallet not found');
-        document.getElementById('status').textContent = 'Error: Connect button element missing';
+        document.getElementById('status').textContent = 'Error: Connect element missing';
         return;
     }
 
     if (typeof TONConnectUI === 'undefined') {
-        document.getElementById('status').textContent = '❌ TON Connect SDK not loaded';
+        document.getElementById('status').textContent = '❌ Wallet SDK not available';
         return;
     }
 
@@ -59,7 +81,7 @@ function initializeTONConnect() {
                 document.getElementById('wallet-address').textContent = 'Wallet: Not connected';
                 document.getElementById('balance').textContent = 'Balance: 0 TON';
                 document.getElementById('send-transaction').disabled = true;
-                document.getElementById('status').textContent = 'Status: Disconnected';
+                document.getElementById('status').textContent = 'Status: Ready to connect';
             }
         });
 
@@ -96,7 +118,7 @@ function initializeTONConnect() {
 
     } catch (error) {
         console.error('TON Connect initialization error:', error);
-        document.getElementById('status').textContent = 'Error initializing wallet';
+        document.getElementById('status').textContent = 'Error initializing wallet: ' + error.message;
     }
 }
 
