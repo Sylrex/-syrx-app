@@ -1,141 +1,129 @@
-let telegramWebApp = null;
-let walletAddress = null;
+// script.js
+let tonConnectUI = null;
 
-// التحقق من وجود Telegram WebApp
-function isTelegramEnvironment() {
+function isTelegramWebApp() {
     return (window.Telegram && 
             window.Telegram.WebApp && 
-            window.Telegram.WebApp.initData);
+            window.Telegram.WebApp.initData && 
+            window.Telegram.WebApp.initDataUnsafe &&
+            window.Telegram.WebApp.platform);
 }
 
-// تهيئة التطبيق
 function initializeApp() {
-    if (isTelegramEnvironment()) {
-        telegramWebApp = window.Telegram.WebApp;
+    if (isTelegramWebApp()) {
+        console.log('Telegram WebApp detected');
         document.getElementById('app-container').style.display = 'block';
         document.getElementById('telegram-error').style.display = 'none';
         
-        // تهيئة Telegram WebApp
-        telegramWebApp.ready();
-        telegramWebApp.expand();
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
         
-        // إعداد event listeners
-        setupEventListeners();
-        
-        // محاولة الات التلقائي بالمحفظة إذا كانت متاحة
-        checkWalletAvailability();
-        
+        initializeTONConnect();
     } else {
+        console.log('Not in Telegram environment');
         document.getElementById('app-container').style.display = 'none';
         document.getElementById('telegram-error').style.display = 'block';
     }
 }
 
-// إعداد event listeners
-function setupEventListeners() {
-    document.getElementById('init-wallet').addEventListener('click', initializeWallet);
-    document.getElementById('send-ton').addEventListener('click', sendTon);
-    document.getElementById('receive-ton').addEventListener('click', receiveTon);
-}
-
-// التحقق من توفر المحفظة
-function checkWalletAvailability() {
-    if (telegramWebApp && telegramWebApp.isVersionAtLeast('6.10')) {
-        document.getElementById('wallet-status').textContent = 'حالة المحفظة: جاهزة';
-        document.getElementById('init-wallet').disabled = false;
-    } else {
-        document.getElementById('wallet-status').textContent = 'حالة المحفظة: غير مدعومة في إصدارك';
-        document.getElementById('init-wallet').disabled = true;
-    }
-}
-
-// تهيئة المحفظة
-function initializeWallet() {
-    if (!telegramWebApp) return;
-    
-    try {
-        // استخدام Telegram Wallet API
-        telegramWebApp.openInvoice('https://t.me/wallet/start?startapp=SYRX', {
-            onInvoiceClosed: function(invoiceStatus) {
-                if (invoiceStatus === 'paid') {
-                    document.getElementById('wallet-status').textContent = 'حالة المحفظة: موصولة';
-                    document.getElementById('send-ton').disabled = false;
-                    fetchWalletInfo();
-                }
-            }
-        });
-        
-    } catch (error) {
-        document.getElementById('transaction-status').textContent = 'خطأ: ' + error.message;
-    }
-}
-
-// جلب معلومات المحفظة
-async function fetchWalletInfo() {
-    try {
-        // هنا يمكنك استخدام Telegram Wallet API للحصول على المعلومات
-        document.getElementById('wallet-address').textContent = 'العنوان: جاري التحميل...';
-        document.getElementById('balance').textContent = 'الرصيد: جاري التحميل...';
-        
-        // محاكاة للحصول على البيانات (ستحتاج لاستبدالها بـ API حقيقي)
-        setTimeout(() => {
-            document.getElementById('wallet-address').textContent = 'العنوان: EQ...1234';
-            document.getElementById('balance').textContent = 'الرصيد: 10.5 TON';
-        }, 1000);
-        
-    } catch (error) {
-        document.getElementById('transaction-status').textContent = 'خطأ في جلب المعلومات';
-    }
-}
-
-// إرسال TON
-async function sendTon() {
-    if (!telegramWebApp) return;
-    
-    try {
-        document.getElementById('transaction-status').textContent = 'جاري إعداد المعاملة...';
-        
-        // استخدام Telegram Wallet API لإرسال المعاملة
-        const transaction = {
-            to: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
-            amount: '1000000000', // 1 TON في nanoTON
-            comment: 'Payment from SYRX App'
-        };
-        
-        telegramWebApp.openInvoice(`https://t.me/wallet/send?to=${transaction.to}&amount=${transaction.amount}`, {
-            onInvoiceClosed: function(status) {
-                if (status === 'paid') {
-                    document.getElementById('transaction-status').textContent = 'تم إرسال 1 TON بنجاح!';
-                    fetchWalletInfo(); // تحديث الرصيد
-                } else {
-                    document.getElementById('transaction-status').textContent = 'تم إلغاء المعاملة';
-                }
-            }
-        });
-        
-    } catch (error) {
-        document.getElementById('transaction-status').textContent = 'خطأ: ' + error.message;
-    }
-}
-
-// استقبال TON
-function receiveTon() {
-    if (!walletAddress) {
-        document.getElementById('transaction-status').textContent = 'يجب توصيل المحفظة أولاً';
+function initializeTONConnect() {
+    // تأكد من وجود عنصر connect-wallet
+    const connectButton = document.getElementById('connect-wallet');
+    if (!connectButton) {
+        console.error('❌ Element #connect-wallet not found');
+        document.getElementById('status').textContent = 'Error: Connect button element missing';
         return;
     }
-    
-    // عرض عنوان المحفظة للاستقبال
-    telegramWebApp.showPopup({
-        title: 'عنوان استقبال TON',
-        message: `استخدم هذا العنوان لاستقبال TON:\n${walletAddress}`,
-        buttons: [{ type: 'ok' }]
-    });
-    
-    document.getElementById('transaction-status').textContent = 'عرض عنوان الاستقبال';
+
+    if (typeof TONConnectUI === 'undefined') {
+        document.getElementById('status').textContent = '❌ TON Connect SDK not loaded';
+        return;
+    }
+
+    try {
+        tonConnectUI = new TONConnectUI({
+            manifestUrl: window.location.origin + '/tonconnect-manifest.json',
+            buttonRootId: 'connect-wallet',
+            language: 'en'
+        });
+
+        tonConnectUI.onStatusChange(wallet => {
+            if (wallet) {
+                const shortAddress = wallet.account.address.substring(0, 6) + '...' + 
+                                   wallet.account.address.substring(wallet.account.address.length - 4);
+                document.getElementById('wallet-address').textContent = `Wallet: ${shortAddress}`;
+                document.getElementById('send-transaction').disabled = false;
+                document.getElementById('status').textContent = 'Status: Connected';
+                fetchBalance(wallet.account.address);
+            } else {
+                document.getElementById('wallet-address').textContent = 'Wallet: Not connected';
+                document.getElementById('balance').textContent = 'Balance: 0 TON';
+                document.getElementById('send-transaction').disabled = true;
+                document.getElementById('status').textContent = 'Status: Disconnected';
+            }
+        });
+
+        document.getElementById('send-transaction').addEventListener('click', async () => {
+            if (!tonConnectUI || !tonConnectUI.connected) {
+                document.getElementById('status').textContent = 'Please connect wallet first';
+                return;
+            }
+            
+            const transaction = {
+                validUntil: Math.floor(Date.now() / 1000) + 60,
+                messages: [
+                    {
+                        address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+                        amount: '1000000000'
+                    }
+                ]
+            };
+            
+            try {
+                document.getElementById('status').textContent = 'Status: Signing transaction...';
+                await tonConnectUI.sendTransaction(transaction);
+                document.getElementById('status').textContent = 'Status: Transaction sent successfully!';
+                
+                if (tonConnectUI.wallet) {
+                    setTimeout(() => fetchBalance(tonConnectUI.wallet.account.address), 2000);
+                }
+                
+            } catch (error) {
+                console.error('Transaction error:', error);
+                document.getElementById('status').textContent = 'Error: ' + error.message;
+            }
+        });
+
+    } catch (error) {
+        console.error('TON Connect initialization error:', error);
+        document.getElementById('status').textContent = 'Error initializing wallet';
+    }
 }
 
-// تهيئة التطبيق عند التحميل
+async function fetchBalance(address) {
+    try {
+        document.getElementById('status').textContent = 'Status: Fetching balance...';
+        const response = await fetch('/get_balance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ wallet_address: address })
+        });
+        
+        const data = await response.json();
+        if (data.balance !== undefined) {
+            document.getElementById('balance').textContent = `Balance: ${data.balance} TON`;
+            document.getElementById('status').textContent = 'Status: Balance updated';
+        } else if (data.error) {
+            document.getElementById('balance').textContent = 'Balance: Error';
+            document.getElementById('status').textContent = 'Error: ' + data.error;
+        }
+    } catch (error) {
+        console.error('Balance fetch error:', error);
+        document.getElementById('balance').textContent = 'Balance: Network error';
+        document.getElementById('status').textContent = 'Status: Network error';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(initializeApp, 100);
 });
