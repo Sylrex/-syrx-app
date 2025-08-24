@@ -15,7 +15,6 @@ INDEX_HTML = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SYRX Mini App</title>
     <link rel="stylesheet" href="/style.css">
-    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA/4QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEREQAAAAAAEAAAEAAAAAEAAAQAAAAAQAAABAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAQAAAQAAAAEAAAQAAAAAQAAAEAAAAAEAAAQAAAAAAAAAAAAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA">
     <script src="/tonconnect-ui.min.js" defer></script>
 </head>
 <body>
@@ -34,75 +33,46 @@ INDEX_HTML = """
 
 @app.route('/')
 def index():
-    logger.info("Serving index page")
     return render_template_string(INDEX_HTML)
 
 @app.route('/SYRXApp')
 def syrx_app():
-    logger.info("Serving SYRXApp page")
     return index()
 
 @app.route('/style.css')
 def serve_css():
-    logger.info("Serving style.css")
-    try:
-        return send_file('style.css')
-    except FileNotFoundError:
-        logger.error("style.css not found")
-        return "CSS file not found", 404
+    return send_file('style.css')
 
 @app.route('/script.js')
 def serve_js():
-    logger.info("Serving script.js")
-    try:
-        return send_file('script.js')
-    except FileNotFoundError:
-        logger.error("script.js not found")
-        return "JS file not found", 404
-
-@app.route('/tonconnect-manifest.json')
-def serve_manifest():
-    logger.info("Serving tonconnect-manifest.json")
-    try:
-        return send_file('tonconnect-manifest.json')
-    except FileNotFoundError:
-        logger.error("tonconnect-manifest.json not found")
-        return "Manifest file not found", 404
+    return send_file('script.js')
 
 @app.route('/tonconnect-ui.min.js')
 def serve_tonconnect_js():
-    logger.info("Serving tonconnect-ui.min.js")
-    try:
-        return send_file('tonconnect-ui.min.js')
-    except FileNotFoundError:
-        logger.error("tonconnect-ui.min.js not found")
-        return "JavaScript file not found", 404
+    return send_file('tonconnect-ui.min.js')
+
+@app.route('/tonconnect-manifest.json')
+def serve_manifest():
+    return send_file('tonconnect-manifest.json')
 
 @app.route('/get_balance', methods=['POST'])
 def get_balance():
-    logger.info("Received get_balance request")
     data = request.json
     wallet_address = data.get('wallet_address')
     if not wallet_address:
-        logger.error("No wallet address provided")
         return jsonify({'error': 'No wallet address provided'}), 400
     try:
         response = requests.get(f'https://tonapi.io/v2/accounts/{wallet_address}/balances')
-        response.raise_for_status()
         balance_data = response.json()
         balance = balance_data.get('balance', 0) / 1e9
-        logger.info(f"Balance fetched: {balance} TON")
         return jsonify({'balance': balance})
     except Exception as e:
-        logger.error(f"Error fetching balance: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/send_transaction', methods=['POST'])
 def send_transaction():
-    logger.info("Received send_transaction request")
     return jsonify({'status': 'Transaction sent successfully'})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    logger.info(f"Starting Flask server on port {port}")
     app.run(host='0.0.0.0', port=port, debug=True)
