@@ -1,23 +1,21 @@
+// script.js
 let tonConnectUI = null;
 let checkInterval = null;
 let elapsed = 0;
-const maxElapsed = 5000; // 5 ثواني كحد أقصى
+const maxElapsed = 5000;
 
 function initializeApp() {
     checkInterval = setInterval(() => {
-        elapsed += 500; // 0.5 ثانية
+        elapsed += 500;
         if (window.Telegram && window.Telegram.WebApp) {
             clearInterval(checkInterval);
+            document.getElementById('app-container').style.display = 'block';
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
             initializeTONConnect();
         } else if (elapsed >= maxElapsed) {
             clearInterval(checkInterval);
-            document.body.innerHTML = `
-                <div style="font-family: Arial; text-align: center; margin-top: 50px;">
-                    <h2>❌ الرجاء فتح هذا التطبيق من داخل تطبيق Telegram فقط</h2>
-                </div>
-            `;
+            document.getElementById('telegram-error').style.display = 'block';
         }
     }, 500);
 }
@@ -46,20 +44,12 @@ function initializeTONConnect() {
         }
     });
 
-    document.getElementById('connect-wallet').addEventListener('click', () => {
-        console.log('Connect wallet clicked');
-    });
-
+    document.getElementById('connect-wallet').addEventListener('click', () => {});
     document.getElementById('send-transaction').addEventListener('click', async () => {
         if (!tonConnectUI) return;
         const transaction = {
             validUntil: Math.floor(Date.now() / 1000) + 60,
-            messages: [
-                {
-                    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
-                    amount: '1000000000'
-                }
-            ]
+            messages: [{ address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', amount: '1000000000' }]
         };
         try {
             await tonConnectUI.sendTransaction(transaction);
@@ -72,3 +62,21 @@ function initializeTONConnect() {
 }
 
 window.addEventListener('load', initializeApp);
+
+async function fetchBalance(address) {
+    try {
+        const response = await fetch('/get_balance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ wallet_address: address })
+        });
+        const data = await response.json();
+        if (data.balance) {
+            document.getElementById('balance').textContent = `Balance: ${data.balance} TON`;
+        } else {
+            document.getElementById('balance').textContent = 'Error fetching balance';
+        }
+    } catch {
+        document.getElementById('balance').textContent = 'Error fetching balance';
+    }
+    }
