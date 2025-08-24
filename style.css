@@ -33,3 +33,48 @@ button:disabled {
 button:hover:not(:disabled) {
     background-color: #0056b3;
 }
+
+/* إضافة أنماط رسالة الخطأ */
+.telegram-error {
+    display: none;
+    color: red;
+    text-align: center;
+    margin-top: 50px;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(255,0,0,0.1);
+    border: 1px solid #ff4444;
+}
+
+.telegram-error h2 {
+    margin: 0 0 10px 0;
+    color: #d32f2f;
+}
+
+.telegram-error p {
+    margin: 5px 0;
+    color: #666;
+}
+
+/* تخصيصات إضافية لعناصر المحفظة */
+#wallet-address {
+    word-break: break-all;
+    font-family: monospace;
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+#balance {
+    font-weight: bold;
+    color: #28a745;
+    font-size: 1.1em;
+}
+
+#status {
+    min-height: 20px;
+    margin: 10px 0;
+    color: #666;
+}
