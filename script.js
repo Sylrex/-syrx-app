@@ -9,6 +9,9 @@ window.addEventListener('load', function() {
         console.log('Running in Telegram WebApp environment');
         window.Telegram.WebApp.ready();
         window.Telegram.WebApp.expand(); // توسيع التطبيق المصغر
+    } else {
+        console.error('Not running in Telegram WebApp environment');
+        document.getElementById('status').textContent = 'Error: This app must be run inside Telegram';
     }
 
     // التحقق من تحميل TONConnectUI
@@ -20,7 +23,7 @@ window.addEventListener('load', function() {
 
     console.log('Initializing TONConnectUI');
     const tonConnectUI = new TONConnectUI({
-        manifestUrl: 'https://syrx.onrender.com/tonconnect-manifest.json',
+        manifestUrl: '/tonconnect-manifest.json',
         buttonRootId: 'connect-wallet'
     });
 
