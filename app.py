@@ -16,9 +16,12 @@ INDEX_HTML = """
     <title>SYRX Mini App</title>
     <link rel="stylesheet" href="/style.css">
     <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA/4QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEREQAAAAAAEAAAEAAAAAEAAAQAAAAAQAAABAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAQAAAQAAAAEAAAQAAAAAQAAAEAAAAAEAAAQAAAAAAAAAAAAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA">
-    <!-- ✅ مكتبة تيليجرام -->
+    <!-- ✅ Telegram SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="/tonconnect-ui.min.js" defer></script>
+    <!-- ✅ TON Connect SDK (بدون defer عشان يشتغل قبل script.js) -->
+    <script src="/tonconnect-ui.min.js"></script>
+    <!-- سكربت التطبيق -->
+    <script src="/script.js" defer></script>
 </head>
 <body>
     <div class="container">
@@ -29,19 +32,6 @@ INDEX_HTML = """
         <button id="send-transaction" disabled>Send 1 TON</button>
         <p id="status"></p>
     </div>
-    <script>
-        window.addEventListener("load", () => {
-            if (window.Telegram && window.Telegram.WebApp) {
-                Telegram.WebApp.ready();
-                Telegram.WebApp.expand();
-                console.log("✅ Running inside Telegram WebApp");
-            } else {
-                document.getElementById("status").textContent = "⚠️ Please open this app from inside Telegram.";
-                console.error("Not running inside Telegram WebApp");
-            }
-        });
-    </script>
-    <script src="/script.js" defer></script>
 </body>
 </html>
 """
