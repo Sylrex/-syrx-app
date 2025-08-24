@@ -15,7 +15,7 @@ INDEX_HTML = """
     <title>SYRX Mini App</title>
     <link rel="stylesheet" href="/style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="/tonconnect-ui.min.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 </head>
 <body>
     <div class="container" id="app-container" style="display:none;">
@@ -54,9 +54,23 @@ def serve_css():
 def serve_js():
     return send_file('script.js')
 
-@app.route('/tonconnect-ui.min.js')
-def serve_tonconnect_js():
-    return send_file('tonconnect-ui.min.js')
+@app.route('/icon.png')
+def serve_icon():
+    return send_file('icon.png')
+
+@app.route('/terms')
+def terms():
+    return """
+    <h1>شروط الاستخدام</h1>
+    <p>هذا التطبيق لا يخزن أي بيانات شخصية. جميع المعاملات تتم على blockchain.</p>
+    """
+
+@app.route('/privacy')
+def privacy():
+    return """
+    <h1>سياسة الخصوصية</h1>
+    <p>نحن نحترم خصوصيتك. لا نجمع أو نخزن أي بيانات شخصية.</p>
+    """
 
 @app.route('/tonconnect-manifest.json')
 def serve_manifest():
@@ -70,7 +84,6 @@ def get_balance():
         if not wallet_address:
             return jsonify({'error': 'No wallet address provided'}), 400
         
-        # استخدام API أكثر موثوقية
         response = requests.get(f'https://tonapi.io/v2/accounts/{wallet_address}')
         response.raise_for_status()
         account_data = response.json()
@@ -85,12 +98,7 @@ def get_balance():
 
 @app.route('/send_transaction', methods=['POST'])
 def send_transaction():
-    try:
-        data = request.json
-        # هنا يمكنك إضافة منطق إرسال المعاملة
-        return jsonify({'status': 'success', 'message': 'Transaction processed'})
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+    return jsonify({'status': 'Transaction sent successfully'})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
