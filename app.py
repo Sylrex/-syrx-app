@@ -15,7 +15,15 @@ INDEX_HTML = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SYRX Mini App</title>
     <link rel="stylesheet" href="/style.css">
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@0.0.9/dist/tonconnect-ui.min.js" defer></script>
+    <script>
+        window.addEventListener('load', function() {
+            console.log('TONConnectUI loaded:', typeof TONConnectUI !== 'undefined');
+            if (typeof TONConnectUI === 'undefined') {
+                document.getElementById('status').textContent = 'Error: TON Connect SDK not loaded';
+            }
+        });
+    </script>
 </head>
 <body>
     <div class="container">
@@ -26,7 +34,7 @@ INDEX_HTML = """
         <button id="send-transaction" disabled>Send 1 TON</button>
         <p id="status"></p>
     </div>
-    <script src="/script.js"></script>
+    <script src="/script.js" defer></script>
 </body>
 </html>
 """
