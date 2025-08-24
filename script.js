@@ -1,16 +1,16 @@
-console.log('Script.js loaded');
-
 let tonConnectUI = null;
 
 function initializeApp() {
     if (window.Telegram && window.Telegram.WebApp) {
-        console.log('Running inside Telegram WebApp');
         window.Telegram.WebApp.ready();
         window.Telegram.WebApp.expand();
         initializeTONConnect();
     } else {
-        document.getElementById('status').textContent =
-            '❌ الرجاء فتح هذا التطبيق من داخل تطبيق Telegram فقط.';
+        document.body.innerHTML = `
+            <div style="font-family: Arial; text-align: center; margin-top: 50px;">
+                <h2>❌ الرجاء فتح هذا التطبيق من داخل تطبيق Telegram فقط</h2>
+            </div>
+        `;
     }
 }
 
