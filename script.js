@@ -20,6 +20,7 @@ function initializeTONConnect() {
             '❌ TON Connect SDK لم يتم تحميله.';
         return;
     }
+
     tonConnectUI = new TONConnectUI({
         manifestUrl: '/tonconnect-manifest.json',
         buttonRootId: 'connect-wallet'
@@ -40,44 +41,26 @@ function initializeTONConnect() {
     document.getElementById('connect-wallet').addEventListener('click', () => {
         console.log('Connect wallet clicked');
     });
-}
 
-async function fetchBalance(address) {
-    try {
-        const response = await fetch('/get_balance', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ wallet_address: address })
-        });
-        const data = await response.json();
-        if (data.balance !== undefined) {
-            document.getElementById('balance').textContent = `Balance: ${data.balance} TON`;
-        } else {
-            document.getElementById('balance').textContent = 'Error fetching balance';
+    document.getElementById('send-transaction').addEventListener('click', async () => {
+        if (!tonConnectUI) return;
+        const transaction = {
+            validUntil: Math.floor(Date.now() / 1000) + 60,
+            messages: [
+                {
+                    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+                    amount: '1000000000'
+                }
+            ]
+        };
+        try {
+            await tonConnectUI.sendTransaction(transaction);
+            document.getElementById('status').textContent = 'Transaction sent!';
+            await fetch('/send_transaction', { method: 'POST', body: JSON.stringify({}) });
+        } catch (error) {
+            document.getElementById('status').textContent = 'Error: ' + error.message;
         }
-    } catch (error) {
-        document.getElementById('balance').textContent = 'Error fetching balance';
-    }
+    });
 }
-
-document.getElementById('send-transaction').addEventListener('click', async () => {
-    if (!tonConnectUI) return;
-    const transaction = {
-        validUntil: Math.floor(Date.now() / 1000) + 60,
-        messages: [
-            {
-                address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
-                amount: '1000000000'
-            }
-        ]
-    };
-    try {
-        await tonConnectUI.sendTransaction(transaction);
-        document.getElementById('status').textContent = 'Transaction sent!';
-        await fetch('/send_transaction', { method: 'POST', body: JSON.stringify({}) });
-    } catch (error) {
-        document.getElementById('status').textContent = 'Error: ' + error.message;
-    }
-});
 
 window.addEventListener('load', initializeApp);
