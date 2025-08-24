@@ -1,5 +1,5 @@
 const tonConnectUI = new TONConnectUI({
-    manifestUrl: 'https://your-app.onrender.com/tonconnect-manifest.json', // أنشئ ملف manifest أدناه
+    manifestUrl: 'https://your-app.onrender.com/tonconnect-manifest.json',
     buttonRootId: 'connect-wallet'
 });
 
