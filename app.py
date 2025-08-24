@@ -72,7 +72,7 @@ INDEX_HTML = """
     </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="/tonconnect-ui.min.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <script>
         let tonConnectUI = null;
 
