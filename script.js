@@ -1,16 +1,26 @@
 console.log('Script.js loaded');
 
+let maxRetries = 10;
+let retryCount = 0;
+
 function initializeApp() {
-    console.log('Checking Telegram WebApp environment');
+    console.log('Checking Telegram WebApp environment, attempt:', retryCount + 1);
     if (window.Telegram && window.Telegram.WebApp) {
         console.log('Running in Telegram WebApp environment');
+        console.log('Telegram WebApp version:', window.Telegram.WebApp.version);
         window.Telegram.WebApp.ready();
         window.Telegram.WebApp.expand();
         initializeTONConnect();
     } else {
         console.error('Not running in Telegram WebApp environment');
         document.getElementById('status').textContent = 'Error: This app must be run inside Telegram';
-        setTimeout(initializeApp, 1000);
+        if (retryCount < maxRetries) {
+            retryCount++;
+            setTimeout(initializeApp, 1000);
+        } else {
+            console.error('Max retries reached. Telegram WebApp not detected.');
+            document.getElementById('status').textContent = 'Error: Could not detect Telegram WebApp after multiple attempts';
+        }
     }
 }
 
