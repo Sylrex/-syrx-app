@@ -1,16 +1,9 @@
 import telebot
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 import os
-import logging
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
-WEB_APP_URL = os.environ.get('WEB_APP_URL')  # يجب أن يكون: https://syrx.onrender.com/SYRXApp
-
-if not BOT_TOKEN or not WEB_APP_URL:
-    raise ValueError("BOT_TOKEN or WEB_APP_URL not set in environment variables")
+WEB_APP_URL = os.environ.get('WEB_APP_URL')  # يجب: https://syrx.onrender.com/SYRXApp
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
@@ -22,7 +15,6 @@ def start(message):
         web_app=WebAppInfo(url=WEB_APP_URL)
     )
     markup.add(web_app_button)
-    bot.send_message(message.chat.id, "Click below to open the Mini App:", reply_markup=markup)
+    bot.send_message(message.chat.id, "اضغط لفتح التطبيق:", reply_markup=markup)
 
-if __name__ == '__main__':
-    bot.polling(none_stop=True)
+bot.polling(none_stop=True)
