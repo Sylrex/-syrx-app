@@ -16,12 +16,9 @@ INDEX_HTML = """
     <title>SYRX Mini App</title>
     <link rel="stylesheet" href="/style.css">
     <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA/4QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEREQAAAAAAEAAAEAAAAAEAAAQAAAAAQAAABAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAQAAAQAAAAEAAAQAAAAAQAAAEAAAAAEAAAQAAAAAAAAAAAAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA//8AAP//AAD//wAA">
-    <!-- ✅ Telegram SDK -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- ✅ TON Connect SDK (بدون defer عشان يشتغل قبل script.js) -->
-    <script src="/tonconnect-ui.min.js"></script>
-    <!-- سكربت التطبيق -->
-    <script src="/script.js" defer></script>
+    
+    <!-- تحميل مكتبة TON Connect من CDN مباشرة -->
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -32,6 +29,7 @@ INDEX_HTML = """
         <button id="send-transaction" disabled>Send 1 TON</button>
         <p id="status"></p>
     </div>
+    <script src="/script.js" defer></script>
 </body>
 </html>
 """
@@ -72,15 +70,6 @@ def serve_manifest():
     except FileNotFoundError:
         logger.error("tonconnect-manifest.json not found")
         return "Manifest file not found", 404
-
-@app.route('/tonconnect-ui.min.js')
-def serve_tonconnect_js():
-    logger.info("Serving tonconnect-ui.min.js")
-    try:
-        return send_file('tonconnect-ui.min.js')
-    except FileNotFoundError:
-        logger.error("tonconnect-ui.min.js not found")
-        return "JavaScript file not found", 404
 
 @app.route('/get_balance', methods=['POST'])
 def get_balance():
