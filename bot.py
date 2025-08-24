@@ -1,41 +1,16 @@
-# bot.py
-import os
-from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, WebAppInfo
-from telegram.ext import Application, CommandHandler, ContextTypes
-import logging
-import httpx
-import re
+import telebot
+from telebot.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")              # من BotFather
-WEBAPP_URL = os.getenv("WEBAPP_URL")            # رابط تطبيقك: https://<backend>.onrender.com/
-BACKEND_API = os.getenv("BACKEND_API", WEBAPP_URL.rstrip("/"))
+BOT_TOKEN = 'YOUR_BOT_TOKEN'  # استبدل بتوكن البوت من @BotFather
+WEB_APP_URL = 'YOUR_WEB_APP_URL'  # استبدل بعنوان الويب أب (مثل https://your-app.onrender.com)
+bot = telebot.TeleBot(BOT_TOKEN)
 
-logging.basicConfig(level=logging.INFO)
-log = logging.getLogger(__name__)
+@bot.message_handler(commands=['start'])
+def start(message):
+    markup = InlineKeyboardMarkup()
+    web_app_button = InlineKeyboardButton(text="Open Mini App", web_app=WebAppInfo(url=WEB_APP_URL))
+    markup.add(web_app_button)
+    bot.send_message(message.chat.id, "Welcome! Click below to open the Mini App.", reply_markup=markup)
 
-# حفظ إحالة في الخادم عندما يدخل المستخدم من /start ref_XXXX
-async def save_referral(referrer_id: int, referred_id: int):
-    try:
-        async with httpx.AsyncClient(timeout=10) as client:
-            await client.post(f"{BACKEND_API}/api/referral/{referrer_id}",
-                              json={"referred_id": referred_id})
-    except Exception as e:
-        log.warning("referral save failed: %s", e)
-
-def build_open_app_kb() -> ReplyKeyboardMarkup:
-    btn = KeyboardButton(
-        text="افتح تطبيق SYRX",
-        web_app=WebAppInfo(url=WEBAPP_URL)  # Telegram WebApp
-    )
-    return ReplyKeyboardMarkup([[btn]], resize_keyboard=True)
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
-    text = "مرحباً! هذا هو تطبيق SYRX المصغّر.\nاضغط الزر بالأسفل لفتح التطبيق."
-    kb = build_open_app_kb()
-
-    # دعم الإحالة عبر start payload: /start ref_12345
-    if context.args:
-        payload = " ".join(context.args)
-        m = re.match(r"ref_(\d+)", payload)
-        if m and
+if __name__ == '__main__':
+    bot.polling(none_stop=True)
