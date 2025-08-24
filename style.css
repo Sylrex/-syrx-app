@@ -1,80 +1,70 @@
 body {
-    font-family: Arial;
-    background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
     margin: 0;
+    direction: rtl;
 }
 
 .container {
     background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     text-align: center;
+    width: 90%;
+    max-width: 400px;
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 24px;
 }
 
 button {
-    background-color: #007bff;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    padding: 10px 20px;
-    margin: 10px 0;
+    padding: 12px 24px;
+    margin: 10px 5px;
     cursor: pointer;
-    border-radius: 5px;
-}
-
-button:disabled {
-    background-color: #ccc;
+    border-radius: 25px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    width: 100%;
 }
 
 button:hover:not(:disabled) {
-    background-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
-/* إضافة أنماط رسالة الخطأ */
-.telegram-error {
-    display: none;
-    color: red;
-    text-align: center;
-    margin-top: 50px;
-    padding: 20px;
-    background: white;
+button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+p {
+    margin: 10px 0;
+    padding: 10px;
+    background: #f8f9fa;
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(255,0,0,0.1);
-    border: 1px solid #ff4444;
+    font-size: 14px;
+}
+
+.telegram-error {
+    text-align: center;
+    padding: 30px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
 .telegram-error h2 {
-    margin: 0 0 10px 0;
     color: #d32f2f;
-}
-
-.telegram-error p {
-    margin: 5px 0;
-    color: #666;
-}
-
-/* تخصيصات إضافية لعناصر المحفظة */
-#wallet-address {
-    word-break: break-all;
-    font-family: monospace;
-    background: #f8f9fa;
-    padding: 10px;
-    border-radius: 4px;
-    margin: 10px 0;
-}
-
-#balance {
-    font-weight: bold;
-    color: #28a745;
-    font-size: 1.1em;
-}
-
-#status {
-    min-height: 20px;
-    margin: 10px 0;
-    color: #666;
-}
+    margin-bottom: 15px;
+    }
