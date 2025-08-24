@@ -1,8 +1,14 @@
 import telebot
 from telebot.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
+import os
 
-BOT_TOKEN = 'YOUR_BOT_TOKEN'  # استبدل بتوكن البوت من @BotFather
-WEB_APP_URL = 'YOUR_WEB_APP_URL'  # استبدل بعنوان الويب أب (مثل https://your-app.onrender.com)
+# جلب المتغيرات من البيئة
+BOT_TOKEN = os.environ.get('BOT_TOKEN')
+WEB_APP_URL = os.environ.get('WEB_APP_URL')
+
+if not BOT_TOKEN or not WEB_APP_URL:
+    raise ValueError("BOT_TOKEN or WEB_APP_URL not set in environment variables")
+
 bot = telebot.TeleBot(BOT_TOKEN)
 
 @bot.message_handler(commands=['start'])
