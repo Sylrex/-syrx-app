@@ -1,29 +1,29 @@
-// script.js
-let tonConnectUI = null;
-let checkInterval = null;
-let elapsed = 0;
-const maxElapsed = 5000;
+let tonConnectUI;
 
 function initializeApp() {
-    checkInterval = setInterval(() => {
-        elapsed += 500;
+    let retries = 0;
+    const maxRetries = 20;
+
+    const interval = setInterval(() => {
         if (window.Telegram && window.Telegram.WebApp) {
-            clearInterval(checkInterval);
+            clearInterval(interval);
             document.getElementById('app-container').style.display = 'block';
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
             initializeTONConnect();
-        } else if (elapsed >= maxElapsed) {
-            clearInterval(checkInterval);
-            document.getElementById('telegram-error').style.display = 'block';
+        } else {
+            retries++;
+            if (retries >= maxRetries) {
+                clearInterval(interval);
+                document.getElementById('telegram-error').style.display = 'block';
+            }
         }
     }, 500);
 }
 
 function initializeTONConnect() {
     if (typeof TONConnectUI === 'undefined') {
-        document.getElementById('status').textContent =
-            '❌ TON Connect SDK لم يتم تحميله.';
+        document.getElementById('status').textContent = 'Error: TON Connect SDK not loaded';
         return;
     }
 
@@ -44,14 +44,12 @@ function initializeTONConnect() {
         }
     });
 
-    document.getElementById('connect-wallet').addEventListener('click', () => {});
     document.getElementById('send-transaction').addEventListener('click', async () => {
-        if (!tonConnectUI) return;
-        const transaction = {
-            validUntil: Math.floor(Date.now() / 1000) + 60,
-            messages: [{ address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', amount: '1000000000' }]
-        };
         try {
+            const transaction = {
+                validUntil: Math.floor(Date.now() / 1000) + 60,
+                messages: [{ address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c', amount: '1000000000' }]
+            };
             await tonConnectUI.sendTransaction(transaction);
             document.getElementById('status').textContent = 'Transaction sent!';
             await fetch('/send_transaction', { method: 'POST', body: JSON.stringify({}) });
@@ -60,8 +58,6 @@ function initializeTONConnect() {
         }
     });
 }
-
-window.addEventListener('load', initializeApp);
 
 async function fetchBalance(address) {
     try {
@@ -79,4 +75,6 @@ async function fetchBalance(address) {
     } catch {
         document.getElementById('balance').textContent = 'Error fetching balance';
     }
-    }
+}
+
+window.addEventListener('load', initializeApp);
