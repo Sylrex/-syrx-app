@@ -1,11 +1,8 @@
 from flask import Flask, render_template_string, request, jsonify, send_file
 import requests
 import os
-import logging
 
 app = Flask(__name__)
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 INDEX_HTML = """
 <!DOCTYPE html>
@@ -15,7 +12,8 @@ INDEX_HTML = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SYRX Mini App</title>
     <link rel="stylesheet" href="/style.css">
-    <script src="/tonconnect-ui.min.js" defer></script>
+    <script src="/tonconnect-ui.min.js"></script>
+    <script src="/script.js"></script>
 </head>
 <body>
     <div class="container">
@@ -26,7 +24,6 @@ INDEX_HTML = """
         <button id="send-transaction" disabled>Send 1 TON</button>
         <p id="status"></p>
     </div>
-    <script src="/script.js" defer></script>
 </body>
 </html>
 """
@@ -37,7 +34,7 @@ def index():
 
 @app.route('/SYRXApp')
 def syrx_app():
-    return index()
+    return render_template_string(INDEX_HTML)
 
 @app.route('/style.css')
 def serve_css():
