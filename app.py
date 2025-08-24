@@ -7,6 +7,7 @@ import datetime
 app = Flask(__name__)
 CORS(app)
 
+# جلب معلومات قاعدة البيانات من متغيرات البيئة
 DB_HOST = os.getenv('DB_HOST')
 DB_NAME = os.getenv('DB_NAME')
 DB_USER = os.getenv('DB_USER')
@@ -47,7 +48,7 @@ def init_db():
 
 init_db()
 
-# نقاط المستخدم
+# ✅ نقاط المستخدم
 @app.route('/api/points/<int:user_id>', methods=['GET'])
 def get_points(user_id):
     conn = get_db_connection()
@@ -59,7 +60,7 @@ def get_points(user_id):
     points = result[0] if result else 0
     return jsonify({'points': points})
 
-# تسجيل دخول يومي
+# ✅ تسجيل دخول يومي
 @app.route('/api/daily-login/<int:user_id>', methods=['GET','POST'])
 def daily_login(user_id):
     conn = get_db_connection()
@@ -92,7 +93,7 @@ def daily_login(user_id):
     conn.close()
     return jsonify({'success': True, 'points': points})
 
-# إكمال المهام
+# ✅ إكمال المهام
 @app.route('/api/task/<int:user_id>/<task_name>', methods=['POST'])
 def complete_task(user_id, task_name):
     conn = get_db_connection()
@@ -111,21 +112,23 @@ def complete_task(user_id, task_name):
     conn.close()
     return jsonify({'success': True, 'points': points})
 
-# ربط المحفظة
+# ✅ ربط المحفظة
 @app.route('/api/wallet/<int:user_id>', methods=['POST'])
 def set_wallet(user_id):
     data = request.get_json()
     wallet_address = data.get('wallet_address')
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("INSERT INTO users (user_id, wallet) VALUES (%s,%s) ON CONFLICT(user_id) DO UPDATE SET wallet=%s;",
-                (user_id, wallet_address, wallet_address))
+    cur.execute("""
+        INSERT INTO users (user_id, wallet) VALUES (%s,%s)
+        ON CONFLICT(user_id) DO UPDATE SET wallet=%s;
+    """, (user_id, wallet_address, wallet_address))
     conn.commit()
     cur.close()
     conn.close()
     return jsonify({'success': True})
 
-# الإحالات
+# ✅ الإحالات
 @app.route('/api/referral/<int:user_id>', methods=['POST'])
 def add_referral(user_id):
     data = request.get_json() or {}
@@ -140,7 +143,7 @@ def add_referral(user_id):
     conn.close()
     return jsonify({'success': True})
 
-# لوحة المتصدرين
+# ✅ لوحة المتصدرين
 @app.route('/api/leaderboard', methods=['GET'])
 def leaderboard():
     conn = get_db_connection()
@@ -152,5 +155,6 @@ def leaderboard():
     leaderboard = [{'user_id': r[0], 'points': r[1]} for r in result]
     return jsonify(leaderboard)
 
+# 🚀 للتشغيل المحلي
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.getenv('PORT',5000)))
