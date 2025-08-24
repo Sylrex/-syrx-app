@@ -19,7 +19,11 @@ bot = telebot.TeleBot(BOT_TOKEN)
 def start(message):
     logger.info(f"Received /start command from {message.chat.id}")
     markup = InlineKeyboardMarkup()
-    web_app_button = InlineKeyboardButton(text="Open Mini App", web_app=WebAppInfo(url=WEB_APP_URL))
+    # تأكد أن هنا web_app وليس url
+    web_app_button = InlineKeyboardButton(
+        text="Open Mini App",
+        web_app=WebAppInfo(url=WEB_APP_URL)  # يجب أن يكون الرابط كامل: https://syrx.onrender.com/SYRXApp
+    )
     markup.add(web_app_button)
     bot.send_message(message.chat.id, "Welcome! Click below to open the Mini App.", reply_markup=markup)
 
