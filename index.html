@@ -1,31 +1,0 @@
-INDEX_HTML = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYRX Telegram Wallet App</title>
-    <link rel="stylesheet" href="/style.css">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-</head>
-<body>
-    <div class="container" id="app-container" style="display:none;">
-        <h1>🚀 SYRX Telegram Wallet</h1>
-        <button id="init-wallet">تهيئة المحفظة</button>
-        <p id="wallet-status">حالة المحفظة: غير موصولة</p>
-        <p id="wallet-address">العنوان: -</p>
-        <p id="balance">الرصيد: 0 TON</p>
-        <button id="send-ton" disabled>إرسال 1 TON</button>
-        <button id="receive-ton">استقبال TON</button>
-        <p id="transaction-status"></p>
-    </div>
-    
-    <div class="telegram-error" id="telegram-error" style="display:none;">
-        <h2>❌ يتطلب تطبيق Telegram</h2>
-        <p>الرجاء فتح هذا التطبيق من داخل تطبيق Telegram</p>
-    </div>
-
-    <script src="/script.js"></script>
-</body>
-</html>
-"""
