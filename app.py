@@ -15,7 +15,7 @@ INDEX_HTML = """
     <title>SYRX Mini App</title>
     <link rel="stylesheet" href="/style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script src="/tonconnect-ui.min.js"></script>
 </head>
 <body>
     <div class="container" id="app-container" style="display:none;">
@@ -24,13 +24,12 @@ INDEX_HTML = """
         <p id="wallet-address">Wallet: Not connected</p>
         <p id="balance">Balance: 0 TON</p>
         <button id="send-transaction" disabled>Send 1 TON</button>
-        <p id="status">Status: Loading wallet system...</p>
+        <p id="status">Status: Ready</p>
     </div>
     
     <div class="telegram-error" id="telegram-error" style="display:none;">
         <h2>❌ Telegram App Required</h2>
         <p>Please open this application from within the Telegram app</p>
-        <p><small>This mini-app only works inside Telegram Messenger</small></p>
     </div>
 
     <script src="/script.js"></script>
@@ -54,6 +53,10 @@ def serve_css():
 def serve_js():
     return send_file('script.js')
 
+@app.route('/tonconnect-ui.min.js')
+def serve_tonconnect_js():
+    return send_file('tonconnect-ui.min.js')
+
 @app.route('/tonconnect-manifest.json')
 def serve_manifest():
     return send_file('tonconnect-manifest.json')
@@ -64,17 +67,11 @@ def serve_icon():
 
 @app.route('/terms')
 def terms():
-    return """
-    <h1>Terms of Use</h1>
-    <p>This application does not store any personal data. All transactions are on blockchain.</p>
-    """
+    return "Terms of Use"
 
 @app.route('/privacy')
 def privacy():
-    return """
-    <h1>Privacy Policy</h1>
-    <p>We respect your privacy. We do not collect or store any personal data.</p>
-    """
+    return "Privacy Policy"
 
 @app.route('/get_balance', methods=['POST'])
 def get_balance():
@@ -91,14 +88,12 @@ def get_balance():
         balance = account_data.get('balance', 0) / 1e9
         return jsonify({'balance': round(balance, 4)})
         
-    except requests.exceptions.RequestException as e:
-        return jsonify({'error': f'Network error: {str(e)}'}), 500
-    except Exception as e:
-        return jsonify({'error': f'Server error: {str(e)}'}), 500
+    except:
+        return jsonify({'balance': 0})
 
 @app.route('/send_transaction', methods=['POST'])
 def send_transaction():
-    return jsonify({'status': 'Transaction sent successfully'})
+    return jsonify({'status': 'success'})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
