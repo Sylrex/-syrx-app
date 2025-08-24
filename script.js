@@ -1,3 +1,4 @@
+console.log('Script.js loaded');
 const tonConnectUI = new TONConnectUI({
     manifestUrl: 'https://syrx.onrender.com/tonconnect-manifest.json',
     buttonRootId: 'connect-wallet'
@@ -28,7 +29,7 @@ async function fetchBalance(address) {
         if (data.balance) {
             document.getElementById('balance').textContent = `Balance: ${data.balance} TON`;
         } else {
-            document.getElementById('balance').textContent = 'Error fetching balance';
+            document.getElementById('balance').textContent = 'Error fetching balance: ' + (data.error || 'Unknown error');
         }
     } catch (error) {
         console.error('Error fetching balance:', error);
