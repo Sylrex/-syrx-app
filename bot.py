@@ -3,7 +3,7 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 import os
 
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
-WEB_APP_URL = os.environ.get('WEB_APP_URL')  # يجب: https://syrx.onrender.com/SYRXApp
+WEB_APP_URL = os.environ.get('WEB_APP_URL')  # يجب أن يكون: https://syrx.onrender.com/SYRXApp
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
