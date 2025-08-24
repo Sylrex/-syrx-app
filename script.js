@@ -6,13 +6,12 @@ let retryCount = 0;
 function initializeApp() {
     console.log('Checking Telegram WebApp environment, attempt:', retryCount + 1);
     if (window.Telegram && window.Telegram.WebApp) {
-        console.log('Running in Telegram WebApp environment');
-        console.log('Telegram WebApp version:', window.Telegram.WebApp.version);
+        console.log('✅ Running in Telegram WebApp environment');
         window.Telegram.WebApp.ready();
         window.Telegram.WebApp.expand();
         initializeTONConnect();
     } else {
-        console.error('Not running in Telegram WebApp environment');
+        console.error('❌ Not running in Telegram WebApp environment');
         document.getElementById('status').textContent = 'Error: This app must be run inside Telegram';
         if (retryCount < maxRetries) {
             retryCount++;
@@ -26,18 +25,18 @@ function initializeApp() {
 
 function initializeTONConnect() {
     console.log('Initializing TONConnectUI');
-    if (typeof TONConnectUI === 'undefined') {
-        console.error('TONConnectUI is not defined. Check if the SDK script loaded correctly.');
+    if (typeof TonConnectUI === 'undefined') {
+        console.error('❌ TONConnectUI is not defined. Check if the SDK script loaded correctly.');
         document.getElementById('status').textContent = 'Error: TON Connect SDK not loaded';
         return;
     }
 
     try {
-        const tonConnectUI = new TONConnectUI({
+        const tonConnectUI = new TonConnectUI({
             manifestUrl: '/tonconnect-manifest.json',
             buttonRootId: 'connect-wallet'
         });
-        console.log('TONConnectUI initialized successfully');
+        console.log('✅ TONConnectUI initialized successfully');
 
         tonConnectUI.onStatusChange(wallet => {
             console.log('Wallet status changed:', wallet);
@@ -55,6 +54,29 @@ function initializeTONConnect() {
         document.getElementById('connect-wallet').addEventListener('click', () => {
             console.log('Connect wallet button clicked');
         });
+
+        document.getElementById('send-transaction').addEventListener('click', async () => {
+            console.log('Send transaction clicked');
+            try {
+                const transaction = {
+                    validUntil: Math.floor(Date.now() / 1000) + 60,
+                    messages: [
+                        {
+                            address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+                            amount: '1000000000' // 1 TON
+                        }
+                    ]
+                };
+                await tonConnectUI.sendTransaction(transaction);
+                document.getElementById('status').textContent = 'Transaction sent!';
+                const response = await fetch('/send_transaction', { method: 'POST', body: JSON.stringify({}) });
+                console.log(await response.json());
+            } catch (error) {
+                console.error('Error sending transaction:', error);
+                document.getElementById('status').textContent = 'Error: ' + error.message;
+            }
+        });
+
     } catch (error) {
         console.error('Error initializing TONConnectUI:', error);
         document.getElementById('status').textContent = 'Error initializing TON Connect: ' + error.message;
@@ -80,27 +102,5 @@ async function fetchBalance(address) {
         document.getElementById('balance').textContent = 'Error fetching balance';
     }
 }
-
-document.getElementById('send-transaction').addEventListener('click', async () => {
-    console.log('Send transaction clicked');
-    try {
-        const transaction = {
-            validUntil: Math.floor(Date.now() / 1000) + 60,
-            messages: [
-                {
-                    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
-                    amount: '1000000000' // 1 TON
-                }
-            ]
-        };
-        await tonConnectUI.sendTransaction(transaction);
-        document.getElementById('status').textContent = 'Transaction sent!';
-        const response = await fetch('/send_transaction', { method: 'POST', body: JSON.stringify({}) });
-        console.log(await response.json());
-    } catch (error) {
-        console.error('Error sending transaction:', error);
-        document.getElementById('status').textContent = 'Error: ' + error.message;
-    }
-});
 
 window.addEventListener('load', initializeApp);
