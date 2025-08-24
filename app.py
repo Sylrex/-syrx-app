@@ -15,20 +15,7 @@ INDEX_HTML = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SYRX Mini App</title>
     <link rel="stylesheet" href="/style.css">
-    <script src="https://unpkg.com/@tonconnect/ui@0.0.9/dist/tonconnect-ui.min.js" defer></script>
-    <script>
-        window.addEventListener('load', function() {
-            console.log('TONConnectUI loaded:', typeof TONConnectUI !== 'undefined');
-            if (typeof TONConnectUI === 'undefined') {
-                document.getElementById('status').textContent = 'Error: TON Connect SDK not loaded';
-            }
-            // تهيئة Telegram WebApp
-            if (window.Telegram && window.Telegram.WebApp) {
-                window.Telegram.WebApp.ready();
-                console.log('Telegram WebApp initialized');
-            }
-        });
-    </script>
+    <script src="/tonconnect-ui.min.js" defer></script>
 </head>
 <body>
     <div class="container">
@@ -75,6 +62,15 @@ def serve_manifest():
     except FileNotFoundError:
         logger.error("tonconnect-manifest.json not found")
         return "Manifest file not found", 404
+
+@app.route('/tonconnect-ui.min.js')
+def serve_tonconnect_js():
+    logger.info("Serving tonconnect-ui.min.js")
+    try:
+        return send_file('tonconnect-ui.min.js')
+    except FileNotFoundError:
+        logger.error("tonconnect-ui.min.js not found")
+        return "JavaScript file not found", 404
 
 @app.route('/get_balance', methods=['POST'])
 def get_balance():
