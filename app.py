@@ -1,102 +1,106 @@
-from flask import Flask, render_template_string, request, jsonify, send_file
-import requests
-import os
-import logging
+console.log('Script.js loaded');
 
-app = Flask(__name__)
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+let maxRetries = 10;
+let retryCount = 0;
 
-INDEX_HTML = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYRX Mini App</title>
-    <link rel="stylesheet" href="/style.css">
-    <script src="/tonconnect-ui.min.js" defer></script>
-</head>
-<body>
-    <div class="container">
-        <h1>Welcome to SYRX Mini App</h1>
-        <button id="connect-wallet">Connect TON Wallet</button>
-        <p id="wallet-address">Wallet: Not connected</p>
-        <p id="balance">Balance: 0 TON</p>
-        <button id="send-transaction" disabled>Send 1 TON</button>
-        <p id="status"></p>
-    </div>
-    <script src="/script.js" defer></script>
-</body>
-</html>
-"""
+function initializeApp() {
+    console.log('Checking Telegram WebApp environment, attempt:', retryCount + 1);
+    if (window.Telegram && window.Telegram.WebApp) {
+        console.log('Running in Telegram WebApp environment');
+        console.log('Telegram WebApp version:', window.Telegram.WebApp.version);
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+        initializeTONConnect();
+    } else {
+        console.error('Not running in Telegram WebApp environment');
+        document.getElementById('status').textContent = 'Error: This app must be run inside Telegram';
+        if (retryCount < maxRetries) {
+            retryCount++;
+            setTimeout(initializeApp, 1000);
+        } else {
+            console.error('Max retries reached. Telegram WebApp not detected.');
+            document.getElementById('status').textContent = 'Error: Could not detect Telegram WebApp after multiple attempts';
+        }
+    }
+}
 
-@app.route('/')
-def index():
-    logger.info("Serving index page")
-    return render_template_string(INDEX_HTML)
+function initializeTONConnect() {
+    console.log('Initializing TONConnectUI');
+    if (typeof TONConnectUI === 'undefined') {
+        console.error('TONConnectUI is not defined. Check if the SDK script loaded correctly.');
+        document.getElementById('status').textContent = 'Error: TON Connect SDK not loaded';
+        return;
+    }
 
-@app.route('/style.css')
-def serve_css():
-    logger.info("Serving style.css")
-    try:
-        return send_file('style.css')
-    except FileNotFoundError:
-        logger.error("style.css not found")
-        return "CSS file not found", 404
+    try {
+        const tonConnectUI = new TONConnectUI({
+            manifestUrl: '/tonconnect-manifest.json',
+            buttonRootId: 'connect-wallet'
+        });
+        console.log('TONConnectUI initialized successfully');
 
-@app.route('/script.js')
-def serve_js():
-    logger.info("Serving script.js")
-    try:
-        return send_file('script.js')
-    except FileNotFoundError:
-        logger.error("script.js not found")
-        return "JS file not found", 404
+        tonConnectUI.onStatusChange(wallet => {
+            console.log('Wallet status changed:', wallet);
+            if (wallet) {
+                document.getElementById('wallet-address').textContent = `Wallet: ${wallet.account.address}`;
+                document.getElementById('send-transaction').disabled = false;
+                fetchBalance(wallet.account.address);
+            } else {
+                document.getElementById('wallet-address').textContent = 'Wallet: Not connected';
+                document.getElementById('balance').textContent = 'Balance: 0 TON';
+                document.getElementById('send-transaction').disabled = true;
+            }
+        });
 
-@app.route('/tonconnect-manifest.json')
-def serve_manifest():
-    logger.info("Serving tonconnect-manifest.json")
-    try:
-        return send_file('tonconnect-manifest.json')
-    except FileNotFoundError:
-        logger.error("tonconnect-manifest.json not found")
-        return "Manifest file not found", 404
+        document.getElementById('connect-wallet').addEventListener('click', () => {
+            console.log('Connect wallet button clicked');
+        });
+    } catch (error) {
+        console.error('Error initializing TONConnectUI:', error);
+        document.getElementById('status').textContent = 'Error initializing TON Connect: ' + error.message;
+    }
+}
 
-@app.route('/tonconnect-ui.min.js')
-def serve_tonconnect_js():
-    logger.info("Serving tonconnect-ui.min.js")
-    try:
-        return send_file('tonconnect-ui.min.js')
-    except FileNotFoundError:
-        logger.error("tonconnect-ui.min.js not found")
-        return "JavaScript file not found", 404
+async function fetchBalance(address) {
+    console.log('Fetching balance for:', address);
+    try {
+        const response = await fetch('/get_balance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ wallet_address: address })
+        });
+        const data = await response.json();
+        if (data.balance) {
+            document.getElementById('balance').textContent = `Balance: ${data.balance} TON`;
+        } else {
+            document.getElementById('balance').textContent = 'Error fetching balance: ' + (data.error || 'Unknown error');
+        }
+    } catch (error) {
+        console.error('Error fetching balance:', error);
+        document.getElementById('balance').textContent = 'Error fetching balance';
+    }
+}
 
-@app.route('/get_balance', methods=['POST'])
-def get_balance():
-    logger.info("Received get_balance request")
-    data = request.json
-    wallet_address = data.get('wallet_address')
-    if not wallet_address:
-        logger.error("No wallet address provided")
-        return jsonify({'error': 'No wallet address provided'}), 400
-    try:
-        response = requests.get(f'https://tonapi.io/v2/accounts/{wallet_address}/balances')
-        response.raise_for_status()
-        balance_data = response.json()
-        balance = balance_data.get('balance', 0) / 1e9
-        logger.info(f"Balance fetched: {balance} TON")
-        return jsonify({'balance': balance})
-    except Exception as e:
-        logger.error(f"Error fetching balance: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+document.getElementById('send-transaction').addEventListener('click', async () => {
+    console.log('Send transaction clicked');
+    try {
+        const transaction = {
+            validUntil: Math.floor(Date.now() / 1000) + 60,
+            messages: [
+                {
+                    address: 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',
+                    amount: '1000000000' // 1 TON
+                }
+            ]
+        };
+        await tonConnectUI.sendTransaction(transaction);
+        document.getElementById('status').textContent = 'Transaction sent!';
+        const response = await fetch('/send_transaction', { method: 'POST', body: JSON.stringify({}) });
+        console.log(await response.json());
+    } catch (error) {
+        console.error('Error sending transaction:', error);
+        document.getElementById('status').textContent = 'Error: ' + error.message;
+    }
+});
 
-@app.route('/send_transaction', methods=['POST'])
-def send_transaction():
-    logger.info("Received send_transaction request")
-    return jsonify({'status': 'Transaction sent successfully'})
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    logger.info(f"Starting Flask server on port {port}")
-    app.run(host='0.0.0.0', port=port, debug=True)
+window.addEventListener('load', initializeApp);
