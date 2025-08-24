@@ -1,5 +1,7 @@
 {
-    "url": "https://your-mini-app.vercel.app",
+    "url": "https://your-app.onrender.com",
     "name": "SYRX Mini App",
-    "iconUrl": "https://your-mini-app.vercel.app/icon.png"
+    "iconUrl": "https://your-icon-url.png",
+    "termsOfUseUrl": "https://your-terms-url",
+    "privacyPolicyUrl": "https://your-privacy-url"
 }
