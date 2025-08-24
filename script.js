@@ -1,6 +1,5 @@
 console.log('Script.js loaded');
 
-// الانتظار حتى يتم تحميل الصفحة
 window.addEventListener('load', function() {
     console.log('Window loaded');
     
@@ -8,10 +7,11 @@ window.addEventListener('load', function() {
     if (window.Telegram && window.Telegram.WebApp) {
         console.log('Running in Telegram WebApp environment');
         window.Telegram.WebApp.ready();
-        window.Telegram.WebApp.expand(); // توسيع التطبيق المصغر
+        window.Telegram.WebApp.expand();
     } else {
         console.error('Not running in Telegram WebApp environment');
         document.getElementById('status').textContent = 'Error: This app must be run inside Telegram';
+        return;
     }
 
     // التحقق من تحميل TONConnectUI
@@ -22,23 +22,34 @@ window.addEventListener('load', function() {
     }
 
     console.log('Initializing TONConnectUI');
-    const tonConnectUI = new TONConnectUI({
-        manifestUrl: '/tonconnect-manifest.json',
-        buttonRootId: 'connect-wallet'
-    });
+    try {
+        const tonConnectUI = new TONConnectUI({
+            manifestUrl: '/tonconnect-manifest.json',
+            buttonRootId: 'connect-wallet'
+        });
+        console.log('TONConnectUI initialized successfully');
 
-    tonConnectUI.onStatusChange(wallet => {
-        console.log('Wallet status changed:', wallet);
-        if (wallet) {
-            document.getElementById('wallet-address').textContent = `Wallet: ${wallet.account.address}`;
-            document.getElementById('send-transaction').disabled = false;
-            fetchBalance(wallet.account.address);
-        } else {
-            document.getElementById('wallet-address').textContent = 'Wallet: Not connected';
-            document.getElementById('balance').textContent = 'Balance: 0 TON';
-            document.getElementById('send-transaction').disabled = true;
-        }
-    });
+        tonConnectUI.onStatusChange(wallet => {
+            console.log('Wallet status changed:', wallet);
+            if (wallet) {
+                document.getElementById('wallet-address').textContent = `Wallet: ${wallet.account.address}`;
+                document.getElementById('send-transaction').disabled = false;
+                fetchBalance(wallet.account.address);
+            } else {
+                document.getElementById('wallet-address').textContent = 'Wallet: Not connected';
+                document.getElementById('balance').textContent = 'Balance: 0 TON';
+                document.getElementById('send-transaction').disabled = true;
+            }
+        });
+
+        // التحقق من النقر على الزر
+        document.getElementById('connect-wallet').addEventListener('click', () => {
+            console.log('Connect wallet button clicked');
+        });
+    } catch (error) {
+        console.error('Error initializing TONConnectUI:', error);
+        document.getElementById('status').textContent = 'Error initializing TON Connect: ' + error.message;
+    }
 
     async function fetchBalance(address) {
         console.log('Fetching balance for:', address);
