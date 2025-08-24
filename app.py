@@ -8,22 +8,25 @@ INDEX_HTML = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYRX Mini App</title>
-    <link rel="stylesheet" href="/style.css">
-    <script src="/tonconnect-ui.min.js"></script>
-    <script src="/script.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYRX Mini App</title>
+<link rel="stylesheet" href="/style.css">
+<script src="/tonconnect-ui.min.js"></script>
+<script src="/script.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>Welcome to SYRX Mini App</h1>
-        <button id="connect-wallet">Connect TON Wallet</button>
-        <p id="wallet-address">Wallet: Not connected</p>
-        <p id="balance">Balance: 0 TON</p>
-        <button id="send-transaction" disabled>Send 1 TON</button>
-        <p id="status"></p>
-    </div>
+<div id="app-container" class="container" style="display:none;">
+    <h1>Welcome to SYRX Mini App</h1>
+    <button id="connect-wallet">Connect TON Wallet</button>
+    <p id="wallet-address">Wallet: Not connected</p>
+    <p id="balance">Balance: 0 TON</p>
+    <button id="send-transaction" disabled>Send 1 TON</button>
+    <p id="status"></p>
+</div>
+<div id="telegram-error" style="text-align:center; margin-top:50px; font-family:Arial; display:none;">
+    <h2>❌ الرجاء فتح هذا التطبيق من داخل تطبيق Telegram فقط</h2>
+</div>
 </body>
 </html>
 """
