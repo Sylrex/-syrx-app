@@ -1,13 +1,17 @@
 console.log('Script.js loaded');
 
-// التحقق من بيئة تليغرام
-if (window.Telegram && window.Telegram.WebApp) {
-    console.log('Running in Telegram WebApp environment');
-    window.Telegram.WebApp.ready();
-}
-
-// الانتظار حتى يتم تحميل TONConnectUI
+// الانتظار حتى يتم تحميل الصفحة
 window.addEventListener('load', function() {
+    console.log('Window loaded');
+    
+    // التحقق من بيئة تليغرام
+    if (window.Telegram && window.Telegram.WebApp) {
+        console.log('Running in Telegram WebApp environment');
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand(); // توسيع التطبيق المصغر
+    }
+
+    // التحقق من تحميل TONConnectUI
     if (typeof TONConnectUI === 'undefined') {
         console.error('TONConnectUI is not defined. Check if the SDK script loaded correctly.');
         document.getElementById('status').textContent = 'Error: TON Connect SDK not loaded';
