@@ -1,7 +1,8 @@
-from flask import Flask, render_template_string, send_file, jsonify
 import os
+from flask import Flask, render_template_string, send_from_directory, jsonify
 
 app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 INDEX_HTML = """
 <!DOCTYPE html>
@@ -37,42 +38,45 @@ INDEX_HTML = """
 def index():
     return render_template_string(INDEX_HTML)
 
-# ملفات JS وCSS
+@app.route('/SYRXApp')
+def syrx_app():
+    return render_template_string(INDEX_HTML)
+
+# ✅ الملفات المحلية
 @app.route('/script.js')
 def serve_js():
-    return send_file('script.js')
+    return send_from_directory(BASE_DIR, 'script.js')
 
 @app.route('/style.css')
 def serve_css():
-    return send_file('style.css')
+    return send_from_directory(BASE_DIR, 'style.css')
 
 @app.route('/tonconnect-ui.min.js')
 def serve_tonconnect():
-    return send_file('tonconnect-ui.min.js')
+    return send_from_directory(BASE_DIR, 'tonconnect-ui.min.js')
 
-# TON Connect Manifest
 @app.route('/tonconnect-manifest.json')
 def serve_manifest():
     try:
-        return send_file('tonconnect-manifest.json')
+        return send_from_directory(BASE_DIR, 'tonconnect-manifest.json')
     except FileNotFoundError:
         return jsonify({
-            "url": "https://yourdomain.com/",
-            "name": "SYRX App", 
-            "iconUrl": "https://yourdomain.com/icon.png",
-            "termsOfUseUrl": "https://yourdomain.com/terms",
-            "privacyPolicyUrl": "https://yourdomain.com/privacy"
+            "url": "https://syrx.onrender.com/",
+            "name": "SYRX App",
+            "iconUrl": "https://syrx.onrender.com/icon.png",
+            "termsOfUseUrl": "https://syrx.onrender.com/terms",
+            "privacyPolicyUrl": "https://syrx.onrender.com/privacy"
         })
 
 @app.route('/icon.png')
 def serve_icon():
-    return send_file('icon.png')
+    return send_from_directory(BASE_DIR, 'icon.png')
 
 @app.route('/terms')
 def terms():
     return "Terms of Use: This app connects to TON wallet"
 
-@app.route('/privacy') 
+@app.route('/privacy')
 def privacy():
     return "Privacy Policy: No user data is stored"
 
