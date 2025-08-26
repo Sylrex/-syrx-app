@@ -28,7 +28,8 @@ INDEX_HTML = """
     </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="/tonconnect-ui.min.js"></script>
+    <!-- استخدم CDN الرسمي بدل الملف المحلي -->
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <script src="/script.js"></script>
 </body>
 </html>
@@ -42,7 +43,7 @@ def index():
 def syrx_app():
     return render_template_string(INDEX_HTML)
 
-# ✅ الملفات المحلية
+# الملفات المحلية
 @app.route('/script.js')
 def serve_js():
     return send_from_directory(BASE_DIR, 'script.js')
@@ -50,10 +51,6 @@ def serve_js():
 @app.route('/style.css')
 def serve_css():
     return send_from_directory(BASE_DIR, 'style.css')
-
-@app.route('/tonconnect-ui.min.js')
-def serve_tonconnect():
-    return send_from_directory(BASE_DIR, 'tonconnect-ui.min.js')
 
 @app.route('/tonconnect-manifest.json')
 def serve_manifest():
