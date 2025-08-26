@@ -27,8 +27,8 @@ INDEX_HTML = """
     </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- استخدم الرابط الذي أعطيتني إياه -->
-    <script src="https://raw.githubusercontent.com/Sylrex/-syrx-app/refs/heads/main/tonconnect-ui.min%20.js"></script>
+    <!-- الرابط المصحح لمكتبة TONConnect -->
+    <script src="https://raw.githubusercontent.com/Sylrex/-syrx-app/main/tonconnect-ui.min.js"></script>
     <script src="/script.js"></script>
 </body>
 </html>
