@@ -27,8 +27,9 @@ INDEX_HTML = """
         ❌ Please open this app inside Telegram
     </div>
 
+    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- استخدم CDN الرسمي بدل الملف المحلي -->
+    <!-- TONConnect UI CDN -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <script src="/script.js"></script>
 </body>
