@@ -1,7 +1,3 @@
-
-### 3. ثالثاً: استخدم هذا الكود لـ `script.js`:
-
-```javascript
 let tonConnectUI = null;
 let retryCount = 0;
 const maxRetries = 5;
@@ -23,7 +19,6 @@ function initializeApp() {
         window.Telegram.WebApp.ready();
         window.Telegram.WebApp.expand();
         
-        // تحميل TON Connect مباشرة
         loadTONConnect();
     } else {
         console.log('❌ Not in Telegram environment');
@@ -33,17 +28,15 @@ function initializeApp() {
 }
 
 function loadTONConnect() {
-    // إذا كان محملاً بالفعل
     if (checkTONConnectLoaded()) {
         initializeTONConnect();
         return;
     }
     
-    // إذا لم يكن محملاً، حاول تحميله
     document.getElementById('status').textContent = '🔄 Loading wallet system...';
     
     const script = document.createElement('script');
-    script.src = '/tonconnect-ui.min.js?v=' + new Date().getTime(); // إضافة timestamp لمنع التخزين
+    script.src = '/tonconnect-ui.min.js?v=' + new Date().getTime();
     script.onload = () => {
         console.log('✅ TON Connect SDK loaded successfully');
         initializeTONConnect();
@@ -57,22 +50,10 @@ function loadTONConnect() {
             setTimeout(loadTONConnect, 2000);
         } else {
             document.getElementById('status').textContent = '❌ Failed to load wallet after multiple attempts';
-            showAlternativeOptions();
         }
     };
     
     document.head.appendChild(script);
-}
-
-function showAlternativeOptions() {
-    const statusElement = document.getElementById('status');
-    statusElement.innerHTML = `
-        ❌ Wallet system unavailable<br>
-        <small>Please try refreshing or check your connection</small>
-        <button onclick="location.reload()" style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 5px; margin-top: 10px; cursor: pointer;">
-            🔄 Refresh Page
-        </button>
-    `;
 }
 
 function initializeTONConnect() {
@@ -82,9 +63,6 @@ function initializeTONConnect() {
     }
 
     try {
-        console.log('🔄 Initializing TON Connect...');
-        document.getElementById('status').textContent = 'Status: Initializing...';
-        
         tonConnectUI = new TONConnectUI({
             manifestUrl: window.location.origin + '/tonconnect-manifest.json',
             buttonRootId: 'connect-wallet',
@@ -106,7 +84,6 @@ function initializeTONConnect() {
             }
         });
 
-        // إعداد زر الإرسال
         document.getElementById('send-transaction').addEventListener('click', async () => {
             if (!tonConnectUI?.connected) {
                 document.getElementById('status').textContent = 'Please connect wallet first';
@@ -137,7 +114,6 @@ function initializeTONConnect() {
     }
 }
 
-// بدء التطبيق
 document.addEventListener('DOMContentLoaded', function() {
     setTimeout(initializeApp, 1000);
 });
