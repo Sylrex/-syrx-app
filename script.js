@@ -1,7 +1,7 @@
 let tonConnectUI = null;
 
 function isTelegramWebApp() {
-    return window.Telegram && window.Telegram.WebApp;
+    return (window.Telegram && window.Telegram.WebApp);
 }
 
 function initializeApp() {
@@ -17,17 +17,12 @@ function initializeApp() {
     window.Telegram.WebApp.ready();
     window.Telegram.WebApp.expand();
 
-    // تهيئة TONConnect بعد تحميل المكتبة
-    if (window.TONConnectUI) {
-        initializeTONConnect();
-    } else {
-        console.error("TONConnectUI is not loaded yet");
+    if (typeof TONConnectUI === 'undefined') {
         document.getElementById('status').textContent = '❌ TON Connect not loaded';
+        return;
     }
-}
 
-function initializeTONConnect() {
-    tonConnectUI = new window.TONConnectUI({
+    tonConnectUI = new TONConnectUI({
         manifestUrl: window.location.origin + '/tonconnect-manifest.json',
         buttonRootId: 'connect-wallet',
         language: 'en'
@@ -37,7 +32,6 @@ function initializeTONConnect() {
         if (wallet) {
             const shortAddress = wallet.account.address.substring(0, 6) + '...' + wallet.account.address.slice(-4);
             document.getElementById('wallet-address').textContent = `Wallet: ${shortAddress}`;
-            document.getElementById('balance').textContent = `Balance: ${wallet.account.balance / 1e9} TON`;
             document.getElementById('send-transaction').disabled = false;
             document.getElementById('status').textContent = 'Status: Connected ✅';
         } else {
@@ -49,7 +43,7 @@ function initializeTONConnect() {
     });
 
     document.getElementById('send-transaction').addEventListener('click', async () => {
-        if (!tonConnectUI || !tonConnectUI.connected) {
+        if (!tonConnectUI?.connected) {
             document.getElementById('status').textContent = 'Please connect wallet first';
             return;
         }
@@ -68,20 +62,10 @@ function initializeTONConnect() {
             document.getElementById('status').textContent = 'Transaction sent! ✅';
         } catch (error) {
             document.getElementById('status').textContent = 'Error: ' + error.message;
-            console.error(error);
         }
     });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // تأكد من تحميل TONConnectUI من CDN
-    if (window.TONConnectUI) {
-        initializeApp();
-    } else {
-        const script = document.createElement('script');
-        script.src = 'https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js';
-        script.onload = initializeApp;
-        script.onerror = () => document.getElementById('status').textContent = '❌ TON Connect not loaded';
-        document.head.appendChild(script);
-    }
+    initializeApp();
 });
