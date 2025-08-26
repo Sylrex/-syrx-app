@@ -1,8 +1,7 @@
+from flask import Flask, render_template_string, send_file, jsonify
 import os
-from flask import Flask, render_template_string, send_from_directory, jsonify
 
 app = Flask(__name__)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 INDEX_HTML = """
 <!DOCTYPE html>
@@ -27,10 +26,9 @@ INDEX_HTML = """
         ❌ Please open this app inside Telegram
     </div>
 
-    <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- TONConnect UI CDN -->
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <!-- استخدم الرابط الذي أعطيتني إياه -->
+    <script src="https://raw.githubusercontent.com/Sylrex/-syrx-app/refs/heads/main/tonconnect-ui.min%20.js"></script>
     <script src="/script.js"></script>
 </body>
 </html>
@@ -44,23 +42,22 @@ def index():
 def syrx_app():
     return render_template_string(INDEX_HTML)
 
-# الملفات المحلية
 @app.route('/script.js')
 def serve_js():
-    return send_from_directory(BASE_DIR, 'script.js')
+    return send_file('script.js')
 
 @app.route('/style.css')
 def serve_css():
-    return send_from_directory(BASE_DIR, 'style.css')
+    return send_file('style.css')
 
 @app.route('/tonconnect-manifest.json')
 def serve_manifest():
     try:
-        return send_from_directory(BASE_DIR, 'tonconnect-manifest.json')
+        return send_file('tonconnect-manifest.json')
     except FileNotFoundError:
         return jsonify({
-            "url": "https://syrx.onrender.com/",
-            "name": "SYRX App",
+            "url": "https://syrx.onrender.com/SYRXApp",
+            "name": "SYRX App", 
             "iconUrl": "https://syrx.onrender.com/icon.png",
             "termsOfUseUrl": "https://syrx.onrender.com/terms",
             "privacyPolicyUrl": "https://syrx.onrender.com/privacy"
@@ -68,13 +65,13 @@ def serve_manifest():
 
 @app.route('/icon.png')
 def serve_icon():
-    return send_from_directory(BASE_DIR, 'icon.png')
+    return send_file('icon.png')
 
 @app.route('/terms')
 def terms():
     return "Terms of Use: This app connects to TON wallet"
 
-@app.route('/privacy')
+@app.route('/privacy') 
 def privacy():
     return "Privacy Policy: No user data is stored"
 
