@@ -1,28 +1,27 @@
 let tonConnectUI = null;
-let retryCount = 0;
-const maxRetries = 5;
 
 function isTelegramWebApp() {
-    return (window.Telegram && window.Telegram.WebApp);
+    return window.Telegram && window.Telegram.WebApp;
 }
 
 function checkTONConnectLoaded() {
-    return typeof TONConnectUI !== 'undefined';
+    return typeof window.TonConnectUI !== 'undefined';
 }
 
 function initializeApp() {
-    if (isTelegramWebApp()) {
-        document.getElementById('app-container').style.display = 'block';
-        document.getElementById('telegram-error').style.display = 'none';
-        
-        window.Telegram.WebApp.ready();
-        window.Telegram.WebApp.expand();
-        
-        loadTONConnect();
-    } else {
+    if (!isTelegramWebApp()) {
         document.getElementById('app-container').style.display = 'none';
         document.getElementById('telegram-error').style.display = 'block';
+        return;
     }
+
+    document.getElementById('app-container').style.display = 'block';
+    document.getElementById('telegram-error').style.display = 'none';
+
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+
+    loadTONConnect();
 }
 
 function loadTONConnect() {
@@ -30,22 +29,15 @@ function loadTONConnect() {
         initializeTONConnect();
         return;
     }
-    
-    document.getElementById('status').textContent = '🔄 Loading wallet system...';
-    
+
     const script = document.createElement('script');
     script.src = 'https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js';
-    script.onload = () => initializeTONConnect();
+    script.onload = initializeTONConnect;
     script.onerror = () => {
-        retryCount++;
-        if (retryCount < maxRetries) {
-            document.getElementById('status').textContent = `🔄 Retrying load... (${retryCount}/${maxRetries})`;
-            setTimeout(loadTONConnect, 2000);
-        } else {
-            document.getElementById('status').textContent = '❌ Failed to load wallet after multiple attempts';
-        }
+        document.getElementById('status').textContent = '❌ Failed to load TON Connect. Refresh page.';
+        console.error('TON Connect failed to load');
     };
-    
+
     document.head.appendChild(script);
 }
 
@@ -55,7 +47,7 @@ function initializeTONConnect() {
         return;
     }
 
-    tonConnectUI = new TONConnectUI({
+    tonConnectUI = new TonConnectUI({
         manifestUrl: window.location.origin + '/tonconnect-manifest.json',
         buttonRootId: 'connect-wallet',
         language: 'en'
@@ -63,9 +55,9 @@ function initializeTONConnect() {
 
     tonConnectUI.onStatusChange(wallet => {
         if (wallet) {
-            const shortAddress = wallet.account.address.substring(0, 6) + '...' + 
-                               wallet.account.address.substring(wallet.account.address.length - 4);
+            const shortAddress = wallet.account.address.substring(0, 6) + '...' + wallet.account.address.slice(-4);
             document.getElementById('wallet-address').textContent = `Wallet: ${shortAddress}`;
+            document.getElementById('balance').textContent = `Balance: ${wallet.account.balance / 1e9} TON`;
             document.getElementById('send-transaction').disabled = false;
             document.getElementById('status').textContent = 'Status: Connected ✅';
         } else {
@@ -77,11 +69,11 @@ function initializeTONConnect() {
     });
 
     document.getElementById('send-transaction').addEventListener('click', async () => {
-        if (!tonConnectUI?.connected) {
+        if (!tonConnectUI || !tonConnectUI.connected) {
             document.getElementById('status').textContent = 'Please connect wallet first';
             return;
         }
-        
+
         try {
             const transaction = {
                 validUntil: Math.floor(Date.now() / 1000) + 60,
@@ -90,17 +82,17 @@ function initializeTONConnect() {
                     amount: '1000000000'
                 }]
             };
-            
+
             document.getElementById('status').textContent = 'Status: Signing...';
             await tonConnectUI.sendTransaction(transaction);
             document.getElementById('status').textContent = 'Transaction sent! ✅';
-            
         } catch (error) {
             document.getElementById('status').textContent = 'Error: ' + error.message;
+            console.error(error);
         }
     });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(initializeApp, 1000);
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initializeApp, 500);
 });
