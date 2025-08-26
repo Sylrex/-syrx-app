@@ -27,7 +27,7 @@ INDEX_HTML = """
     </div>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="/tonconnect-ui.min.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <script src="/script.js"></script>
 </body>
 </html>
@@ -41,7 +41,7 @@ def index():
 def syrx_app():
     return render_template_string(INDEX_HTML)
 
-# Routes لخدمة الملفات المحلية
+# خدمة الملفات المحلية
 @app.route('/script.js')
 def serve_js():
     return send_file('script.js')
@@ -49,10 +49,6 @@ def serve_js():
 @app.route('/style.css')
 def serve_css():
     return send_file('style.css')
-
-@app.route('/tonconnect-ui.min.js')
-def serve_tonconnect_js():
-    return send_file('tonconnect-ui.min.js')
 
 @app.route('/tonconnect-manifest.json')
 def serve_manifest():
