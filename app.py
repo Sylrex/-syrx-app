@@ -2,7 +2,7 @@ from flask import Flask, send_from_directory
 
 app = Flask(__name__, static_folder='.')
 
-# صفحة التطبيق الرئيسية
+# الصفحة الرئيسية
 @app.route("/SYRXApp")
 def home():
     return send_from_directory('.', 'index.html')
