@@ -1,19 +1,19 @@
-from flask import Flask, send_file, render_template_string
-import os
+from flask import Flask, send_from_directory
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='.')
 
-@app.route('/')
-def index():
-    return send_file('index.html')
+@app.route("/")
+def home():
+    return send_from_directory('.', 'index.html')
 
-@app.route('/<path:filename>')
+@app.route("/<path:filename>")
 def serve_files(filename):
-    try:
-        return send_file(filename)
-    except:
-        return "File not found", 404
+    return send_from_directory('.', filename)
 
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+# مسار خاص للـ manifest
+@app.route("/tonconnect-manifest.json")
+def manifest():
+    return send_from_directory('.', 'tonconnect-manifest.json')
+
+if __name__ == "__main__":
+    app.run(debug=True)
