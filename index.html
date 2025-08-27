@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -74,7 +74,6 @@
     .hidden {
       display: none !important;
     }
-    /* التكيف مع الأجهزة */
     @media (max-width: 400px) {
       .logo {
         width: 80px;
@@ -107,31 +106,31 @@
     <img src="/syrx-logo.png" alt="SYRX Logo" class="logo">
     <div class="user-profile">
       <img id="user-photo" src="https://via.placeholder.com/50" alt="User Photo">
-      <span id="user-name">جاري التحميل...</span>
+      <span id="user-name">Loading...</span>
     </div>
-    <h1>مرحبًا بك في SYRX App 🎉</h1>
+    <h1>Welcome to SYRX App 🎉</h1>
     <div id="ton-connect"></div>
     <div id="wallet-address"></div>
   </div>
 
-  <!-- تحميل Telegram Web Apps API -->
+  <!-- Load Telegram Web Apps API -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- تحميل مكتبة TON Connect -->
+  <!-- Load TON Connect UI -->
   <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
   <script>
-    // تهيئة Telegram Web App
+    // Initialize Telegram Web App
     const tg = window.Telegram.WebApp;
     tg.ready();
 
-    // عرض اسم المستخدم
-    const userName = tg.initDataUnsafe?.user?.first_name || 'مستخدم';
+    // Display user name
+    const userName = tg.initDataUnsafe?.user?.first_name || 'User';
     document.getElementById('user-name').textContent = userName;
 
-    // عرض صورة المستخدم (بديل إذا لم تكن متوفرة)
+    // Display user photo (fallback if unavailable)
     const userPhoto = tg.initDataUnsafe?.user?.photo_url || 'https://via.placeholder.com/50';
     document.getElementById('user-photo').src = userPhoto;
 
-    // إعداد TON Connect
+    // Initialize TON Connect
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
       manifestUrl: "https://syrx.onrender.com/tonconnect-manifest.json",
       walletsListConfiguration: {
@@ -153,43 +152,38 @@
       buttonRootId: "ton-connect"
     };
 
-    // معالجة حالة الاتصال
+    // Check connection status on load
+    if (tonConnectUI.wallet) {
+      const connectButton = document.getElementById('ton-connect');
+      const walletAddressDiv = document.getElementById('wallet-address');
+      connectButton.classList.add('hidden');
+      walletAddressDiv.textContent = `Wallet Address: ${tonConnectUI.wallet.account.address}`;
+      walletAddressDiv.style.display = 'block';
+    }
+
+    // Handle connection status changes
     tonConnectUI.onStatusChange(
       walletInfo => {
-        console.log("حالة الاتصال:", walletInfo);
+        console.log("Connection status:", walletInfo);
         const connectButton = document.getElementById('ton-connect');
         const walletAddressDiv = document.getElementById('wallet-address');
         if (walletInfo && walletInfo.account && walletInfo.account.address) {
-          // إخفاء زر الاتصال
           connectButton.classList.add('hidden');
-          // عرض عنوان المحفظة
-          walletAddressDiv.textContent = `عنوان المحفظة: ${walletInfo.account.address}`;
+          walletAddressDiv.textContent = `Wallet Address: ${walletInfo.account.address}`;
           walletAddressDiv.style.display = 'block';
         } else {
-          // إظهار زر الاتصال
           connectButton.classList.remove('hidden');
           walletAddressDiv.style.display = 'none';
-          console.warn("لم يتم العثور على عنوان المحفظة");
+          console.warn("Wallet address not found");
         }
       },
       error => {
-        console.error("خطأ في الاتصال:", error);
-        alert("خطأ في الاتصال: " + error.message);
-        // التأكد من إظهار الزر في حالة الخطأ
+        console.error("Connection error:", error);
+        alert("Connection error: " + error.message);
         document.getElementById('ton-connect').classList.remove('hidden');
         document.getElementById('wallet-address').style.display = 'none';
       }
     );
-
-    // فتح نافذة الاتصال تلقائيًا (اختياري)
-    async function connectToWallet() {
-      try {
-        await tonConnectUI.openModal();
-      } catch (error) {
-        console.error("خطأ أثناء فتح نافذة الاتصال:", error);
-        alert("خطأ أثناء فتح نافذة الاتصال: " + error.message);
-      }
-    }
   </script>
 </body>
-  </html>
+    </html>
