@@ -12,6 +12,11 @@ def index():
     except FileNotFoundError:
         return Response("خطأ: ملف index.html غير موجود", status=404)
 
+# إعادة توجيه طلبات /SYRXApp إلى الجذر
+@app.route('/SYRXApp')
+def redirect_syrxapp():
+    return Response("تم إعادة التوجيه: استخدم https://syrx.onrender.com/", status=302, headers={"Location": "/"})
+
 # تقديم tonconnect-manifest.json
 @app.route('/tonconnect-manifest.json')
 def serve_manifest():
@@ -20,7 +25,7 @@ def serve_manifest():
     except FileNotFoundError:
         return Response("خطأ: ملف tonconnect-manifest.json غير موجود", status=404)
 
-# تقديم الملفات الثابتة (مثل icon.png, terms.html, privacy.html, favicon.ico)
+# تقديم الملفات الثابتة (مثل favicon.ico, icon.png, terms.html, privacy.html)
 @app.route('/<path:filename>')
 def serve_static(filename):
     try:
