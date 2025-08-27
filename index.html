@@ -1,24 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SYRX App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background-color: #f0f0f0;
+    }
+    #ton-connect {
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
   <h1>مرحبًا بك في SYRX App 🎉</h1>
   <div id="ton-connect"></div>
 
-  <!-- تحميل مكتبة TON Connect -->
-  <script src="https://raw.githubusercontent.com/Sylrex/-syrx-app/main/tonconnect-ui.min.js"></script>
+  <!-- تحميل مكتبة TON Connect من مصدر رسمي -->
+  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
   <script>
-    // إعداد TON Connect
+    // إعداد TON Connect مع دعم محفظة Telegram
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: "https://raw.githubusercontent.com/Sylrex/-syrx-app/main/tonconnect-manifest.json"
+      manifestUrl: "/tonconnect-manifest.json",
+      walletsListConfiguration: {
+        includeWallets: [
+          {
+            appName: "telegram-wallet",
+            name: "Wallet",
+            imageUrl: "https://wallet.tg/images/logo-288.png",
+            aboutUrl: "https://wallet.tg/",
+            universalLink: "https://t.me/wallet/start",
+            bridgeUrl: "https://bridge.tonapi.io/bridge",
+            platforms: ["ios", "android", "macos", "windows", "linux"]
+          }
+        ]
+      }
     });
 
     tonConnectUI.uiOptions = {
       buttonRootId: "ton-connect"
     };
+
+    // معالجة حالة الاتصال
+    tonConnectUI.onStatusChange(
+      walletInfo => {
+        console.log("حالة الاتصال:", walletInfo);
+        if (walletInfo) {
+          alert("تم الاتصال بالمحفظة: " + walletInfo.account.address);
+        } else {
+          alert("لم يتم الاتصال بالمحفظة");
+        }
+      },
+      error => {
+        console.error("خطأ في الاتصال:", error);
+        alert("خطأ في الاتصال: " + error.message);
+      }
+    );
+
+    // فتح نافذة الاتصال تلقائيًا (اختياري)
+    async function connectToWallet() {
+      try {
+        await tonConnectUI.openModal();
+      } catch (error) {
+        console.error("خطأ أثناء فتح نافذة الاتصال:", error);
+        alert("خطأ أثناء فتح نافذة الاتصال: " + error.message);
+      }
+    }
+
+    // استدعاء الدالة تلقائيًا (اختياري)
+    // connectToWallet();
   </script>
 </body>
-</html>
+  </html>
