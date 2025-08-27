@@ -1,7 +1,4 @@
 {
-  "url": "https://sylrex.github.io/-syrx-app/index.html",
-  "name": "SYRX App",
-  "iconUrl": "https://raw.githubusercontent.com/Sylrex/-syrx-app/377732bf3e6f03663b07c997551c43d4c88ac9d4/icon.png",
-  "termsOfUseUrl": "https://sylrex.github.io/-syrx-app/terms",
-  "privacyPolicyUrl": "https://sylrex.github.io/-syrx-app/privacy"
+  "url": "https://raw.githubusercontent.com/Sylrex/-syrx-app/main/index.html",
+  "name": "SYRX App"
 }
