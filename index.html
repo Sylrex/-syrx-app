@@ -1,24 +1,10 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <title>SYRX App</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <h1>مرحبا بك في SYRX App 🎉</h1>
+<script src="tonconnect-ui.min.js"></script>
+<script>
+    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+        manifestUrl: "https://syrx.onrender.com/SYRXApp/tonconnect-manifest.json"
+    });
 
-    <div id="ton-connect"></div>
-
-    <script src="tonconnect-ui.min.js"></script>
-    <script>
-        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: "https://syrx.onrender.com/SYRXApp/tonconnect-manifest.json"
-        });
-
-        tonConnectUI.uiOptions = {
-            buttonRootId: "ton-connect"
-        };
-    </script>
-</body>
-</html>
+    tonConnectUI.uiOptions = {
+        buttonRootId: "ton-connect"
+    };
+</script>
