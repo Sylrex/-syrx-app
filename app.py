@@ -2,18 +2,15 @@ from flask import Flask, send_from_directory
 
 app = Flask(__name__, static_folder='.')
 
-@app.route("/")
+# صفحة التطبيق الرئيسية
+@app.route("/SYRXApp")
 def home():
     return send_from_directory('.', 'index.html')
 
-@app.route("/<path:filename>")
+# أي ملف آخر تحت نفس المسار
+@app.route("/SYRXApp/<path:filename>")
 def serve_files(filename):
     return send_from_directory('.', filename)
-
-# مسار خاص للـ manifest
-@app.route("/tonconnect-manifest.json")
-def manifest():
-    return send_from_directory('.', 'tonconnect-manifest.json')
 
 if __name__ == "__main__":
     app.run(debug=True)
