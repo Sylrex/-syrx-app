@@ -15,7 +15,7 @@ def index():
 # إعادة توجيه طلبات /SYRXApp إلى الجذر
 @app.route('/SYRXApp')
 def redirect_syrxapp():
-    return Response("تم إعادة التوجيه: استخدم https://syrx.onrender.com/", status=302, headers={"Location": "/"})
+    return Response("تم إعادة التوجيه إلى الصفحة الرئيسية", status=302, headers={"Location": "/"})
 
 # تقديم tonconnect-manifest.json
 @app.route('/tonconnect-manifest.json')
@@ -25,7 +25,7 @@ def serve_manifest():
     except FileNotFoundError:
         return Response("خطأ: ملف tonconnect-manifest.json غير موجود", status=404)
 
-# تقديم الملفات الثابتة (مثل favicon.ico, icon.png, terms.html, privacy.html)
+# تقديم الملفات الثابتة
 @app.route('/<path:filename>')
 def serve_static(filename):
     try:
@@ -37,5 +37,5 @@ def serve_static(filename):
         return Response(f"خطأ: {str(e)}", status=500)
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))  # Render يستخدم متغير PORT
+    port = int(os.environ.get('PORT', 5000))  # لدعم Render
     app.run(debug=False, host='0.0.0.0', port=port)
