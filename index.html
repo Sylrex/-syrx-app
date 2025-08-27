@@ -2,66 +2,103 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SYRX App</title>
   <link rel="icon" href="/favicon.ico">
   <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 20px;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      width: 100vw;
       background: linear-gradient(135deg, #1e3c72, #2a5298);
       color: white;
-      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+    .container {
+      width: 100%;
+      max-width: 600px;
       min-height: 100vh;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 0;
+      padding: 20px;
+      box-sizing: border-box;
       display: flex;
       flex-direction: column;
       align-items: center;
-    }
-    .container {
-      max-width: 600px;
-      width: 100%;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 15px;
-      padding: 20px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
       backdrop-filter: blur(10px);
     }
     .logo {
-      width: 100px;
-      margin-bottom: 20px;
+      width: 120px;
+      margin: 20px 0;
     }
     .user-profile {
       display: flex;
       align-items: center;
-      justify-content: center;
-      margin-bottom: 20px;
+      margin: 15px 0;
     }
     .user-profile img {
-      width: 50px;
-      height: 50px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
       margin-right: 10px;
       border: 2px solid #fff;
     }
     .user-profile span {
-      font-size: 1.2em;
+      font-size: 1.3em;
       font-weight: bold;
     }
+    h1 {
+      font-size: 1.8em;
+      margin: 10px 0;
+    }
     #ton-connect {
-      margin-top: 20px;
+      margin: 20px 0;
     }
     #wallet-address {
       background: #ffffff;
       color: #333;
       padding: 10px;
       border-radius: 10px;
-      margin-top: 20px;
+      margin: 20px;
       word-break: break-all;
+      font-size: 0.9em;
       display: none;
+      max-width: 90%;
+      text-align: center;
     }
     .hidden {
       display: none !important;
+    }
+    /* التكيف مع الأجهزة */
+    @media (max-width: 400px) {
+      .logo {
+        width: 80px;
+      }
+      .user-profile img {
+        width: 40px;
+        height: 40px;
+      }
+      .user-profile span {
+        font-size: 1em;
+      }
+      h1 {
+        font-size: 1.5em;
+      }
+      #wallet-address {
+        font-size: 0.8em;
+        padding: 8px;
+      }
+    }
+    @media (min-width: 600px) {
+      .container {
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      }
     }
   </style>
 </head>
@@ -90,7 +127,7 @@
     const userName = tg.initDataUnsafe?.user?.first_name || 'مستخدم';
     document.getElementById('user-name').textContent = userName;
 
-    // عرض صورة المستخدم (ملاحظة: قد تتطلب Bot API)
+    // عرض صورة المستخدم (بديل إذا لم تكن متوفرة)
     const userPhoto = tg.initDataUnsafe?.user?.photo_url || 'https://via.placeholder.com/50';
     document.getElementById('user-photo').src = userPhoto;
 
@@ -122,21 +159,25 @@
         console.log("حالة الاتصال:", walletInfo);
         const connectButton = document.getElementById('ton-connect');
         const walletAddressDiv = document.getElementById('wallet-address');
-        if (walletInfo) {
+        if (walletInfo && walletInfo.account && walletInfo.account.address) {
           // إخفاء زر الاتصال
           connectButton.classList.add('hidden');
           // عرض عنوان المحفظة
           walletAddressDiv.textContent = `عنوان المحفظة: ${walletInfo.account.address}`;
           walletAddressDiv.style.display = 'block';
         } else {
-          // إظهار زر الاتصال إذا لم يكن هناك اتصال
+          // إظهار زر الاتصال
           connectButton.classList.remove('hidden');
           walletAddressDiv.style.display = 'none';
+          console.warn("لم يتم العثور على عنوان المحفظة");
         }
       },
       error => {
         console.error("خطأ في الاتصال:", error);
         alert("خطأ في الاتصال: " + error.message);
+        // التأكد من إظهار الزر في حالة الخطأ
+        document.getElementById('ton-connect').classList.remove('hidden');
+        document.getElementById('wallet-address').style.display = 'none';
       }
     );
 
