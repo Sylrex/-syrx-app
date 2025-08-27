@@ -4,27 +4,97 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SYRX App</title>
-  <link rel="icon" href="/favicon.ico"> <!-- لتجنب خطأ favicon -->
+  <link rel="icon" href="/favicon.ico">
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
       padding: 20px;
-      background-color: #f0f0f0;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: white;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container {
+      max-width: 600px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+    }
+    .logo {
+      width: 100px;
+      margin-bottom: 20px;
+    }
+    .user-profile {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .user-profile img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      margin-right: 10px;
+      border: 2px solid #fff;
+    }
+    .user-profile span {
+      font-size: 1.2em;
+      font-weight: bold;
     }
     #ton-connect {
       margin-top: 20px;
     }
+    #wallet-address {
+      background: #ffffff;
+      color: #333;
+      padding: 10px;
+      border-radius: 10px;
+      margin-top: 20px;
+      word-break: break-all;
+      display: none;
+    }
+    .hidden {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
-  <h1>مرحبًا بك في SYRX App 🎉</h1>
-  <div id="ton-connect"></div>
+  <div class="container">
+    <img src="/syrx-logo.png" alt="SYRX Logo" class="logo">
+    <div class="user-profile">
+      <img id="user-photo" src="https://via.placeholder.com/50" alt="User Photo">
+      <span id="user-name">جاري التحميل...</span>
+    </div>
+    <h1>مرحبًا بك في SYRX App 🎉</h1>
+    <div id="ton-connect"></div>
+    <div id="wallet-address"></div>
+  </div>
 
+  <!-- تحميل Telegram Web Apps API -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <!-- تحميل مكتبة TON Connect -->
   <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
   <script>
-    // إعداد TON Connect مع دعم محفظة Telegram
+    // تهيئة Telegram Web App
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+
+    // عرض اسم المستخدم
+    const userName = tg.initDataUnsafe?.user?.first_name || 'مستخدم';
+    document.getElementById('user-name').textContent = userName;
+
+    // عرض صورة المستخدم (ملاحظة: قد تتطلب Bot API)
+    const userPhoto = tg.initDataUnsafe?.user?.photo_url || 'https://via.placeholder.com/50';
+    document.getElementById('user-photo').src = userPhoto;
+
+    // إعداد TON Connect
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
       manifestUrl: "https://syrx.onrender.com/tonconnect-manifest.json",
       walletsListConfiguration: {
@@ -50,10 +120,18 @@
     tonConnectUI.onStatusChange(
       walletInfo => {
         console.log("حالة الاتصال:", walletInfo);
+        const connectButton = document.getElementById('ton-connect');
+        const walletAddressDiv = document.getElementById('wallet-address');
         if (walletInfo) {
-          alert("تم الاتصال بالمحفظة: " + walletInfo.account.address);
+          // إخفاء زر الاتصال
+          connectButton.classList.add('hidden');
+          // عرض عنوان المحفظة
+          walletAddressDiv.textContent = `عنوان المحفظة: ${walletInfo.account.address}`;
+          walletAddressDiv.style.display = 'block';
         } else {
-          alert("لم يتم الاتصال بالمحفظة");
+          // إظهار زر الاتصال إذا لم يكن هناك اتصال
+          connectButton.classList.remove('hidden');
+          walletAddressDiv.style.display = 'none';
         }
       },
       error => {
@@ -71,9 +149,6 @@
         alert("خطأ أثناء فتح نافذة الاتصال: " + error.message);
       }
     }
-
-    // استدعاء الدالة تلقائيًا (اختياري)
-    // connectToWallet();
   </script>
 </body>
-</html>
+  </html>
