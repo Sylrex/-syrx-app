@@ -1,10 +1,24 @@
-<script src="tonconnect-ui.min.js"></script>
-<script>
-  const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-    manifestUrl: "https://sylrex.github.io/-syrx-app/tonconnect-manifest.json"
-  });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SYRX App</title>
+</head>
+<body>
+  <h1>مرحبًا بك في SYRX App 🎉</h1>
+  <div id="ton-connect"></div>
 
-  tonConnectUI.uiOptions = {
-    buttonRootId: "ton-connect"
-  };
-</script>
+  <!-- تحميل مكتبة TON Connect -->
+  <script src="https://raw.githubusercontent.com/Sylrex/-syrx-app/main/tonconnect-ui.min.js"></script>
+  <script>
+    // إعداد TON Connect
+    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+      manifestUrl: "https://raw.githubusercontent.com/Sylrex/-syrx-app/main/tonconnect-manifest.json"
+    });
+
+    tonConnectUI.uiOptions = {
+      buttonRootId: "ton-connect"
+    };
+  </script>
+</body>
+</html>
