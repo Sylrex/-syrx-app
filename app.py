@@ -1,10 +1,14 @@
-<script src="tonconnect-ui.min.js"></script>
-<script>
-    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-        manifestUrl: "https://syrx.onrender.com/tonconnect-manifest.json"
-    });
+from flask import Flask, send_from_directory
 
-    tonConnectUI.uiOptions = {
-        buttonRootId: "ton-connect"
-    };
-</script>
+app = Flask(__name__, static_folder='.')
+
+@app.route("/")
+def home():
+    return send_from_directory('.', 'index.html')
+
+@app.route("/<path:filename>")
+def serve_files(filename):
+    return send_from_directory('.', filename)
+
+if __name__ == "__main__":
+    app.run(debug=True)
