@@ -12,7 +12,7 @@ def index():
     except FileNotFoundError:
         return Response("خطأ: ملف index.html غير موجود", status=404)
 
-# إعادة توجيه طلبات /SYRXApp إلى الجذر
+# إعادة توجيه /SYRXApp إلى الجذر
 @app.route('/SYRXApp')
 def redirect_syrxapp():
     return Response("تم إعادة التوجيه إلى الصفحة الرئيسية", status=302, headers={"Location": "/"})
