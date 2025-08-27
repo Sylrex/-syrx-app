@@ -52,7 +52,7 @@
       font-size: 1.3em;
       font-weight: bold;
     }
-    h1 {
+    h1, h2 {
       font-size: 1.8em;
       margin: 10px 0;
     }
@@ -73,6 +73,67 @@
     }
     .hidden {
       display: none !important;
+    }
+    .navigation {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-around;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 10px 0;
+    }
+    .nav-btn {
+      background: #fff;
+      color: #1e3c72;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .page {
+      display: none;
+      width: 100%;
+      flex-grow: 1;
+      overflow-y: auto;
+      padding-bottom: 60px; /* Space for navigation */
+    }
+    .active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .task {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 10px;
+      width: 80%;
+      text-align: center;
+    }
+    .task button {
+      background: #1e3c72;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .referral {
+      margin: 20px 0;
+      font-size: 0.9em;
+    }
+    .leaderboard {
+      width: 80%;
+      list-style: none;
+      padding: 0;
+    }
+    .leaderboard li {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 10px;
     }
     @media (max-width: 400px) {
       .logo {
@@ -103,14 +164,56 @@
 </head>
 <body>
   <div class="container">
-    <img src="/syrx-logo.png" alt="SYRX Logo" class="logo">
-    <div class="user-profile">
-      <img id="user-photo" src="https://via.placeholder.com/50" alt="User Photo">
-      <span id="user-name">Loading...</span>
+    <!-- Page 1: Home -->
+    <div id="page1" class="page">
+      <img src="/syrx-logo.png" alt="SYRX Logo" class="logo">
+      <div class="user-profile">
+        <img id="user-photo" src="https://via.placeholder.com/50" alt="User Photo">
+        <span id="user-name">Loading...</span>
+      </div>
+      <h1>Welcome to SYRX App 🎉</h1>
+      <div id="ton-connect"></div>
+      <div id="wallet-address"></div>
     </div>
-    <h1>Welcome to SYRX App 🎉</h1>
-    <div id="ton-connect"></div>
-    <div id="wallet-address"></div>
+
+    <!-- Page 2: Tasks -->
+    <div id="page2" class="page">
+      <h2>Tasks</h2>
+      <div class="task">
+        <a href="https://t.me/SylrexOfficial" target="_blank">Follow Telegram Channel</a>
+        <button onclick="completeTask('telegram')">Complete (+10 points)</button>
+      </div>
+      <div class="task">
+        <a href="https://x.com/SylrexOfficial?t=xMY6eEauM0DXY5VllXdT-w&s=09" target="_blank">Follow X Account</a>
+        <button onclick="completeTask('x')">Complete (+10 points)</button>
+      </div>
+      <div class="task">
+        <a href="https://www.facebook.com/share/1JYzm6CGsS/" target="_blank">Follow Facebook</a>
+        <button onclick="completeTask('facebook')">Complete (+10 points)</button>
+      </div>
+      <div class="task">
+        <a href="https://www.youtube.com/@SylrexOfficial" target="_blank">Subscribe to YouTube</a>
+        <button onclick="completeTask('youtube')">Complete (+10 points)</button>
+      </div>
+      <h3>Your Points: <span id="points">0</span></h3>
+      <div class="referral">
+        Your Referral Link: <span id="referral-link"></span>
+      </div>
+      <button onclick="disconnectWallet()" id="disconnect-btn" class="hidden">Disconnect Wallet</button>
+    </div>
+
+    <!-- Page 3: Leaderboard -->
+    <div id="page3" class="page">
+      <h2>Leaderboard (Top 100)</h2>
+      <ul class="leaderboard" id="leaderboard-list"></ul>
+    </div>
+  </div>
+
+  <!-- Navigation Bar -->
+  <div class="navigation">
+    <button class="nav-btn" onclick="showPage(1)">Home</button>
+    <button class="nav-btn" onclick="showPage(2)">Tasks</button>
+    <button class="nav-btn" onclick="showPage(3)">Leaderboard</button>
   </div>
 
   <!-- Load Telegram Web Apps API -->
@@ -126,9 +229,14 @@
     const userName = tg.initDataUnsafe?.user?.first_name || 'User';
     document.getElementById('user-name').textContent = userName;
 
-    // Display user photo (fallback if unavailable)
+    // Display user photo
     const userPhoto = tg.initDataUnsafe?.user?.photo_url || 'https://via.placeholder.com/50';
     document.getElementById('user-photo').src = userPhoto;
+
+    // Generate custom referral link
+    const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
+    const referralLink = `https://t.me/YourBotName/AppName?start=ref_${userId}`;
+    document.getElementById('referral-link').textContent = referralLink;
 
     // Initialize TON Connect
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
@@ -154,36 +262,93 @@
 
     // Check connection status on load
     if (tonConnectUI.wallet) {
-      const connectButton = document.getElementById('ton-connect');
-      const walletAddressDiv = document.getElementById('wallet-address');
-      connectButton.classList.add('hidden');
-      walletAddressDiv.textContent = `Wallet Address: ${tonConnectUI.wallet.account.address}`;
-      walletAddressDiv.style.display = 'block';
+      handleConnection(tonConnectUI.wallet);
     }
 
     // Handle connection status changes
     tonConnectUI.onStatusChange(
       walletInfo => {
         console.log("Connection status:", walletInfo);
-        const connectButton = document.getElementById('ton-connect');
-        const walletAddressDiv = document.getElementById('wallet-address');
-        if (walletInfo && walletInfo.account && walletInfo.account.address) {
-          connectButton.classList.add('hidden');
-          walletAddressDiv.textContent = `Wallet Address: ${walletInfo.account.address}`;
-          walletAddressDiv.style.display = 'block';
-        } else {
-          connectButton.classList.remove('hidden');
-          walletAddressDiv.style.display = 'none';
-          console.warn("Wallet address not found");
-        }
+        handleConnection(walletInfo);
       },
       error => {
         console.error("Connection error:", error);
         alert("Connection error: " + error.message);
-        document.getElementById('ton-connect').classList.remove('hidden');
-        document.getElementById('wallet-address').style.display = 'none';
+        handleDisconnection();
       }
     );
+
+    function handleConnection(walletInfo) {
+      const connectButton = document.getElementById('ton-connect');
+      const walletAddressDiv = document.getElementById('wallet-address');
+      const disconnectBtn = document.getElementById('disconnect-btn');
+      if (walletInfo && walletInfo.account && walletInfo.account.address) {
+        connectButton.classList.add('hidden');
+        walletAddressDiv.textContent = `Wallet Address: ${walletInfo.account.address}`;
+        walletAddressDiv.style.display = 'block';
+        disconnectBtn.classList.remove('hidden');
+      } else {
+        handleDisconnection();
+      }
+    }
+
+    function handleDisconnection() {
+      const connectButton = document.getElementById('ton-connect');
+      const walletAddressDiv = document.getElementById('wallet-address');
+      const disconnectBtn = document.getElementById('disconnect-btn');
+      connectButton.classList.remove('hidden');
+      walletAddressDiv.style.display = 'none';
+      disconnectBtn.classList.add('hidden');
+    }
+
+    async function disconnectWallet() {
+      try {
+        await tonConnectUI.disconnect();
+        handleDisconnection();
+      } catch (error) {
+        console.error("Disconnect error:", error);
+        alert("Disconnect error: " + error.message);
+      }
+    }
+
+    // Page switching
+    function showPage(pageNumber) {
+      const pages = document.querySelectorAll('.page');
+      pages.forEach(page => page.classList.remove('active'));
+      document.getElementById(`page${pageNumber}`).classList.add('active');
+    }
+
+    // Show page 1 by default
+    showPage(1);
+
+    // Tasks and points (using localStorage)
+    let points = localStorage.getItem('points') || 0;
+    document.getElementById('points').textContent = points;
+
+    function completeTask(taskName) {
+      if (localStorage.getItem(taskName) === 'completed') {
+        alert("Task already completed!");
+        return;
+      }
+      points = parseInt(points) + 10;
+      localStorage.setItem('points', points);
+      localStorage.setItem(taskName, 'completed');
+      document.getElementById('points').textContent = points;
+      alert("Task completed! +10 points");
+    }
+
+    // Leaderboard (dummy top 100 for demonstration)
+    const leaderboardData = Array.from({length: 100}, (_, i) => ({
+      name: `Player ${i + 1}`,
+      points: Math.floor(Math.random() * 1000) + 100
+    })).sort((a, b) => b.points - a.points);
+
+    const leaderboardList = document.getElementById('leaderboard-list');
+    leaderboardData.forEach(player => {
+      const li = document.createElement('li');
+      li.textContent = `${player.name}: ${player.points} points`;
+      leaderboardList.appendChild(li);
+    });
   </script>
 </body>
-    </html>
+                                         </html>
