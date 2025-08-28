@@ -287,6 +287,29 @@
       transform: translateY(-1px);
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
+    .daily-table {
+      width: 90%;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 20px;
+      margin: 10px 0;
+      border-radius: 15px;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      overflow-y: auto;
+      max-height: 200px;
+    }
+    .daily-table table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .daily-table th, .daily-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .daily-table th {
+      color: #4ecdc4;
+    }
     @media (max-width: 400px) {
       .logo {
         width: 80px;
@@ -352,6 +375,12 @@
     <div id="page2" class="page">
       <h2>Daily Tasks 📋</h2>
       <div class="task">
+        <img src="/calendar-icon.png" alt="Daily Login Icon">
+        <h3>Daily Login</h3>
+        <p>Log in daily to earn points</p>
+        <button onclick="completeDailyLogin(this, 20)">Claim (+20 pts)</button>
+      </div>
+      <div class="task">
         <img src="/telegram-icon.png" alt="Telegram Icon">
         <h3>Follow on Telegram</h3>
         <p><a href="https://t.me/SylrexOfficial" target="_blank">Join our official channel</a></p>
@@ -374,6 +403,20 @@
         <h3>Subscribe on YouTube</h3>
         <p><a href="https://www.youtube.com/@SylrexOfficial" target="_blank">Subscribe to our channel</a></p>
         <button onclick="completeTask(this, 'youtube', 50, 'https://www.youtube.com/@SylrexOfficial')">Complete (+50 pts)</button>
+      </div>
+      <div class="daily-table">
+        <h3>Daily Login History</h3>
+        <table id="daily-login-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Points Earned</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Rows will be added dynamically -->
+          </tbody>
+        </table>
       </div>
       <button id="disconnect-btn" class="hidden" onclick="disconnectWallet()">Disconnect Wallet</button>
     </div>
@@ -532,6 +575,8 @@
       document.querySelectorAll('.nav-btn')[pageNumber - 1].classList.add('active');
       if (pageNumber === 4) {
         loadLeaderboard();
+      } else if (pageNumber === 2) {
+        loadDailyLoginHistory();
       }
     }
 
@@ -548,16 +593,22 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: userId, name: userName, points: parseInt(userPoints) })
           });
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Server error: ${response.status} - ${errorText}`);
+          }
           const data = await response.json();
           if (data.status === 'success') {
             console.log('User registered:', userId);
           } else {
-            showNotification(data.message);
+            showNotification(data.message || 'Registration failed');
           }
         } catch (error) {
           console.error("Error registering user:", error);
-          showNotification("Error registering user");
+          showNotification(`Error registering user: ${error.message}`);
         }
+      } else {
+        showNotification('Cannot register: Anonymous user');
       }
     }
 
@@ -680,6 +731,54 @@
       }, 20000); // 20 seconds delay
     }
 
+    // Daily login completion
+    function completeDailyLogin(button, points) {
+      const today = new Date().toISOString().split('T')[0];
+      const lastLoginDate = localStorage.getItem('lastDailyLogin');
+      if (lastLoginDate === today) {
+        showNotification("Daily login already claimed today!");
+        button.textContent = 'Claimed ✅';
+        button.style.background = '#4CAF50';
+        button.disabled = true;
+        return;
+      }
+      button.textContent = 'Claiming...';
+      button.disabled = true;
+      setTimeout(() => {
+        button.textContent = 'Claimed ✅';
+        button.style.background = '#4CAF50';
+        userPoints = parseInt(userPoints) + points;
+        localStorage.setItem('points', userPoints);
+        localStorage.setItem('lastDailyLogin', today);
+        // Save login history
+        let loginHistory = JSON.parse(localStorage.getItem('dailyLoginHistory')) || [];
+        loginHistory.push({ date: today, points: points });
+        localStorage.setItem('dailyLoginHistory', JSON.stringify(loginHistory));
+        document.getElementById('total-points').textContent = userPoints.toLocaleString();
+        updateUserPoints();
+        showNotification(`Daily login claimed! +${points} points!`);
+        loadDailyLoginHistory();
+      }, 2000); // Short delay for effect
+    }
+
+    // Load daily login history into table
+    function loadDailyLoginHistory() {
+      const tableBody = document.querySelector('#daily-login-table tbody');
+      tableBody.innerHTML = '';
+      const loginHistory = JSON.parse(localStorage.getItem('dailyLoginHistory')) || [];
+      loginHistory.forEach(entry => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${entry.date}</td>
+          <td>${entry.points}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+      if (loginHistory.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="2">No login history yet</td></tr>';
+      }
+    }
+
     // Copy referral link
     function copyReferralLink() {
       const link = document.getElementById('referral-link').textContent;
@@ -734,16 +833,27 @@
     document.addEventListener('DOMContentLoaded', () => {
       showPage(1);
       document.querySelectorAll('.task button').forEach(button => {
-        const platform = button.getAttribute('onclick').match(/'([^']+)'/)[1];
-        if (localStorage.getItem(platform) === 'completed') {
-          button.textContent = 'Completed ✅';
-          button.style.background = '#4CAF50';
-          button.disabled = true;
+        const onclickStr = button.getAttribute('onclick');
+        if (onclickStr.includes('completeTask')) {
+          const platform = onclickStr.match(/'([^']+)'/)[1];
+          if (localStorage.getItem(platform) === 'completed') {
+            button.textContent = 'Completed ✅';
+            button.style.background = '#4CAF50';
+            button.disabled = true;
+          }
+        } else if (onclickStr.includes('completeDailyLogin')) {
+          const today = new Date().toISOString().split('T')[0];
+          if (localStorage.getItem('lastDailyLogin') === today) {
+            button.textContent = 'Claimed ✅';
+            button.style.background = '#4CAF50';
+            button.disabled = true;
+          }
         }
       });
       registerUser();
       handleReferral();
       initializeWallet();
+      loadDailyLoginHistory();
     });
 
     // Handle back button
