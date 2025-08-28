@@ -19,6 +19,8 @@ try:
             name VARCHAR(255) NOT NULL DEFAULT 'Anonymous',
             points INTEGER NOT NULL DEFAULT 0,
             referrals INTEGER NOT NULL DEFAULT 0,
+            daily_tries INTEGER NOT NULL DEFAULT 5,
+            last_login TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     """)
@@ -84,7 +86,8 @@ def register_user():
             VALUES (%s, %s, %s, %s)
             ON CONFLICT (user_id)
             DO UPDATE SET name = %s, points = %s, updated_at = %s
-        """, (user_id, name, points, datetime.datetime.utcnow(), name, points, datetime.datetime.utcnow()))
+        """, (user_id, name, points, datetime.datetime.utcnow(),
+              name, points, datetime.datetime.utcnow()))
         conn.commit()
 
         print(f"User registered/updated: {user_id}, Name: {name}, Points: {points}")
@@ -93,6 +96,47 @@ def register_user():
         conn.rollback()
         print(f"Error registering user: {str(e)}")
         return jsonify({"status": "error", "message": f"Error registering user: {str(e)}"}), 500
+
+@app.route('/daily-login', methods=['POST'])
+def daily_login():
+    """تسجيل دخول يومي، يمنح المستخدم 5 محاولات يوميًا إذا مرت 24 ساعة"""
+    data = request.get_json()
+    user_id = data.get('user_id')
+    if not user_id:
+        return jsonify({"status": "error", "message": "user_id is required"}), 400
+
+    cursor.execute("SELECT daily_tries, last_login FROM users WHERE user_id = %s", (user_id,))
+    user = cursor.fetchone()
+    now = datetime.datetime.utcnow()
+
+    if not user:
+        # إنشاء مستخدم جديد
+        cursor.execute("""
+            INSERT INTO users (user_id, daily_tries, last_login)
+            VALUES (%s, %s, %s)
+        """, (user_id, 5, now))
+        conn.commit()
+        return jsonify({"status": "success", "daily_tries": 5, "message": "User created and daily tries set to 5"})
+
+    last_login = user['last_login']
+    daily_tries = user['daily_tries']
+
+    if not last_login or (now - last_login).total_seconds() >= 24*3600:
+        # إعادة التجديد اليومي
+        daily_tries = 5
+        cursor.execute("UPDATE users SET daily_tries = %s, last_login = %s WHERE user_id = %s",
+                       (daily_tries, now, user_id))
+        conn.commit()
+        return jsonify({"status": "success", "daily_tries": daily_tries, "message": "Daily tries reset to 5"})
+
+    if daily_tries <= 0:
+        return jsonify({"status": "error", "daily_tries": 0, "message": "No daily tries left, wait 24 hours"})
+
+    # تقليل محاولة واحدة
+    daily_tries -= 1
+    cursor.execute("UPDATE users SET daily_tries = %s WHERE user_id = %s", (daily_tries, user_id))
+    conn.commit()
+    return jsonify({"status": "success", "daily_tries": daily_tries, "message": "Daily try used, remaining tries updated"})
 
 @app.route('/referral', methods=['GET', 'POST'])
 def handle_referral():
@@ -105,73 +149,45 @@ def handle_referral():
 
         if referrer_id and referred_id and referrer_id != referred_id:
             try:
-                # التحقق من عدم وجود إحالة مكررة
-                cursor.execute("""
-                    SELECT id FROM referrals WHERE referrer_id = %s AND referred_id = %s
-                """, (referrer_id, referred_id))
+                cursor.execute("SELECT id FROM referrals WHERE referrer_id = %s AND referred_id = %s", (referrer_id, referred_id))
                 if cursor.rowcount > 0:
                     return jsonify({"status": "error", "message": "User already referred"})
 
-                # إضافة الإحالة
-                cursor.execute("""
-                    INSERT INTO referrals (referrer_id, referred_id, referred_name, created_at)
-                    VALUES (%s, %s, %s, %s)
-                """, (referrer_id, referred_id, referred_name, datetime.datetime.utcnow()))
+                cursor.execute("INSERT INTO referrals (referrer_id, referred_id, referred_name, created_at) VALUES (%s,%s,%s,%s)",
+                               (referrer_id, referred_id, referred_name, datetime.datetime.utcnow()))
 
-                # تحديث نقاط المُحيل وعدد الإحالات
-                cursor.execute("""
-                    UPDATE users SET points = points + 500, referrals = referrals + 1, updated_at = %s
-                    WHERE user_id = %s
-                """, (datetime.datetime.utcnow(), referrer_id))
+                cursor.execute("UPDATE users SET points = points + 500, referrals = referrals + 1, updated_at = %s WHERE user_id = %s",
+                               (datetime.datetime.utcnow(), referrer_id))
 
-                # إضافة المُحال إذا لم يكن موجودًا
-                cursor.execute("""
-                    INSERT INTO users (user_id, name, points, updated_at)
-                    VALUES (%s, %s, %s, %s)
-                    ON CONFLICT (user_id) DO NOTHING
-                """, (referred_id, referred_name, points, datetime.datetime.utcnow()))
+                cursor.execute("INSERT INTO users (user_id, name, points, updated_at) VALUES (%s,%s,%s,%s) ON CONFLICT (user_id) DO NOTHING",
+                               (referred_id, referred_name, points, datetime.datetime.utcnow()))
 
                 conn.commit()
 
-                print(f"Referral recorded: {referrer_id} -> {referred_id}")
-                # استرجاع التحديثات الجديدة
                 cursor.execute("SELECT referrals, points FROM users WHERE user_id = %s", (referrer_id,))
                 result = cursor.fetchone()
-                referral_count = result['referrals'] if result else 0
-                points = result['points'] if result else 0
                 return jsonify({
                     "status": "success",
                     "message": "Referral recorded",
-                    "referrals": referral_count,
-                    "points": points
+                    "referrals": result['referrals'] if result else 0,
+                    "points": result['points'] if result else 0
                 })
             except Exception as e:
                 conn.rollback()
-                print(f"Error processing referral: {str(e)}")
                 return jsonify({"status": "error", "message": f"Error processing referral: {str(e)}"})
         return jsonify({"status": "error", "message": "Invalid data or same user"})
     elif request.method == 'GET':
         referrer_id = request.args.get('referrer_id')
-        cursor.execute("""
-            SELECT referrals, points FROM users WHERE user_id = %s
-        """, (referrer_id,))
+        cursor.execute("SELECT referrals, points FROM users WHERE user_id = %s", (referrer_id,))
         result = cursor.fetchone()
-        referral_count = result['referrals'] if result else 0
-        points = result['points'] if result else 0
-        return jsonify({"referrals": referral_count, "points": points})
+        return jsonify({"referrals": result['referrals'] if result else 0, "points": result['points'] if result else 0})
 
 @app.route('/leaderboard', methods=['GET'])
 def get_leaderboard():
-    cursor.execute("""
-        SELECT user_id, name, points, referrals
-        FROM users
-        ORDER BY points DESC
-        LIMIT 100
-    """)
+    cursor.execute("SELECT user_id, name, points, referrals FROM users ORDER BY points DESC LIMIT 100")
     leaderboard = [dict(row) for row in cursor.fetchall()]
     return jsonify(leaderboard)
 
-# إغلاق الاتصال عند إغلاق التطبيق
 @app.teardown_appcontext
 def close_connection(exception):
     cursor.close()
