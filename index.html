@@ -245,6 +245,10 @@
       color: #ff6b6b;
       font-weight: bold;
     }
+    .leaderboard .referrals {
+      color: #4ecdc4;
+      font-size: 0.9em;
+    }
     .stats {
       display: flex;
       justify-content: space-around;
@@ -351,25 +355,25 @@
         <img src="/telegram-icon.png" alt="Telegram Icon">
         <h3>Follow on Telegram</h3>
         <p><a href="https://t.me/SylrexOfficial" target="_blank">Join our official channel</a></p>
-        <button onclick="completeTask(this, 'telegram', 30)">Complete (+30 pts)</button>
+        <button onclick="completeTask(this, 'telegram', 30, 'https://t.me/SylrexOfficial')">Complete (+30 pts)</button>
       </div>
       <div class="task">
         <img src="/x-icon.png" alt="X Icon">
         <h3>Follow on X</h3>
         <p><a href="https://x.com/SylrexOfficial?t=xMY6eEauM0DXY5VllXdT-w&s=09" target="_blank">Follow our official account</a></p>
-        <button onclick="completeTask(this, 'x', 35)">Complete (+35 pts)</button>
+        <button onclick="completeTask(this, 'x', 35, 'https://x.com/SylrexOfficial?t=xMY6eEauM0DXY5VllXdT-w&s=09')">Complete (+35 pts)</button>
       </div>
       <div class="task">
         <img src="/facebook-icon.png" alt="Facebook Icon">
         <h3>Follow on Facebook</h3>
         <p><a href="https://www.facebook.com/share/1JYzm6CGsS/" target="_blank">Follow our page</a></p>
-        <button onclick="completeTask(this, 'facebook', 40)">Complete (+40 pts)</button>
+        <button onclick="completeTask(this, 'facebook', 40, 'https://www.facebook.com/share/1JYzm6CGsS/')">Complete (+40 pts)</button>
       </div>
       <div class="task">
         <img src="/youtube-icon.png" alt="YouTube Icon">
         <h3>Subscribe on YouTube</h3>
         <p><a href="https://www.youtube.com/@SylrexOfficial" target="_blank">Subscribe to our channel</a></p>
-        <button onclick="completeTask(this, 'youtube', 50)">Complete (+50 pts)</button>
+        <button onclick="completeTask(this, 'youtube', 50, 'https://www.youtube.com/@SylrexOfficial')">Complete (+50 pts)</button>
       </div>
       <button id="disconnect-btn" class="hidden" onclick="disconnectWallet()">Disconnect Wallet</button>
     </div>
@@ -427,7 +431,7 @@
 
     // Generate referral link
     const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
-    const referralLink = `https://t.me/S$yRXAppBot/SYRXApp?start=ref_${userId}`;
+    const referralLink = `https://t.me/SYRXApp_bot/SYRXApp?start=ref_${userId}`;
     document.getElementById('referral-link').textContent = referralLink;
 
     // Initialize TON Connect
@@ -453,8 +457,12 @@
     };
 
     // Check connection status on load
-    if (tonConnectUI.wallet) {
-      handleConnection(tonConnectUI.wallet);
+    function initializeWallet() {
+      if (tonConnectUI.wallet) {
+        handleConnection(tonConnectUI.wallet);
+      } else {
+        handleDisconnection();
+      }
     }
 
     // Handle connection status changes
@@ -476,12 +484,17 @@
       const disconnectBtn = document.getElementById('disconnect-btn');
       if (walletInfo && walletInfo.account && walletInfo.account.address) {
         connectButton.classList.add('hidden');
+        // Clear previous content to avoid duplication
+        walletAddressDiv.innerHTML = '';
         walletAddressDiv.textContent = `Wallet Address: ${walletInfo.account.address}`;
         walletAddressDiv.style.display = 'block';
         disconnectBtn.classList.remove('hidden');
-        showNotification('Wallet connected! +500 bonus points!');
-        userPoints = parseInt(userPoints) + 500;
-        localStorage.setItem('points', userPoints);
+        if (!localStorage.getItem('walletConnected')) {
+          showNotification('Wallet connected! +500 bonus points!');
+          userPoints = parseInt(userPoints) + 500;
+          localStorage.setItem('points', userPoints);
+          localStorage.setItem('walletConnected', 'true');
+        }
         document.getElementById('total-points').textContent = userPoints.toLocaleString();
       } else {
         handleDisconnection();
@@ -495,6 +508,7 @@
       connectButton.classList.remove('hidden');
       walletAddressDiv.style.display = 'none';
       disconnectBtn.classList.add('hidden');
+      localStorage.removeItem('walletConnected');
     }
 
     async function disconnectWallet() {
@@ -518,13 +532,58 @@
 
     // Manage tasks and points
     let userPoints = localStorage.getItem('points') || 0;
-    let referrals = localStorage.getItem('referrals') || 0;
-    document.getElementById('total-points').textContent = parseInt(userPoints).toLocaleString();
-    document.getElementById('referrals').textContent = referrals;
-    document.getElementById('friends-invited').textContent = referrals;
-    document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
+    let referrals = 0;
 
-    function completeTask(button, platform, points) {
+    // Fetch referral count from server
+    async function fetchReferrals() {
+      try {
+        const response = await fetch(`/referral?referrer_id=${userId}`);
+        const data = await response.json();
+        referrals = data.referrals || 0;
+        document.getElementById('referrals').textContent = referrals;
+        document.getElementById('friends-invited').textContent = referrals;
+        document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
+      } catch (error) {
+        console.error("Error fetching referrals:", error);
+        showNotification("Error fetching referral data");
+      }
+    }
+
+    // Handle referral logic
+    async function handleReferral() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const refId = urlParams.get('start')?.replace('ref_', '');
+      if (refId && refId !== userId && userId !== 'anonymous') {
+        try {
+          const response = await fetch('/referral', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ referrer_id: refId, referred_id: userId })
+          });
+          const data = await response.json();
+          if (data.status === 'success') {
+            showNotification('Referral successful! Referrer earned 500 points!');
+            referrals = data.referrals;
+            localStorage.setItem('referrals', referrals);
+            document.getElementById('referrals').textContent = referrals;
+            document.getElementById('friends-invited').textContent = referrals;
+            document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
+          } else {
+            showNotification(data.message);
+          }
+        } catch (error) {
+          console.error("Error processing referral:", error);
+          showNotification("Error processing referral");
+        }
+      }
+    }
+
+    // Initialize points and referrals
+    document.getElementById('total-points').textContent = parseInt(userPoints).toLocaleString();
+    fetchReferrals();
+
+    // Task completion with link opening and 20-second delay
+    function completeTask(button, platform, points, link) {
       if (localStorage.getItem(platform) === 'completed') {
         showNotification("Task already completed!");
         button.textContent = 'Completed ✅';
@@ -532,8 +591,9 @@
         button.disabled = true;
         return;
       }
-      button.textContent = 'Completing...';
+      button.textContent = 'Opening...';
       button.disabled = true;
+      window.open(link, '_blank');
       setTimeout(() => {
         button.textContent = 'Completed ✅';
         button.style.background = '#4CAF50';
@@ -542,7 +602,7 @@
         localStorage.setItem(platform, 'completed');
         document.getElementById('total-points').textContent = userPoints.toLocaleString();
         showNotification(`Task completed! +${points} points!`);
-      }, 1500);
+      }, 20000); // 20 seconds delay
     }
 
     // Copy referral link
@@ -555,17 +615,42 @@
       });
     }
 
-    // Leaderboard
+    // Leaderboard with real names and fake referrals
+    const realNames = [
+      "James Smith", "Emma Johnson", "Liam Brown", "Olivia Davis", "Noah Wilson",
+      "Sophia Moore", "Lucas Taylor", "Isabella Anderson", "Mason Thomas", "Ava Jackson",
+      "Ethan White", "Mia Harris", "Alexander Martin", "Charlotte Thompson", "Henry Garcia",
+      "Amelia Martinez", "Daniel Lee", "Harper Clark", "William Rodriguez", "Evelyn Lewis",
+      // Add more names to reach 100
+      "Michael Walker", "Emily Young", "Benjamin Hall", "Chloe Allen", "Jacob King",
+      "Sofia Wright", "Logan Scott", "Aria Green", "Jack Adams", "Ella Baker",
+      "David Nelson", "Lily Carter", "Joseph Mitchell", "Grace Perez", "Samuel Roberts",
+      "Hannah Turner", "Matthew Phillips", "Julia Campbell", "Andrew Parker", "Zoey Evans",
+      "Christopher Edwards", "Natalie Collins", "Joshua Stewart", "Madison Sanchez", 
+      "Ryan Morris", "Victoria Rogers", "Nathan Reed", "Abigail Cook", "Dylan Morgan",
+      "Elizabeth Bell", "Gabriel Murphy", "Avery Bailey", "Owen Rivera", "Scarlett Cooper",
+      "Caleb Richardson", "Addison Cox", "Luke Howard", "Brooklyn Ward", "Elijah Brooks",
+      "Zoe Kelly", "Isaac Sanders", "Layla Price", "Levi Bennett", "Mila Gray",
+      "Sebastian Wood", "Ellie Barnes", "Carter Ross", "Aubrey Russell", "Jaxon Hughes",
+      "Camila Foster", "Wyatt Myers", "Penelope Long", "Hunter Powell", "Riley Patel",
+      "Landon Flores", "Hazel Griffin", "Lincoln Hayes", "Violet Myers", "Mason Dixon",
+      "Stella Ford", "Easton Bryant", "Paisley Tucker", "Julian Hunt", "Sadie Dunn",
+      "Grayson Stone", "Leah Andrews", "Charles Duncan", "Skylar Fisher", "Thomas Wallace",
+      "Aurora Gibson", "Gabriel Lane", "Clara West", "Eli Hudson", "Nora Ford",
+      "Connor Perry", "Lydia Wells", "Asher Knight", "Savannah Black", "Isaac Watts",
+      "Eleanor Reese", "Hudson Porter", "Madelyn Dean"
+    ];
     const leaderboardData = Array.from({length: 100}, (_, i) => ({
-      name: `Player ${i + 1}`,
-      points: Math.floor(Math.random() * 10000) + 1000
+      name: realNames[i],
+      points: Math.floor(Math.random() * 10000) + 1000,
+      referrals: Math.floor(Math.random() * 11) // Random referrals between 0 and 10
     })).sort((a, b) => b.points - a.points);
     const leaderboardList = document.getElementById('leaderboard-list');
     leaderboardData.forEach((player, index) => {
       const li = document.createElement('li');
       li.innerHTML = `
         <span><span class="rank">#${index + 1}</span> ${player.name}</span>
-        <span class="points">${player.points.toLocaleString()} pts</span>
+        <span><span class="points">${player.points.toLocaleString()} pts</span> | <span class="referrals">${player.referrals} refs</span></span>
       `;
       leaderboardList.appendChild(li);
     });
@@ -621,6 +706,8 @@
           button.disabled = true;
         }
       });
+      handleReferral();
+      initializeWallet();
     });
 
     // Handle back button
@@ -629,4 +716,4 @@
     });
   </script>
 </body>
-      </html>
+  </html>
