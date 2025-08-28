@@ -21,7 +21,7 @@
     .container {
       width: 100%;
       max-width: 600px;
-      min-height: 100vh;
+      height: 100vh; /* ضمان ملاءمة الارتفاع للشاشة */
       background: rgba(255, 255, 255, 0.1);
       border-radius: 0;
       padding: 20px;
@@ -31,6 +31,7 @@
       align-items: center;
       backdrop-filter: blur(10px);
       position: relative;
+      overflow: hidden; /* منع التمرير غير الضروري */
     }
     .logo {
       width: 120px;
@@ -119,6 +120,7 @@
       background: rgba(0, 0, 0, 0.8);
       padding: 15px 0;
       backdrop-filter: blur(10px);
+      z-index: 1000; /* زيادة z-index لضمان الظهور فوق العناصر */
     }
     .nav-btn {
       background: rgba(255, 255, 255, 0.2);
@@ -143,7 +145,9 @@
       width: 100%;
       flex-grow: 1;
       overflow-y: auto;
-      padding-bottom: 80px;
+      padding-bottom: 100px; /* زيادة padding-bottom لضمان عدم تداخل الشريط */
+      max-height: calc(100vh - 100px); /* تقييد الارتفاع */
+      box-sizing: border-box;
     }
     .page.active {
       display: flex;
@@ -152,8 +156,8 @@
     }
     .task {
       background: rgba(255, 255, 255, 0.15);
-      padding: 20px;
-      margin: 10px 0;
+      padding: 15px; /* تقليل padding لتقليل الحجم */
+      margin: 8px 0; /* تقليل margin */
       border-radius: 15px;
       width: 90%;
       text-align: center;
@@ -173,20 +177,23 @@
       color: #4ecdc4;
       flex-grow: 1;
       text-align: left;
+      font-size: 1.1em; /* تقليل حجم الخط */
     }
     .task p {
-      margin: 10px 0;
+      margin: 5px 0; /* تقليل margin */
       opacity: 0.9;
+      font-size: 0.9em;
     }
     .task button {
       background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
       color: white;
       border: none;
-      padding: 10px 20px;
+      padding: 8px 15px; /* تقليل حجم الزر */
       border-radius: 20px;
       cursor: pointer;
       font-weight: bold;
       transition: all 0.3s ease;
+      font-size: 0.9em;
     }
     .task button:hover {
       transform: translateY(-1px);
@@ -198,11 +205,11 @@
       transform: none;
     }
     .referral {
-      margin: 20px 0;
+      margin: 15px 0;
       font-size: 0.9em;
       text-align: center;
       background: rgba(255, 255, 255, 0.1);
-      padding: 20px;
+      padding: 15px;
       border-radius: 15px;
       width: 90%;
     }
@@ -220,15 +227,15 @@
       list-style: none;
       padding: 0;
       margin: 0;
-      max-height: 60vh;
+      max-height: 50vh; /* تقليل ارتفاع لوحة الصدارة */
       overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: #4ecdc4 #1e3c72;
     }
     .leaderboard li {
       background: rgba(255, 255, 255, 0.15);
-      padding: 15px;
-      margin: 8px 0;
+      padding: 10px;
+      margin: 5px 0;
       border-radius: 15px;
       display: flex;
       justify-content: space-between;
@@ -239,7 +246,7 @@
     .leaderboard .rank {
       font-weight: bold;
       color: #4ecdc4;
-      font-size: 1.2em;
+      font-size: 1.1em;
     }
     .leaderboard .points {
       color: #ff6b6b;
@@ -253,18 +260,18 @@
       display: flex;
       justify-content: space-around;
       width: 90%;
-      margin: 20px 0;
+      margin: 15px 0;
     }
     .stat-item {
       text-align: center;
       background: rgba(255, 255, 255, 0.1);
-      padding: 15px;
+      padding: 10px;
       border-radius: 15px;
       flex: 1;
       margin: 0 5px;
     }
     .stat-number {
-      font-size: 2em;
+      font-size: 1.8em;
       font-weight: bold;
       color: #4ecdc4;
     }
@@ -276,7 +283,7 @@
       background: linear-gradient(45deg, #dc3545, #ff6b6b);
       color: white;
       border: none;
-      padding: 10px 20px;
+      padding: 8px 15px;
       border-radius: 20px;
       cursor: pointer;
       font-weight: bold;
@@ -290,20 +297,21 @@
     .daily-table {
       width: 90%;
       background: rgba(255, 255, 255, 0.15);
-      padding: 20px;
-      margin: 10px 0;
+      padding: 10px; /* تقليل padding */
+      margin: 8px 0;
       border-radius: 15px;
       backdrop-filter: blur(5px);
       border: 1px solid rgba(255, 255, 255, 0.2);
       overflow-y: auto;
-      max-height: 200px;
+      max-height: 150px; /* تقليل الارتفاع */
+      font-size: 0.9em;
     }
     .daily-table table {
       width: 100%;
       border-collapse: collapse;
     }
     .daily-table th, .daily-table td {
-      padding: 10px;
+      padding: 8px; /* تقليل padding */
       text-align: left;
       border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     }
@@ -323,7 +331,7 @@
       .user-profile span {
         font-size: 1em;
       }
-      h1 {
+      h1, h2 {
         font-size: 1.5em;
       }
       #wallet-address {
@@ -337,6 +345,19 @@
       .task img {
         width: 24px;
         height: 24px;
+      }
+      .task {
+        padding: 10px;
+      }
+      .task h3 {
+        font-size: 1em;
+      }
+      .task button {
+        padding: 6px 12px;
+        font-size: 0.8em;
+      }
+      .daily-table {
+        max-height: 120px;
       }
     }
     @media (min-width: 600px) {
@@ -640,9 +661,12 @@
         const response = await fetch(`/referral?referrer_id=${userId}`);
         const data = await response.json();
         referrals = data.referrals || 0;
+        userPoints = data.points || userPoints; // تحديث النقاط من الخادم
         document.getElementById('referrals').textContent = referrals;
         document.getElementById('friends-invited').textContent = referrals;
         document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
+        document.getElementById('total-points').textContent = parseInt(userPoints).toLocaleString();
+        localStorage.setItem('points', userPoints);
       } catch (error) {
         console.error("Error fetching referrals:", error);
         showNotification("Error fetching referral data");
@@ -664,10 +688,12 @@
           if (data.status === 'success') {
             showNotification('Referral successful! Referrer earned 500 points!');
             referrals = data.referrals;
+            userPoints = data.points;
             document.getElementById('referrals').textContent = referrals;
             document.getElementById('friends-invited').textContent = referrals;
             document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
-            await updateUserPoints();
+            document.getElementById('total-points').textContent = parseInt(userPoints).toLocaleString();
+            localStorage.setItem('points', userPoints);
           } else {
             showNotification(data.message);
           }
@@ -703,9 +729,84 @@
       }
     }
 
-    // Initialize points and referrals
-    document.getElementById('total-points').textContent = parseInt(userPoints).toLocaleString();
-    fetchReferrals();
+    // Daily login completion
+    async function completeDailyLogin(button, points) {
+      if (userId === 'anonymous') {
+        showNotification('Cannot claim: Anonymous user');
+        return;
+      }
+      try {
+        const response = await fetch('/daily_login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: userId })
+        });
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Server error: ${response.status} - ${errorText}`);
+        }
+        const data = await response.json();
+        if (data.status === 'success') {
+          button.textContent = 'Claimed ✅';
+          button.style.background = '#4CAF50';
+          button.disabled = true;
+          userPoints = parseInt(userPoints) + points;
+          localStorage.setItem('points', userPoints);
+          document.getElementById('total-points').textContent = userPoints.toLocaleString();
+          updateUserPoints();
+          showNotification(`Daily login claimed! +${points} points!`);
+          loadDailyLoginHistory();
+        } else {
+          showNotification(data.message);
+          if (data.message.includes('already claimed')) {
+            button.textContent = 'Claimed ✅';
+            button.style.background = '#4CAF50';
+            button.disabled = true;
+          }
+        }
+      } catch (error) {
+        console.error("Error claiming daily login:", error);
+        showNotification(`Error claiming daily login: ${error.message}`);
+      }
+    }
+
+    // Load daily login history from server
+    async function loadDailyLoginHistory() {
+      if (userId === 'anonymous') {
+        const tableBody = document.querySelector('#daily-login-table tbody');
+        tableBody.innerHTML = '<tr><td colspan="2">No login history for anonymous user</td></tr>';
+        return;
+      }
+      try {
+        const response = await fetch(`/daily_login?user_id=${userId}`);
+        const data = await response.json();
+        const tableBody = document.querySelector('#daily-login-table tbody');
+        tableBody.innerHTML = '';
+        if (data.history.length === 0) {
+          tableBody.innerHTML = '<tr><td colspan="2">No login history yet</td></tr>';
+        } else {
+          data.history.forEach(entry => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${entry.login_date}</td>
+              <td>${entry.points}</td>
+            `;
+            tableBody.appendChild(row);
+          });
+        }
+        // Check if daily login is already claimed today
+        const today = new Date().toISOString().split('T')[0];
+        const button = document.querySelector('.task button[onclick*="completeDailyLogin"]');
+        if (data.history.some(entry => entry.login_date === today)) {
+          button.textContent = 'Claimed ✅';
+          button.style.background = '#4CAF50';
+          button.disabled = true;
+        }
+      } catch (error) {
+        console.error("Error loading daily login history:", error);
+        showNotification("Error loading daily login history");
+      }
+    }
 
     // Task completion with link opening and 20-second delay
     function completeTask(button, platform, points, link) {
@@ -731,54 +832,6 @@
       }, 20000); // 20 seconds delay
     }
 
-    // Daily login completion
-    function completeDailyLogin(button, points) {
-      const today = new Date().toISOString().split('T')[0];
-      const lastLoginDate = localStorage.getItem('lastDailyLogin');
-      if (lastLoginDate === today) {
-        showNotification("Daily login already claimed today!");
-        button.textContent = 'Claimed ✅';
-        button.style.background = '#4CAF50';
-        button.disabled = true;
-        return;
-      }
-      button.textContent = 'Claiming...';
-      button.disabled = true;
-      setTimeout(() => {
-        button.textContent = 'Claimed ✅';
-        button.style.background = '#4CAF50';
-        userPoints = parseInt(userPoints) + points;
-        localStorage.setItem('points', userPoints);
-        localStorage.setItem('lastDailyLogin', today);
-        // Save login history
-        let loginHistory = JSON.parse(localStorage.getItem('dailyLoginHistory')) || [];
-        loginHistory.push({ date: today, points: points });
-        localStorage.setItem('dailyLoginHistory', JSON.stringify(loginHistory));
-        document.getElementById('total-points').textContent = userPoints.toLocaleString();
-        updateUserPoints();
-        showNotification(`Daily login claimed! +${points} points!`);
-        loadDailyLoginHistory();
-      }, 2000); // Short delay for effect
-    }
-
-    // Load daily login history into table
-    function loadDailyLoginHistory() {
-      const tableBody = document.querySelector('#daily-login-table tbody');
-      tableBody.innerHTML = '';
-      const loginHistory = JSON.parse(localStorage.getItem('dailyLoginHistory')) || [];
-      loginHistory.forEach(entry => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${entry.date}</td>
-          <td>${entry.points}</td>
-        `;
-        tableBody.appendChild(row);
-      });
-      if (loginHistory.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="2">No login history yet</td></tr>';
-      }
-    }
-
     // Copy referral link
     function copyReferralLink() {
       const link = document.getElementById('referral-link').textContent;
@@ -802,7 +855,7 @@
         padding: 15px 25px;
         border-radius: 25px;
         font-weight: bold;
-        z-index: 1000;
+        z-index: 1001; /* زيادة z-index للإشعارات */
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         animation: slideDown 0.3s ease;
       `;
@@ -831,20 +884,13 @@
 
     // Initialize app
     document.addEventListener('DOMContentLoaded', () => {
-      showPage(1);
+      showPage(1); // التأكد من تحميل الصفحة الرئيسية
       document.querySelectorAll('.task button').forEach(button => {
         const onclickStr = button.getAttribute('onclick');
         if (onclickStr.includes('completeTask')) {
           const platform = onclickStr.match(/'([^']+)'/)[1];
           if (localStorage.getItem(platform) === 'completed') {
             button.textContent = 'Completed ✅';
-            button.style.background = '#4CAF50';
-            button.disabled = true;
-          }
-        } else if (onclickStr.includes('completeDailyLogin')) {
-          const today = new Date().toISOString().split('T')[0];
-          if (localStorage.getItem('lastDailyLogin') === today) {
-            button.textContent = 'Claimed ✅';
             button.style.background = '#4CAF50';
             button.disabled = true;
           }
