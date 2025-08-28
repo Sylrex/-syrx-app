@@ -1,381 +1,628 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>تطبيق SYRX</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .card-shadow {
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-        .glow {
-            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
-        }
-        .page {
-            display: none;
-        }
-        .page.active {
-            display: block;
-        }
-        .nav-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        /* إصلاحات RTL */
-        body {
-            font-family: Arial, sans-serif;
-            text-align: right;
-        }
-        .flex.items-center.space-x-3 {
-            flex-direction: row-reverse;
-        }
-        .space-x-4 > * + * {
-            margin-right: 1rem;
-            margin-left: 0;
-        }
-        .leaderboard .flex {
-            flex-direction: row-reverse;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>تطبيق SYRX</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      width: 100vw;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+    .container {
+      width: 100%;
+      max-width: 600px;
+      min-height: 100vh;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 0;
+      padding: 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      backdrop-filter: blur(10px);
+      position: relative;
+    }
+    .logo {
+      width: 120px;
+      height: 120px;
+      margin: 20px 0;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2em;
+      font-weight: bold;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .user-profile {
+      display: flex;
+      align-items: center;
+      margin: 15px 0;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      border-radius: 15px;
+      backdrop-filter: blur(5px);
+    }
+    .user-profile img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      margin-left: 15px;
+      border: 3px solid #fff;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .user-profile span {
+      font-size: 1.3em;
+      font-weight: bold;
+    }
+    h1, h2 {
+      font-size: 1.8em;
+      margin: 10px 0;
+      text-align: center;
+    }
+    #ton-connect {
+      margin: 20px 0;
+    }
+    .connect-btn {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 25px;
+      font-size: 1.1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .connect-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    #wallet-address {
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+      padding: 15px;
+      border-radius: 15px;
+      margin: 20px;
+      word-break: break-all;
+      font-size: 0.9em;
+      display: none;
+      max-width: 90%;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .hidden {
+      display: none !important;
+    }
+    .navigation {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      justify-content: space-around;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 15px 0;
+      backdrop-filter: blur(10px);
+    }
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      font-size: 0.9em;
+    }
+    .nav-btn.active {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      transform: translateY(-2px);
+    }
+    .nav-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    .page {
+      display: none;
+      width: 100%;
+      flex-grow: 1;
+      overflow-y: auto;
+      padding-bottom: 80px;
+    }
+    .page.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .task {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 20px;
+      margin: 10px 0;
+      border-radius: 15px;
+      width: 90%;
+      text-align: center;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .task img {
+      width: 32px;
+      height: 32px;
+      margin-left: 10px;
+    }
+    .task h3 {
+      margin: 0;
+      color: #4ecdc4;
+      flex-grow: 1;
+    }
+    .task p {
+      margin: 10px 0;
+      opacity: 0.9;
+    }
+    .task button {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+    .task button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .task button:disabled {
+      background: #666;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .referral {
+      margin: 20px 0;
+      font-size: 0.9em;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 15px;
+      width: 90%;
+    }
+    .referral-code {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 10px;
+      border-radius: 10px;
+      margin: 10px 0;
+      font-family: monospace;
+      font-size: 1.1em;
+      letter-spacing: 1px;
+    }
+    .leaderboard {
+      width: 90%;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 60vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #4ecdc4 #1e3c72;
+    }
+    .leaderboard li {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 15px;
+      margin: 8px 0;
+      border-radius: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .leaderboard .rank {
+      font-weight: bold;
+      color: #4ecdc4;
+      font-size: 1.2em;
+    }
+    .leaderboard .points {
+      color: #ff6b6b;
+      font-weight: bold;
+    }
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      width: 90%;
+      margin: 20px 0;
+    }
+    .stat-item {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      border-radius: 15px;
+      flex: 1;
+      margin: 0 5px;
+    }
+    .stat-number {
+      font-size: 2em;
+      font-weight: bold;
+      color: #4ecdc4;
+    }
+    .stat-label {
+      font-size: 0.9em;
+      opacity: 0.8;
+    }
+    #disconnect-btn {
+      background: linear-gradient(45deg, #dc3545, #ff6b6b);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+    }
+    #disconnect-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    @media (max-width: 400px) {
+      .logo {
+        width: 80px;
+        height: 80px;
+        font-size: 1.5em;
+      }
+      .user-profile img {
+        width: 40px;
+        height: 40px;
+      }
+      .user-profile span {
+        font-size: 1em;
+      }
+      h1 {
+        font-size: 1.5em;
+      }
+      #wallet-address {
+        font-size: 0.8em;
+        padding: 8px;
+      }
+      .nav-btn {
+        padding: 10px 15px;
+        font-size: 0.8em;
+      }
+      .task img {
+        width: 24px;
+        height: 24px;
+      }
+    }
+    @media (min-width: 600px) {
+      .container {
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      }
+    }
+  </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <!-- رأس الصفحة مع شعار SYRX -->
-    <header class="gradient-bg text-white p-6 text-center">
-        <div class="flex items-center justify-center space-x-3">
-            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                <span class="text-2xl font-bold text-purple-600">S</span>
-            </div>
-            <h1 class="text-3xl font-bold">SYRX</h1>
+<body>
+  <div class="container">
+    <!-- الصفحة 1: الرئيسية -->
+    <div id="page1" class="page active">
+      <div class="logo">SYRX</div>
+      <div class="user-profile">
+        <img id="user-photo" src="https://via.placeholder.com/60/4ecdc4/ffffff?text=👤" alt="صورة المستخدم">
+        <span id="user-name">جاري التحميل...</span>
+      </div>
+      <h1>مرحبًا بك في تطبيق SYRX 🎉</h1>
+      <div class="stats">
+        <div class="stat-item">
+          <div class="stat-number" id="total-points">0</div>
+          <div class="stat-label">إجمالي النقاط</div>
         </div>
-    </header>
+        <div class="stat-item">
+          <div class="stat-number" id="referrals">0</div>
+          <div class="stat-label">الإحالات</div>
+        </div>
+      </div>
+      <div id="ton-connect"></div>
+      <div id="wallet-address"></div>
+    </div>
+
+    <!-- الصفحة 2: المهام -->
+    <div id="page2" class="page">
+      <h2>المهام اليومية 📋</h2>
+      <div class="task">
+        <img src="/telegram-icon.png" alt="Telegram Icon">
+        <h3>متابعة على Telegram</h3>
+        <a href="https://t.me/SylrexOfficial" target="_blank">انضم إلى قناتنا الرسمية</a>
+        <button onclick="completeTask(this, 'telegram', 30)">إكمال (+30 نقاط)</button>
+      </div>
+      <div class="task">
+        <img src="/x-icon.png" alt="X Icon">
+        <h3>متابعة على X</h3>
+        <a href="https://x.com/SylrexOfficial?t=xMY6eEauM0DXY5VllXdT-w&s=09" target="_blank">تابع حسابنا الرسمي</a>
+        <button onclick="completeTask(this, 'x', 35)">إكمال (+35 نقاط)</button>
+      </div>
+      <div class="task">
+        <img src="/facebook-icon.png" alt="Facebook Icon">
+        <h3>متابعة على Facebook</h3>
+        <a href="https://www.facebook.com/share/1JYzm6CGsS/" target="_blank">تابع صفحتنا</a>
+        <button onclick="completeTask(this, 'facebook', 40)">إكمال (+40 نقاط)</button>
+      </div>
+      <div class="task">
+        <img src="/youtube-icon.png" alt="YouTube Icon">
+        <h3>الاشتراك في YouTube</h3>
+        <a href="https://www.youtube.com/@SylrexOfficial" target="_blank">اشترك في قناتنا</a>
+        <button onclick="completeTask(this, 'youtube', 50)">إكمال (+50 نقاط)</button>
+      </div>
+      <button id="disconnect-btn" class="hidden" onclick="disconnectWallet()">فصل المحفظة</button>
+    </div>
+
+    <!-- الصفحة 3: دعوة الأصدقاء -->
+    <div id="page3" class="page">
+      <h2>دعوة الأصدقاء 👥</h2>
+      <div class="referral">
+        <p><strong>رابط الإحالة الخاص بك:</strong></p>
+        <div class="referral-code" id="referral-link"></div>
+        <button class="connect-btn" onclick="copyReferralLink()">نسخ الرابط</button>
+        <p style="margin-top: 15px;">اربح <strong>500 نقاط</strong> لكل صديق ينضم!</p>
+      </div>
+      <div class="stats">
+        <div class="stat-item">
+          <div class="stat-number" id="friends-invited">0</div>
+          <div class="stat-label">الأصدقاء المدعوون</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="bonus-points">0</div>
+          <div class="stat-label">نقاط المكافأة</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- الصفحة 4: قائمة المتصدرين -->
+    <div id="page4" class="page">
+      <h2>قائمة المتصدرين 🏆</h2>
+      <ul class="leaderboard" id="leaderboard-list"></ul>
+    </div>
 
     <!-- شريط التنقل -->
-    <nav class="bg-white shadow-md p-4">
-        <div class="flex justify-center space-x-4">
-            <button onclick="showPage('profile')" class="nav-btn active px-6 py-2 rounded-full font-medium transition-all duration-300 bg-gray-100 text-gray-700 hover:bg-gray-200">
-                الملف الشخصي
-            </button>
-            <button onclick="showPage('tasks')" class="nav-btn px-6 py-2 rounded-full font-medium transition-all duration-300 bg-gray-100 text-gray-700 hover:bg-gray-200">
-                المهام والمحفظة
-            </button>
-            <button onclick="showPage('leaderboard')" class="nav-btn px-6 py-2 rounded-full font-medium transition-all duration-300 bg-gray-100 text-gray-700 hover:bg-gray-200">
-                قائمة المتصدرين
-            </button>
-        </div>
-    </nav>
-
-    <!-- الصفحة 1: الملف الشخصي -->
-    <div id="profile" class="page active p-6 max-w-md mx-auto">
-        <div class="bg-white rounded-2xl card-shadow p-8 text-center">
-            <!-- صورة المستخدم -->
-            <div class="relative mb-6">
-                <div class="w-32 h-32 mx-auto rounded-full gradient-bg p-1">
-                    <div class="w-full h-full bg-white rounded-full flex items-center justify-center">
-                        <img id="user-photo" src="https://via.placeholder.com/50" alt="صورة المستخدم" class="w-28 h-28 rounded-full">
-                    </div>
-                </div>
-                <div class="absolute -bottom-2 -left-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white flex items-center justify-center">
-                    <span class="text-white text-xs">✓</span>
-                </div>
-            </div>
-            
-            <!-- اسم المستخدم -->
-            <h2 id="user-name" class="text-2xl font-bold text-gray-800 mb-2">جاري التحميل...</h2>
-            <p class="text-gray-500 mb-6">مستوى 5</p>
-            
-            <!-- الإحصائيات -->
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <div class="bg-purple-50 rounded-xl p-4">
-                    <div class="text-2xl font-bold text-purple-600" id="referrals">0</div>
-                    <div class="text-sm text-gray-600">الإحالات</div>
-                </div>
-                <div class="bg-blue-50 rounded-xl p-4">
-                    <div class="text-2xl font-bold text-blue-600" id="points">0</div>
-                    <div class="text-sm text-gray-600">النقاط</div>
-                </div>
-            </div>
-        </div>
+    <div class="navigation">
+      <button class="nav-btn active" onclick="showPage(1)">🏠 الرئيسية</button>
+      <button class="nav-btn" onclick="showPage(2)">📋 المهام</button>
+      <button class="nav-btn" onclick="showPage(3)">👥 الدعوة</button>
+      <button class="nav-btn" onclick="showPage(4)">🏆 الترتيب</button>
     </div>
+  </div>
 
-    <!-- الصفحة 2: المهام والمحفظة -->
-    <div id="tasks" class="page p-6 max-w-md mx-auto">
-        <!-- المهام -->
-        <div class="bg-white rounded-2xl card-shadow p-6 mb-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">إكمال المهام</h3>
-            <div class="space-y-3">
-                <button onclick="completeTask('telegram')" class="w-full flex items-center justify-between p-4 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors">
-                    <div class="flex items-center space-x-3">
-                        <img src="/telegram-icon.png" alt="Telegram Icon" class="w-10 h-10 rounded-full">
-                        <span class="font-medium text-gray-800">متابعة قناة Telegram</span>
-                    </div>
-                    <span class="text-blue-600 font-bold">+30 نقاط</span>
-                </button>
-                
-                <button onclick="completeTask('x')" class="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors">
-                    <div class="flex items-center space-x-3">
-                        <img src="/x-icon.png" alt="X Icon" class="w-10 h-10 rounded-full">
-                        <span class="font-medium text-gray-800">متابعة حساب X</span>
-                    </div>
-                    <span class="text-gray-600 font-bold">+35 نقاط</span>
-                </button>
-                
-                <button onclick="completeTask('facebook')" class="w-full flex items-center justify-between p-4 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors">
-                    <div class="flex items-center space-x-3">
-                        <img src="/facebook-icon.png" alt="Facebook Icon" class="w-10 h-10 rounded-full">
-                        <span class="font-medium text-gray-800">متابعة Facebook</span>
-                    </div>
-                    <span class="text-blue-600 font-bold">+40 نقاط</span>
-                </button>
-                
-                <button onclick="completeTask('youtube')" class="w-full flex items-center justify-between p-4 bg-red-50 hover:bg-red-100 rounded-xl transition-colors">
-                    <div class="flex items-center space-x-3">
-                        <img src="/youtube-icon.png" alt="YouTube Icon" class="w-10 h-10 rounded-full">
-                        <span class="font-medium text-gray-800">الاشتراك في YouTube</span>
-                    </div>
-                    <span class="text-red-600 font-bold">+50 نقاط</span>
-                </button>
-            </div>
-        </div>
+  <!-- تحميل Telegram Web Apps API -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- تحميل مكتبة TON Connect -->
+  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+  <script>
+    // تهيئة Telegram Web App
+    const tg = window.Telegram.WebApp;
+    tg.ready();
 
-        <!-- قسم المحفظة -->
-        <div class="bg-white rounded-2xl card-shadow p-6 mb-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">المحفظة</h3>
-            <div id="ton-connect" class="w-full gradient-bg text-white py-4 rounded-xl font-medium hover:opacity-90 transition-opacity mb-4 text-center">
-                ربط محفظة Telegram
-            </div>
-            <div id="wallet-address" class="hidden text-center text-sm text-gray-500"></div>
-            <button onclick="disconnectWallet()" id="disconnect-btn" class="hidden w-full bg-red-100 text-red-700 py-3 rounded-xl font-medium hover:bg-red-200 transition-colors">
-                فصل المحفظة
-            </button>
-        </div>
+    // عرض اسم المستخدم وصورته
+    const userName = tg.initDataUnsafe?.user?.first_name || 'مستخدم';
+    document.getElementById('user-name').textContent = userName;
+    const userPhoto = tg.initDataUnsafe?.user?.photo_url || 'https://via.placeholder.com/60/4ecdc4/ffffff?text=👤';
+    document.getElementById('user-photo').src = userPhoto;
 
-        <!-- رابط الإحالة -->
-        <div class="bg-white rounded-2xl card-shadow p-6">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">دعوة الأصدقاء</h3>
-            <div class="bg-gray-50 rounded-xl p-4 mb-4">
-                <div class="text-sm text-gray-600 mb-2">رابط الإحالة الخاص بك:</div>
-                <div id="referral-link" class="text-sm font-mono text-purple-600 break-all"></div>
-            </div>
-            <button onclick="copyReferralLink()" class="w-full bg-purple-100 text-purple-700 py-3 rounded-xl font-medium hover:bg-purple-200 transition-colors">
-                نسخ الرابط
-            </button>
-        </div>
-    </div>
+    // إنشاء رابط إحالة مخصص
+    const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
+    const referralLink = `https://t.me/S$yRXAppBot/SYRXApp?start=ref_${userId}`;
+    document.getElementById('referral-link').textContent = referralLink;
 
-    <!-- الصفحة 3: قائمة المتصدرين -->
-    <div id="leaderboard" class="page p-6 max-w-2xl mx-auto">
-        <div class="bg-white rounded-2xl card-shadow p-6">
-            <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">🏆 أفضل المحيلين</h3>
-            
-            <!-- منصة الثلاثة الأوائل -->
-            <div class="flex justify-center items-end space-x-4 mb-8">
-                <!-- المركز الثاني -->
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center mb-2">
-                        <span class="text-2xl">🥈</span>
-                    </div>
-                    <div class="font-bold text-sm" id="second-place-name">لاعب 2</div>
-                    <div class="text-xs text-gray-600" id="second-place-points">245 إحالة</div>
-                </div>
-                
-                <!-- المركز الأول -->
-                <div class="text-center">
-                    <div class="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mb-2 glow">
-                        <span class="text-3xl">👑</span>
-                    </div>
-                    <div class="font-bold" id="first-place-name">لاعب 1</div>
-                    <div class="text-sm text-gray-600" id="first-place-points">312 إحالة</div>
-                </div>
-                
-                <!-- المركز الثالث -->
-                <div class="text-center">
-                    <div class="w-16 h-16 bg-orange-400 rounded-full flex items-center justify-center mb-2">
-                        <span class="text-2xl">🥉</span>
-                    </div>
-                    <div class="font-bold text-sm" id="third-place-name">لاعب 3</div>
-                    <div class="text-xs text-gray-600" id="third-place-points">198 إحالة</div>
-                </div>
-            </div>
+    // إعداد TON Connect
+    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+      manifestUrl: "https://syrx.onrender.com/tonconnect-manifest.json",
+      walletsListConfiguration: {
+        includeWallets: [
+          {
+            appName: "telegram-wallet",
+            name: "Wallet",
+            imageUrl: "https://wallet.tg/images/logo-288.png",
+            aboutUrl: "https://wallet.tg/",
+            universalLink: "https://t.me/wallet/start",
+            bridgeUrl: "https://bridge.tonapi.io/bridge",
+            platforms: ["ios", "android", "macos", "windows", "linux"]
+          }
+        ]
+      }
+    });
 
-            <!-- قائمة المتصدرين -->
-            <div class="space-y-2 max-h-96 overflow-y-auto" id="leaderboard-list"></div>
-        </div>
-    </div>
+    tonConnectUI.uiOptions = {
+      buttonRootId: "ton-connect"
+    };
 
-    <!-- تحميل Telegram Web Apps API -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- تحميل مكتبة TON Connect -->
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <script>
-        // تهيئة Telegram Web App
-        const tg = window.Telegram.WebApp;
-        tg.ready();
+    // التحقق من حالة الاتصال عند التحميل
+    if (tonConnectUI.wallet) {
+      handleConnection(tonConnectUI.wallet);
+    }
 
-        // عرض اسم المستخدم وصورته
-        const userName = tg.initDataUnsafe?.user?.first_name || 'مستخدم';
-        document.getElementById('user-name').textContent = userName;
-        const userPhoto = tg.initDataUnsafe?.user?.photo_url || 'https://via.placeholder.com/50';
-        document.getElementById('user-photo').src = userPhoto;
+    // معالجة تغييرات حالة الاتصال
+    tonConnectUI.onStatusChange(
+      walletInfo => {
+        console.log("حالة الاتصال:", walletInfo);
+        handleConnection(walletInfo);
+      },
+      error => {
+        console.error("خطأ في الاتصال:", error);
+        showNotification("خطأ في الاتصال: " + error.message);
+        handleDisconnection();
+      }
+    );
 
-        // إنشاء رابط إحالة مخصص
-        const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
-        const referralLink = `https://t.me/S$yRXAppBot/SYRXApp?start=ref_${userId}`;
-        document.getElementById('referral-link').textContent = referralLink;
+    function handleConnection(walletInfo) {
+      const connectButton = document.getElementById('ton-connect');
+      const walletAddressDiv = document.getElementById('wallet-address');
+      const disconnectBtn = document.getElementById('disconnect-btn');
+      if (walletInfo && walletInfo.account && walletInfo.account.address) {
+        connectButton.classList.add('hidden');
+        walletAddressDiv.textContent = `عنوان المحفظة: ${walletInfo.account.address}`;
+        walletAddressDiv.style.display = 'block';
+        disconnectBtn.classList.remove('hidden');
+        showNotification('تم ربط المحفظة! +500 نقاط مكافأة!');
+      } else {
+        handleDisconnection();
+      }
+    }
 
-        // إعداد TON Connect
-        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: "https://syrx.onrender.com/tonconnect-manifest.json",
-            walletsListConfiguration: {
-                includeWallets: [
-                    {
-                        appName: "telegram-wallet",
-                        name: "Wallet",
-                        imageUrl: "https://wallet.tg/images/logo-288.png",
-                        aboutUrl: "https://wallet.tg/",
-                        universalLink: "https://t.me/wallet/start",
-                        bridgeUrl: "https://bridge.tonapi.io/bridge",
-                        platforms: ["ios", "android", "macos", "windows", "linux"]
-                    }
-                ]
-            }
-        });
+    function handleDisconnection() {
+      const connectButton = document.getElementById('ton-connect');
+      const walletAddressDiv = document.getElementById('wallet-address');
+      const disconnectBtn = document.getElementById('disconnect-btn');
+      connectButton.classList.remove('hidden');
+      walletAddressDiv.style.display = 'none';
+      disconnectBtn.classList.add('hidden');
+    }
 
-        tonConnectUI.uiOptions = {
-            buttonRootId: "ton-connect"
-        };
+    async function disconnectWallet() {
+      try {
+        await tonConnectUI.disconnect();
+        handleDisconnection();
+        showNotification('تم فصل المحفظة!');
+      } catch (error) {
+        console.error("خطأ في الفصل:", error);
+        showNotification("خطأ في فصل المحفظة: " + error.message);
+      }
+    }
 
-        // التحقق من حالة الاتصال عند التحميل
-        if (tonConnectUI.wallet) {
-            handleConnection(tonConnectUI.wallet);
+    // التنقل بين الصفحات
+    function showPage(pageNumber) {
+      document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(`page${pageNumber}`).classList.add('active');
+      document.querySelectorAll('.nav-btn')[pageNumber - 1].classList.add('active');
+    }
+
+    // إدارة المهام والنقاط
+    let userPoints = localStorage.getItem('points') || 0;
+    let referrals = localStorage.getItem('referrals') || 0;
+    document.getElementById('total-points').textContent = parseInt(userPoints).toLocaleString();
+    document.getElementById('referrals').textContent = referrals;
+    document.getElementById('friends-invited').textContent = referrals;
+    document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
+
+    function completeTask(button, platform, points) {
+      if (localStorage.getItem(platform) === 'completed') {
+        showNotification("المهمة مكتملة بالفعل!");
+        button.textContent = 'مكتمل ✅';
+        button.style.background = '#4CAF50';
+        button.disabled = true;
+        return;
+      }
+      button.textContent = 'جاري الإكمال...';
+      button.disabled = true;
+      setTimeout(() => {
+        button.textContent = 'مكتمل ✅';
+        button.style.background = '#4CAF50';
+        userPoints = parseInt(userPoints) + points;
+        localStorage.setItem('points', userPoints);
+        localStorage.setItem(platform, 'completed');
+        document.getElementById('total-points').textContent = userPoints.toLocaleString();
+        showNotification(`تم إكمال المهمة! +${points} نقاط!`);
+      }, 1500);
+    }
+
+    // نسخ رابط الإحالة
+    function copyReferralLink() {
+      const link = document.getElementById('referral-link').textContent;
+      navigator.clipboard.writeText(link).then(() => {
+        showNotification('تم نسخ رابط الإحالة!');
+      }).catch(() => {
+        showNotification('الرابط: ' + link);
+      });
+    }
+
+    // قائمة المتصدرين
+    const leaderboardData = Array.from({length: 100}, (_, i) => ({
+      name: `لاعب ${i + 1}`,
+      points: Math.floor(Math.random() * 10000) + 1000
+    })).sort((a, b) => b.points - a.points);
+    const leaderboardList = document.getElementById('leaderboard-list');
+    leaderboardData.forEach((player, index) => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <span><span class="rank">#${index + 1}</span> ${player.name}</span>
+        <span class="points">${player.points.toLocaleString()} نقاط</span>
+      `;
+      leaderboardList.appendChild(li);
+    });
+
+    // إشعارات
+    function showNotification(message) {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(45deg, #4CAF50, #45a049);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 25px;
+        font-weight: bold;
+        z-index: 1000;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        animation: slideDown 0.3s ease;
+      `;
+      notification.textContent = message;
+      if (!document.querySelector('#notification-styles')) {
+        const style = document.createElement('style');
+        style.id = 'notification-styles';
+        style.textContent = `
+          @keyframes slideDown {
+            from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      document.body.appendChild(notification);
+      setTimeout(() => {
+        notification.style.animation = 'slideDown 0.3s ease reverse';
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 300);
+      }, 3000);
+    }
+
+    // تهيئة التطبيق
+    document.addEventListener('DOMContentLoaded', () => {
+      showPage(1);
+      document.querySelectorAll('.task button').forEach(button => {
+        const platform = button.getAttribute('onclick').match(/'([^']+)'/)[1];
+        if (localStorage.getItem(platform) === 'completed') {
+          button.textContent = 'مكتمل ✅';
+          button.style.background = '#4CAF50';
+          button.disabled = true;
         }
+      });
+    });
 
-        // معالجة تغييرات حالة الاتصال
-        tonConnectUI.onStatusChange(
-            walletInfo => {
-                console.log("حالة الاتصال:", walletInfo);
-                handleConnection(walletInfo);
-            },
-            error => {
-                console.error("خطأ في الاتصال:", error);
-                alert("خطأ في الاتصال: " + error.message);
-                handleDisconnection();
-            }
-        );
-
-        function handleConnection(walletInfo) {
-            const connectButton = document.getElementById('ton-connect');
-            const walletAddressDiv = document.getElementById('wallet-address');
-            const disconnectBtn = document.getElementById('disconnect-btn');
-            if (walletInfo && walletInfo.account && walletInfo.account.address) {
-                connectButton.classList.add('hidden');
-                walletAddressDiv.textContent = `عنوان المحفظة: ${walletInfo.account.address}`;
-                walletAddressDiv.classList.remove('hidden');
-                disconnectBtn.classList.remove('hidden');
-            } else {
-                handleDisconnection();
-            }
-        }
-
-        function handleDisconnection() {
-            const connectButton = document.getElementById('ton-connect');
-            const walletAddressDiv = document.getElementById('wallet-address');
-            const disconnectBtn = document.getElementById('disconnect-btn');
-            connectButton.classList.remove('hidden');
-            walletAddressDiv.classList.add('hidden');
-            disconnectBtn.classList.add('hidden');
-        }
-
-        async function disconnectWallet() {
-            try {
-                await tonConnectUI.disconnect();
-                handleDisconnection();
-            } catch (error) {
-                console.error("خطأ في الفصل:", error);
-                alert("خطأ في فصل المحفظة: " + error.message);
-            }
-        }
-
-        // التنقل بين الصفحات
-        function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        // إدارة المهام والنقاط
-        let points = localStorage.getItem('points') || 0;
-        document.getElementById('points').textContent = points;
-
-        function completeTask(platform) {
-            const platformNames = {
-                'telegram': 'Telegram',
-                'x': 'X',
-                'facebook': 'Facebook',
-                'youtube': 'YouTube'
-            };
-            if (localStorage.getItem(platform) === 'completed') {
-                alert("المهمة مكتملة بالفعل!");
-                return;
-            }
-            const pointsToAdd = {
-                'telegram': 30,
-                'x': 35,
-                'facebook': 40,
-                'youtube': 50
-            };
-            points = parseInt(points) + pointsToAdd[platform];
-            localStorage.setItem('points', points);
-            localStorage.setItem(platform, 'completed');
-            document.getElementById('points').textContent = points;
-            alert(`رائع! لقد أكملت مهمة ${platformNames[platform]}. تمت إضافة ${pointsToAdd[platform]} نقطة!`);
-        }
-
-        // نسخ رابط الإحالة
-        function copyReferralLink() {
-            const link = document.getElementById('referral-link').textContent;
-            navigator.clipboard.writeText(link).then(() => {
-                alert('تم نسخ رابط الإحالة!');
-            }).catch(() => {
-                alert('الرابط: ' + link);
-            });
-        }
-
-        // قائمة المتصدرين (بيانات تجريبية)
-        const leaderboardData = Array.from({length: 100}, (_, i) => ({
-            name: `لاعب ${i + 1}`,
-            points: Math.floor(Math.random() * 1000) + 100
-        })).sort((a, b) => b.points - a.points);
-
-        // عرض أفضل 3 لاعبين
-        document.getElementById('first-place-name').textContent = leaderboardData[0].name;
-        document.getElementById('first-place-points').textContent = `${leaderboardData[0].points} إحالة`;
-        document.getElementById('second-place-name').textContent = leaderboardData[1].name;
-        document.getElementById('second-place-points').textContent = `${leaderboardData[1].points} إحالة`;
-        document.getElementById('third-place-name').textContent = leaderboardData[2].name;
-        document.getElementById('third-place-points').textContent = `${leaderboardData[2].points} إحالة`;
-
-        // عرض قائمة المتصدرين
-        const leaderboardList = document.getElementById('leaderboard-list');
-        leaderboardData.forEach((player, index) => {
-            const div = document.createElement('div');
-            div.className = `flex items-center justify-between p-3 ${index === 0 ? 'bg-yellow-50 rounded-xl border-2 border-yellow-200' : index === 1 ? 'bg-gray-50 rounded-xl' : index === 2 ? 'bg-orange-50 rounded-xl' : index === 4 ? 'bg-purple-50 rounded-xl border border-purple-200' : 'hover:bg-gray-50 rounded-xl transition-colors'}`;
-            div.innerHTML = `
-                <div class="flex items-center space-x-3">
-                    <span class="w-8 h-8 ${index === 0 ? 'bg-yellow-400' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-orange-400' : index === 4 ? 'bg-purple-500' : 'bg-gray-200'} rounded-full flex items-center justify-center text-sm font-bold ${index < 3 || index === 4 ? 'text-white' : 'text-gray-600'}">${index + 1}</span>
-                    <span class="${index === 4 ? 'font-medium' : ''}">${player.name}${index === 4 ? ' (أنت)' : ''}</span>
-                </div>
-                <span class="${index === 0 ? 'text-yellow-600' : index === 1 ? 'text-gray-600' : index === 2 ? 'text-orange-600' : index === 4 ? 'text-purple-600' : 'text-gray-600'} ${index === 4 ? 'font-medium' : ''}">${player.points} إحالة</span>
-            `;
-            leaderboardList.appendChild(div);
-        });
-
-        // عرض الصفحة الأولى افتراضيًا
-        showPage('profile');
-    </script>
+    // معالجة زر الرجوع
+    window.addEventListener('popstate', () => {
+      showPage(1);
+    });
+  </script>
 </body>
-                        </html>
+                                                   </html>
