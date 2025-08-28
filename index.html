@@ -1,911 +1,360 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SYRX App</title>
+  <title>Crypto Rewards App</title>
   <style>
     body {
-      font-family: 'Segoe UI', Arial, sans-serif;
       margin: 0;
-      padding: 0;
-      height: 100vh;
-      width: 100vw;
-      background: linear-gradient(135deg, #1e3c72, #2a5298);
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      height: auto;
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
     .container {
-      width: 100%;
-      max-width: 600px;
-      height: 100vh; /* ضمان ملاءمة الارتفاع للشاشة */
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 0;
-      padding: 20px;
-      box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      backdrop-filter: blur(10px);
-      position: relative;
-      overflow: hidden; /* منع التمرير غير الضروري */
+      min-height: 100vh;
     }
-    .logo {
-      width: 120px;
-      height: 120px;
-      margin: 20px 0;
-      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2em;
-      font-weight: bold;
-      color: white;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    }
-    .user-profile {
-      display: flex;
-      align-items: center;
-      margin: 15px 0;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 15px;
-      border-radius: 15px;
-      backdrop-filter: blur(5px);
-    }
-    .user-profile img {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      margin-right: 15px;
-      border: 3px solid #fff;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
-    .user-profile span {
-      font-size: 1.3em;
-      font-weight: bold;
-    }
-    h1, h2 {
-      font-size: 1.8em;
-      margin: 10px 0;
-      text-align: center;
-    }
-    #ton-connect {
-      margin: 20px 0;
-    }
-    .connect-btn {
-      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-      color: white;
-      border: none;
-      padding: 15px 30px;
-      border-radius: 25px;
-      font-size: 1.1em;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    .connect-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-    }
-    #wallet-address {
-      background: rgba(255, 255, 255, 0.9);
-      color: #333;
-      padding: 15px;
-      border-radius: 15px;
-      margin: 20px;
-      word-break: break-all;
-      font-size: 0.9em;
-      display: none;
-      max-width: 90%;
-      text-align: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    .page {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 20px;
+      padding-bottom: 100px; /* عشان ما يتغطى المحتوى بالـ nav */
     }
     .hidden {
-      display: none !important;
+      display: none;
     }
     .navigation {
+      display: flex;
+      justify-content: space-around;
+      background: #222;
+      padding: 10px 0;
       position: fixed;
       bottom: 0;
       left: 50%;
       transform: translateX(-50%);
       width: 100%;
-      max-width: 600px;
-      display: flex;
-      justify-content: space-around;
-      background: rgba(0, 0, 0, 0.8);
-      padding: 15px 0;
-      backdrop-filter: blur(10px);
-      z-index: 1000; /* زيادة z-index لضمان الظهور فوق العناصر */
+      max-width: 480px;
+      border-top: 1px solid #333;
     }
-    .nav-btn {
-      background: rgba(255, 255, 255, 0.2);
-      color: white;
+    .nav-button {
+      background: none;
       border: none;
-      padding: 12px 20px;
-      border-radius: 20px;
+      color: #ccc;
+      font-size: 16px;
       cursor: pointer;
-      font-weight: bold;
-      transition: all 0.3s ease;
-      font-size: 0.9em;
     }
-    .nav-btn.active {
-      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-      transform: translateY(-2px);
+    .nav-button.active {
+      color: #0f0;
     }
-    .nav-btn:hover {
-      background: rgba(255, 255, 255, 0.3);
-    }
-    .page {
-      display: none;
-      width: 100%;
-      flex-grow: 1;
-      overflow-y: auto;
-      padding-bottom: 100px; /* زيادة padding-bottom لضمان عدم تداخل الشريط */
-      max-height: calc(100vh - 100px); /* تقييد الارتفاع */
-      box-sizing: border-box;
-    }
-    .page.active {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .task {
-      background: rgba(255, 255, 255, 0.15);
-      padding: 15px; /* تقليل padding لتقليل الحجم */
-      margin: 8px 0; /* تقليل margin */
-      border-radius: 15px;
-      width: 90%;
-      text-align: center;
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .task img {
-      width: 32px;
-      height: 32px;
-      margin-right: 10px;
-    }
-    .task h3 {
-      margin: 0;
-      color: #4ecdc4;
-      flex-grow: 1;
-      text-align: left;
-      font-size: 1.1em; /* تقليل حجم الخط */
-    }
-    .task p {
-      margin: 5px 0; /* تقليل margin */
-      opacity: 0.9;
-      font-size: 0.9em;
-    }
-    .task button {
-      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-      color: white;
-      border: none;
-      padding: 8px 15px; /* تقليل حجم الزر */
-      border-radius: 20px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: all 0.3s ease;
-      font-size: 0.9em;
-    }
-    .task button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-    .task button:disabled {
-      background: #666;
-      cursor: not-allowed;
-      transform: none;
-    }
-    .referral {
-      margin: 15px 0;
-      font-size: 0.9em;
-      text-align: center;
-      background: rgba(255, 255, 255, 0.1);
+    .section {
+      margin-bottom: 20px;
+      background: #1c1c1c;
       padding: 15px;
-      border-radius: 15px;
-      width: 90%;
+      border-radius: 8px;
     }
-    .referral-code {
-      background: rgba(255, 255, 255, 0.2);
-      padding: 10px;
-      border-radius: 10px;
-      margin: 10px 0;
-      font-family: monospace;
-      font-size: 1.1em;
-      letter-spacing: 1px;
+    .section h2 {
+      margin-top: 0;
+      color: #0f0;
     }
-    .leaderboard {
-      width: 90%;
+    .button {
+      background: #0f0;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      color: #000;
+      font-weight: bold;
+    }
+    .button:disabled {
+      background: #555;
+      cursor: not-allowed;
+      color: #999;
+    }
+    .leaderboard-list {
       list-style: none;
       padding: 0;
-      margin: 0;
-      max-height: 50vh; /* تقليل ارتفاع لوحة الصدارة */
-      overflow-y: auto;
-      scrollbar-width: thin;
-      scrollbar-color: #4ecdc4 #1e3c72;
     }
-    .leaderboard li {
-      background: rgba(255, 255, 255, 0.15);
-      padding: 10px;
-      margin: 5px 0;
-      border-radius: 15px;
+    .leaderboard-list li {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 8px 0;
+      border-bottom: 1px solid #333;
     }
-    .leaderboard .rank {
-      font-weight: bold;
-      color: #4ecdc4;
-      font-size: 1.1em;
+    .wallet-address {
+      word-break: break-all;
+      font-size: 14px;
+      color: #ccc;
     }
-    .leaderboard .points {
-      color: #ff6b6b;
-      font-weight: bold;
-    }
-    .leaderboard .referrals {
-      color: #4ecdc4;
-      font-size: 0.9em;
-    }
-    .stats {
-      display: flex;
-      justify-content: space-around;
-      width: 90%;
-      margin: 15px 0;
-    }
-    .stat-item {
-      text-align: center;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 10px;
-      border-radius: 15px;
-      flex: 1;
-      margin: 0 5px;
-    }
-    .stat-number {
-      font-size: 1.8em;
-      font-weight: bold;
-      color: #4ecdc4;
-    }
-    .stat-label {
-      font-size: 0.9em;
-      opacity: 0.8;
-    }
-    #disconnect-btn {
-      background: linear-gradient(45deg, #dc3545, #ff6b6b);
-      color: white;
-      border: none;
-      padding: 8px 15px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: all 0.3s ease;
-      margin-top: 10px;
-    }
-    #disconnect-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-    .daily-table {
-      width: 90%;
-      background: rgba(255, 255, 255, 0.15);
-      padding: 10px; /* تقليل padding */
-      margin: 8px 0;
-      border-radius: 15px;
-      backdrop-filter: blur(5px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      overflow-y: auto;
-      max-height: 150px; /* تقليل الارتفاع */
-      font-size: 0.9em;
-    }
-    .daily-table table {
+    table {
       width: 100%;
       border-collapse: collapse;
+      color: #ccc;
     }
-    .daily-table th, .daily-table td {
-      padding: 8px; /* تقليل padding */
-      text-align: left;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    table, th, td {
+      border: 1px solid #333;
     }
-    .daily-table th {
-      color: #4ecdc4;
-    }
-    @media (max-width: 400px) {
-      .logo {
-        width: 80px;
-        height: 80px;
-        font-size: 1.5em;
-      }
-      .user-profile img {
-        width: 40px;
-        height: 40px;
-      }
-      .user-profile span {
-        font-size: 1em;
-      }
-      h1, h2 {
-        font-size: 1.5em;
-      }
-      #wallet-address {
-        font-size: 0.8em;
-        padding: 8px;
-      }
-      .nav-btn {
-        padding: 10px 15px;
-        font-size: 0.8em;
-      }
-      .task img {
-        width: 24px;
-        height: 24px;
-      }
-      .task {
-        padding: 10px;
-      }
-      .task h3 {
-        font-size: 1em;
-      }
-      .task button {
-        padding: 6px 12px;
-        font-size: 0.8em;
-      }
-      .daily-table {
-        max-height: 120px;
-      }
-    }
-    @media (min-width: 600px) {
-      .container {
-        border-radius: 15px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      }
+    th, td {
+      padding: 8px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Page 1: Home -->
-    <div id="page1" class="page active">
-      <div class="logo">SYRX</div>
-      <div class="user-profile">
-        <img id="user-photo" src="https://via.placeholder.com/60/4ecdc4/ffffff?text=👤" alt="User Photo">
-        <span id="user-name">Loading...</span>
+    <!-- Home Page -->
+    <div id="home" class="page">
+      <div class="section">
+        <h2>Total Points</h2>
+        <p id="total-points">0</p>
       </div>
-      <h1>Welcome to SYRX App 🎉</h1>
-      <div class="stats">
-        <div class="stat-item">
-          <div class="stat-number" id="total-points">0</div>
-          <div class="stat-label">Total Points</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-number" id="referrals">0</div>
-          <div class="stat-label">Referrals</div>
-        </div>
+      <div class="section">
+        <h2>Wallet</h2>
+        <button class="button" onclick="connectWallet()">Connect Wallet</button>
+        <p id="wallet-address" class="wallet-address"></p>
       </div>
-      <div id="ton-connect"></div>
-      <div id="wallet-address"></div>
+      <div class="section">
+        <h2>Referral</h2>
+        <p>Invite your friends and earn points!</p>
+        <p>Your referral link:</p>
+        <p id="referral-link"></p>
+        <button class="button" onclick="copyReferralLink()">Copy Link</button>
+        <p id="referral-count"></p>
+      </div>
     </div>
 
-    <!-- Page 2: Tasks -->
-    <div id="page2" class="page">
-      <h2>Daily Tasks 📋</h2>
-      <div class="task">
-        <img src="/calendar-icon.png" alt="Daily Login Icon">
-        <h3>Daily Login</h3>
-        <p>Log in daily to earn points</p>
-        <button onclick="completeDailyLogin(this, 20)">Claim (+20 pts)</button>
-      </div>
-      <div class="task">
-        <img src="/telegram-icon.png" alt="Telegram Icon">
-        <h3>Follow on Telegram</h3>
-        <p><a href="https://t.me/SylrexOfficial" target="_blank">Join our official channel</a></p>
-        <button onclick="completeTask(this, 'telegram', 30, 'https://t.me/SylrexOfficial')">Complete (+30 pts)</button>
-      </div>
-      <div class="task">
-        <img src="/x-icon.png" alt="X Icon">
-        <h3>Follow on X</h3>
-        <p><a href="https://x.com/SylrexOfficial?t=xMY6eEauM0DXY5VllXdT-w&s=09" target="_blank">Follow our official account</a></p>
-        <button onclick="completeTask(this, 'x', 35, 'https://x.com/SylrexOfficial?t=xMY6eEauM0DXY5VllXdT-w&s=09')">Complete (+35 pts)</button>
-      </div>
-      <div class="task">
-        <img src="/facebook-icon.png" alt="Facebook Icon">
-        <h3>Follow on Facebook</h3>
-        <p><a href="https://www.facebook.com/share/1JYzm6CGsS/" target="_blank">Follow our page</a></p>
-        <button onclick="completeTask(this, 'facebook', 40, 'https://www.facebook.com/share/1JYzm6CGsS/')">Complete (+40 pts)</button>
-      </div>
-      <div class="task">
-        <img src="/youtube-icon.png" alt="YouTube Icon">
-        <h3>Subscribe on YouTube</h3>
-        <p><a href="https://www.youtube.com/@SylrexOfficial" target="_blank">Subscribe to our channel</a></p>
-        <button onclick="completeTask(this, 'youtube', 50, 'https://www.youtube.com/@SylrexOfficial')">Complete (+50 pts)</button>
-      </div>
-      <div class="daily-table">
-        <h3>Daily Login History</h3>
+    <!-- Tasks Page -->
+    <div id="tasks" class="page hidden">
+      <div class="section">
+        <h2>Daily Login</h2>
+        <button class="button" id="daily-login-btn" onclick="completeDailyLogin(this, 20)">Claim Daily Reward</button>
         <table id="daily-login-table">
           <thead>
-            <tr>
-              <th>Date</th>
-              <th>Points Earned</th>
-            </tr>
+            <tr><th>Date</th><th>Reward</th></tr>
           </thead>
-          <tbody>
-            <!-- Rows will be added dynamically -->
-          </tbody>
+          <tbody></tbody>
         </table>
       </div>
-      <button id="disconnect-btn" class="hidden" onclick="disconnectWallet()">Disconnect Wallet</button>
-    </div>
-
-    <!-- Page 3: Invite -->
-    <div id="page3" class="page">
-      <h2>Invite Friends 👥</h2>
-      <div class="referral">
-        <p><strong>Your Referral Link:</strong></p>
-        <div class="referral-code" id="referral-link"></div>
-        <button class="connect-btn" onclick="copyReferralLink()">Copy Link</button>
-        <p style="margin-top: 15px;">Earn <strong>500 points</strong> for each friend who joins!</p>
-      </div>
-      <div class="stats">
-        <div class="stat-item">
-          <div class="stat-number" id="friends-invited">0</div>
-          <div class="stat-label">Friends Invited</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-number" id="bonus-points">0</div>
-          <div class="stat-label">Bonus Points</div>
-        </div>
+      <div class="section">
+        <h2>Tasks</h2>
+        <button class="button" onclick="completeTask(this, 'joinTelegram', 50)">Join Telegram (+50)</button>
+        <button class="button" onclick="completeTask(this, 'followTwitter', 50)">Follow Twitter (+50)</button>
       </div>
     </div>
 
-    <!-- Page 4: Leaderboard -->
-    <div id="page4" class="page">
-      <h2>Leaderboard 🏆</h2>
-      <ul class="leaderboard" id="leaderboard-list">
-        <li>No players yet. Invite friends to join the leaderboard!</li>
-      </ul>
+    <!-- Leaderboard Page -->
+    <div id="leaderboard" class="page hidden">
+      <div class="section">
+        <h2>Leaderboard</h2>
+        <ul id="leaderboard-list" class="leaderboard-list"></ul>
+      </div>
     </div>
 
     <!-- Navigation -->
     <div class="navigation">
-      <button class="nav-btn active" onclick="showPage(1)">🏠 Home</button>
-      <button class="nav-btn" onclick="showPage(2)">📋 Tasks</button>
-      <button class="nav-btn" onclick="showPage(3)">👥 Invite</button>
-      <button class="nav-btn" onclick="showPage(4)">🏆 Rank</button>
+      <button class="nav-button active" onclick="navigate('home')">Home</button>
+      <button class="nav-button" onclick="navigate('tasks')">Tasks</button>
+      <button class="nav-button" onclick="navigate('leaderboard')">Leaderboard</button>
     </div>
   </div>
 
-  <!-- Load Telegram Web Apps API -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- Load TON Connect -->
-  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
   <script>
-    // Initialize Telegram Web App
-    const tg = window.Telegram.WebApp;
-    tg.ready();
+    let userId = localStorage.getItem('userId') || null;
+    let userPoints = parseInt(localStorage.getItem('points') || 0);
 
-    // Display user name and photo
-    const userName = tg.initDataUnsafe?.user?.first_name || 'User';
-    document.getElementById('user-name').textContent = userName;
-    const userPhoto = tg.initDataUnsafe?.user?.photo_url || 'https://via.placeholder.com/60/4ecdc4/ffffff?text=👤';
-    document.getElementById('user-photo').src = userPhoto;
-
-    // Generate referral link
-    const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
-    const referralLink = `https://t.me/SYRXApp_bot/SYRXApp?start=ref_${userId}`;
-    document.getElementById('referral-link').textContent = referralLink;
-
-    // Initialize TON Connect
-    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: "https://syrx.onrender.com/tonconnect-manifest.json",
-      walletsListConfiguration: {
-        includeWallets: [
-          {
-            appName: "telegram-wallet",
-            name: "Wallet",
-            imageUrl: "https://wallet.tg/images/logo-288.png",
-            aboutUrl: "https://wallet.tg/",
-            universalLink: "https://t.me/wallet/start",
-            bridgeUrl: "https://bridge.tonapi.io/bridge",
-            platforms: ["ios", "android", "macos", "windows", "linux"]
-          }
-        ]
-      }
-    });
-
-    tonConnectUI.uiOptions = {
-      buttonRootId: "ton-connect"
-    };
-
-    // Check connection status on load
-    function initializeWallet() {
-      if (tonConnectUI.wallet) {
-        handleConnection(tonConnectUI.wallet);
-      } else {
-        handleDisconnection();
-      }
+    // Navigation
+    function navigate(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+      document.getElementById(pageId).classList.remove('hidden');
+      document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      if (pageId === 'leaderboard') loadLeaderboard();
+      if (pageId === 'tasks') loadDailyLoginHistory();
     }
 
-    // Handle connection status changes
-    tonConnectUI.onStatusChange(
-      walletInfo => {
-        console.log("Connection status:", walletInfo);
-        handleConnection(walletInfo);
-      },
-      error => {
-        console.error("Connection error:", error);
-        showNotification("Connection error: " + error.message);
-        handleDisconnection();
-      }
-    );
-
-    function handleConnection(walletInfo) {
-      const connectButton = document.getElementById('ton-connect');
-      const walletAddressDiv = document.getElementById('wallet-address');
-      const disconnectBtn = document.getElementById('disconnect-btn');
-      if (walletInfo && walletInfo.account && walletInfo.account.address) {
-        connectButton.classList.add('hidden');
-        walletAddressDiv.innerHTML = '';
-        walletAddressDiv.textContent = `Wallet Address: ${walletInfo.account.address}`;
-        walletAddressDiv.style.display = 'block';
-        disconnectBtn.classList.remove('hidden');
-        if (!localStorage.getItem('walletConnected')) {
-          showNotification('Wallet connected! +500 bonus points!');
-          userPoints = parseInt(userPoints) + 500;
-          localStorage.setItem('points', userPoints);
-          updateUserPoints();
-          localStorage.setItem('walletConnected', 'true');
-        }
-        document.getElementById('total-points').textContent = userPoints.toLocaleString();
-      } else {
-        handleDisconnection();
-      }
-    }
-
-    function handleDisconnection() {
-      const connectButton = document.getElementById('ton-connect');
-      const walletAddressDiv = document.getElementById('wallet-address');
-      const disconnectBtn = document.getElementById('disconnect-btn');
-      connectButton.classList.remove('hidden');
-      walletAddressDiv.style.display = 'none';
-      disconnectBtn.classList.add('hidden');
-      localStorage.removeItem('walletConnected');
-    }
-
-    async function disconnectWallet() {
-      try {
-        await tonConnectUI.disconnect();
-        handleDisconnection();
-        showNotification('Wallet disconnected!');
-      } catch (error) {
-        console.error("Disconnect error:", error);
-        showNotification("Disconnect error: " + error.message);
-      }
-    }
-
-    // Navigate between pages
-    function showPage(pageNumber) {
-      document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(`page${pageNumber}`).classList.add('active');
-      document.querySelectorAll('.nav-btn')[pageNumber - 1].classList.add('active');
-      if (pageNumber === 4) {
-        loadLeaderboard();
-      } else if (pageNumber === 2) {
-        loadDailyLoginHistory();
-      }
-    }
-
-    // Manage tasks and points
-    let userPoints = localStorage.getItem('points') || 0;
-    let referrals = 0;
-
-    // Register user on load
+    // Register new user
     async function registerUser() {
-      if (userId !== 'anonymous') {
+      if (!userId) {
+        userId = 'user-' + Date.now();
+        localStorage.setItem('userId', userId);
+      }
+      document.getElementById('referral-link').textContent =
+        window.location.origin + "?ref=" + userId;
+      document.getElementById('total-points').textContent = userPoints.toLocaleString();
+    }
+
+    // Handle referral
+    async function handleReferral() {
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get('ref');
+      if (ref && ref !== userId && !localStorage.getItem('ref_used')) {
+        await fetch('/referral', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ referrer_id: ref, referred_id: userId })
+        });
+        localStorage.setItem('ref_used', 'true');
+      }
+    }
+
+    // Fetch referrals
+    async function fetchReferrals() {
+      const response = await fetch('/referrals?user_id=' + userId);
+      const data = await response.json();
+      document.getElementById('referral-count').textContent =
+        "Referrals: " + data.count;
+    }
+
+    // Wallet
+    async function connectWallet() {
+      if (window.ethereum) {
         try {
-          const response = await fetch('/user', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: userId, name: userName, points: parseInt(userPoints) })
-          });
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Server error: ${response.status} - ${errorText}`);
-          }
-          const data = await response.json();
-          if (data.status === 'success') {
-            console.log('User registered:', userId);
-          } else {
-            showNotification(data.message || 'Registration failed');
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          const walletAddress = accounts[0];
+          document.getElementById('wallet-address').textContent = walletAddress;
+          if (!localStorage.getItem('wallet_connected')) {
+            userPoints += 100;
+            localStorage.setItem('points', userPoints);
+            document.getElementById('total-points').textContent = userPoints.toLocaleString();
+            localStorage.setItem('wallet_connected', 'true');
+            showNotification("Wallet connected! +100 points");
           }
         } catch (error) {
-          console.error("Error registering user:", error);
-          showNotification(`Error registering user: ${error.message}`);
+          console.error(error);
+          showNotification("Wallet connection failed.");
         }
       } else {
-        showNotification('Cannot register: Anonymous user');
+        showNotification("Please install MetaMask!");
       }
     }
 
-    // Update user points on server
-    async function updateUserPoints() {
-      if (userId !== 'anonymous') {
-        try {
-          const response = await fetch('/user', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: userId, name: userName, points: parseInt(userPoints) })
-          });
-          const data = await response.json();
-          if (data.status === 'success') {
-            console.log('User points updated:', userPoints);
-          } else {
-            showNotification(data.message);
-          }
-        } catch (error) {
-          console.error("Error updating points:", error);
-          showNotification("Error updating points");
-        }
-      }
-    }
-
-    // Fetch referral count from server
-    async function fetchReferrals() {
-      try {
-        const response = await fetch(`/referral?referrer_id=${userId}`);
-        const data = await response.json();
-        referrals = data.referrals || 0;
-        userPoints = data.points || userPoints; // تحديث النقاط من الخادم
-        document.getElementById('referrals').textContent = referrals;
-        document.getElementById('friends-invited').textContent = referrals;
-        document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
-        document.getElementById('total-points').textContent = parseInt(userPoints).toLocaleString();
-        localStorage.setItem('points', userPoints);
-      } catch (error) {
-        console.error("Error fetching referrals:", error);
-        showNotification("Error fetching referral data");
-      }
-    }
-
-    // Handle referral logic
-    async function handleReferral() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const refId = urlParams.get('start')?.replace('ref_', '');
-      if (refId && refId !== userId && userId !== 'anonymous') {
-        try {
-          const response = await fetch('/referral', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ referrer_id: refId, referred_id: userId, referred_name: userName })
-          });
-          const data = await response.json();
-          if (data.status === 'success') {
-            showNotification('Referral successful! Referrer earned 500 points!');
-            referrals = data.referrals;
-            userPoints = data.points;
-            document.getElementById('referrals').textContent = referrals;
-            document.getElementById('friends-invited').textContent = referrals;
-            document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
-            document.getElementById('total-points').textContent = parseInt(userPoints).toLocaleString();
-            localStorage.setItem('points', userPoints);
-          } else {
-            showNotification(data.message);
-          }
-        } catch (error) {
-          console.error("Error processing referral:", error);
-          showNotification("Error processing referral");
-        }
-      }
-    }
-
-    // Load leaderboard from server
+    // Leaderboard
     async function loadLeaderboard() {
       try {
         const response = await fetch('/leaderboard');
-        const leaderboardData = await response.json();
+        const data = await response.json();
         const leaderboardList = document.getElementById('leaderboard-list');
         leaderboardList.innerHTML = '';
-        if (leaderboardData.length === 0) {
-          leaderboardList.innerHTML = '<li>No players yet. Invite friends to join the leaderboard!</li>';
-        } else {
-          leaderboardData.forEach((player, index) => {
-            const li = document.createElement('li');
-            li.innerHTML = `
-              <span><span class="rank">#${index + 1}</span> ${player.name}</span>
-              <span><span class="points">${player.points.toLocaleString()} pts</span> | <span class="referrals">${player.referrals} refs</span></span>
-            `;
-            leaderboardList.appendChild(li);
-          });
+        if (data.length === 0) {
+          leaderboardList.innerHTML = '<li>No players yet. Invite friends!</li>';
+          return;
         }
+        data.forEach((player, index) => {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <span>#${index + 1}</span>
+            <span>${player.name}</span>
+            <span>${player.points} pts</span>
+            <span>${player.referrals} refs</span>
+          `;
+          leaderboardList.appendChild(li);
+        });
       } catch (error) {
-        console.error("Error loading leaderboard:", error);
+        console.error(error);
         showNotification("Error loading leaderboard");
       }
     }
 
-    // Daily login completion
-    async function completeDailyLogin(button, points) {
-      if (userId === 'anonymous') {
-        showNotification('Cannot claim: Anonymous user');
+    // Complete task
+    async function completeTask(button, taskName, points) {
+      if (localStorage.getItem(`task_${taskName}_done`)) {
+        showNotification("Already completed!");
         return;
       }
       try {
-        const response = await fetch('/daily_login', {
+        const response = await fetch('/task', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: userId })
+          body: JSON.stringify({ user_id: userId, task: taskName, points: points })
         });
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Server error: ${response.status} - ${errorText}`);
-        }
         const data = await response.json();
         if (data.status === 'success') {
-          button.textContent = 'Claimed ✅';
-          button.style.background = '#4CAF50';
-          button.disabled = true;
-          userPoints = parseInt(userPoints) + points;
+          userPoints += points;
           localStorage.setItem('points', userPoints);
           document.getElementById('total-points').textContent = userPoints.toLocaleString();
-          updateUserPoints();
-          showNotification(`Daily login claimed! +${points} points!`);
-          loadDailyLoginHistory();
+          button.textContent = "Completed";
+          button.disabled = true;
+          localStorage.setItem(`task_${taskName}_done`, 'true');
+          showNotification(`+${points} points earned!`);
         } else {
           showNotification(data.message);
-          if (data.message.includes('already claimed')) {
-            button.textContent = 'Claimed ✅';
-            button.style.background = '#4CAF50';
-            button.disabled = true;
-          }
         }
       } catch (error) {
-        console.error("Error claiming daily login:", error);
-        showNotification(`Error claiming daily login: ${error.message}`);
+        console.error(error);
+        showNotification("Error completing task");
       }
     }
 
-    // Load daily login history from server
-    async function loadDailyLoginHistory() {
-      if (userId === 'anonymous') {
-        const tableBody = document.querySelector('#daily-login-table tbody');
-        tableBody.innerHTML = '<tr><td colspan="2">No login history for anonymous user</td></tr>';
+    // Daily login
+    async function completeDailyLogin(button, points) {
+      const today = new Date().toISOString().split('T')[0];
+      if (localStorage.getItem(`dailyLogin_${today}`)) {
+        showNotification("Already claimed today's reward!");
         return;
       }
       try {
-        const response = await fetch(`/daily_login?user_id=${userId}`);
+        const response = await fetch('/daily-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: userId, points: points })
+        });
         const data = await response.json();
-        const tableBody = document.querySelector('#daily-login-table tbody');
-        tableBody.innerHTML = '';
-        if (data.history.length === 0) {
-          tableBody.innerHTML = '<tr><td colspan="2">No login history yet</td></tr>';
-        } else {
-          data.history.forEach(entry => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${entry.login_date}</td>
-              <td>${entry.points}</td>
-            `;
-            tableBody.appendChild(row);
-          });
-        }
-        // Check if daily login is already claimed today
-        const today = new Date().toISOString().split('T')[0];
-        const button = document.querySelector('.task button[onclick*="completeDailyLogin"]');
-        if (data.history.some(entry => entry.login_date === today)) {
-          button.textContent = 'Claimed ✅';
-          button.style.background = '#4CAF50';
+        if (data.status === 'success') {
+          userPoints += points;
+          localStorage.setItem('points', userPoints);
+          document.getElementById('total-points').textContent = userPoints.toLocaleString();
+          button.textContent = "Claimed";
           button.disabled = true;
+          localStorage.setItem(`dailyLogin_${today}`, 'true');
+          const tableBody = document.querySelector('#daily-login-table tbody');
+          const row = document.createElement('tr');
+          row.innerHTML = `<td>${today}</td><td>+${points}</td>`;
+          tableBody.appendChild(row);
+          showNotification(`Daily reward claimed! +${points} points`);
+        } else {
+          showNotification(data.message);
         }
       } catch (error) {
-        console.error("Error loading daily login history:", error);
-        showNotification("Error loading daily login history");
+        console.error(error);
+        showNotification("Error claiming daily login");
       }
     }
 
-    // Task completion with link opening and 20-second delay
-    function completeTask(button, platform, points, link) {
-      if (localStorage.getItem(platform) === 'completed') {
-        showNotification("Task already completed!");
-        button.textContent = 'Completed ✅';
-        button.style.background = '#4CAF50';
-        button.disabled = true;
-        return;
+    // Daily login history
+    function loadDailyLoginHistory() {
+      const tableBody = document.querySelector('#daily-login-table tbody');
+      tableBody.innerHTML = '';
+      for (let key in localStorage) {
+        if (key.startsWith("dailyLogin_")) {
+          const date = key.replace("dailyLogin_", "");
+          const row = document.createElement('tr');
+          row.innerHTML = `<td>${date}</td><td>+20</td>`;
+          tableBody.appendChild(row);
+        }
       }
-      button.textContent = 'Opening...';
-      button.disabled = true;
-      window.open(link, '_blank');
-      setTimeout(() => {
-        button.textContent = 'Completed ✅';
-        button.style.background = '#4CAF50';
-        userPoints = parseInt(userPoints) + points;
-        localStorage.setItem('points', userPoints);
-        localStorage.setItem(platform, 'completed');
-        document.getElementById('total-points').textContent = userPoints.toLocaleString();
-        updateUserPoints();
-        showNotification(`Task completed! +${points} points!`);
-      }, 20000); // 20 seconds delay
     }
 
     // Copy referral link
     function copyReferralLink() {
       const link = document.getElementById('referral-link').textContent;
       navigator.clipboard.writeText(link).then(() => {
-        showNotification('Referral link copied!');
-      }).catch(() => {
-        showNotification('Link: ' + link);
+        showNotification("Referral link copied!");
       });
     }
 
-    // Notifications
+    // Notification
     function showNotification(message) {
-      const notification = document.createElement('div');
-      notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: linear-gradient(45deg, #4CAF50, #45a049);
-        color: white;
-        padding: 15px 25px;
-        border-radius: 25px;
-        font-weight: bold;
-        z-index: 1001; /* زيادة z-index للإشعارات */
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        animation: slideDown 0.3s ease;
-      `;
-      notification.textContent = message;
-      if (!document.querySelector('#notification-styles')) {
-        const style = document.createElement('style');
-        style.id = 'notification-styles';
-        style.textContent = `
-          @keyframes slideDown {
-            from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
-            to { transform: translateX(-50%) translateY(0); opacity: 1; }
-          }
-        `;
-        document.head.appendChild(style);
-      }
-      document.body.appendChild(notification);
-      setTimeout(() => {
-        notification.style.animation = 'slideDown 0.3s ease reverse';
-        setTimeout(() => {
-          if (notification.parentNode) {
-            notification.parentNode.removeChild(notification);
-          }
-        }, 300);
-      }, 3000);
+      alert(message);
     }
 
-    // Initialize app
-    document.addEventListener('DOMContentLoaded', () => {
-      showPage(1); // التأكد من تحميل الصفحة الرئيسية
-      document.querySelectorAll('.task button').forEach(button => {
-        const onclickStr = button.getAttribute('onclick');
-        if (onclickStr.includes('completeTask')) {
-          const platform = onclickStr.match(/'([^']+)'/)[1];
-          if (localStorage.getItem(platform) === 'completed') {
-            button.textContent = 'Completed ✅';
-            button.style.background = '#4CAF50';
-            button.disabled = true;
-          }
-        }
-      });
-      registerUser();
-      handleReferral();
-      initializeWallet();
-      loadDailyLoginHistory();
-    });
-
-    // Handle back button
-    window.addEventListener('popstate', () => {
-      showPage(1);
-    });
+    // Init
+    registerUser();
+    handleReferral();
+    fetchReferrals();
   </script>
 </body>
   </html>
