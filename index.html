@@ -402,7 +402,9 @@
     <!-- Page 4: Leaderboard -->
     <div id="page4" class="page">
       <h2>Leaderboard 🏆</h2>
-      <ul class="leaderboard" id="leaderboard-list"></ul>
+      <ul class="leaderboard" id="leaderboard-list">
+        <li>No players yet. Invite friends to join the leaderboard!</li>
+      </ul>
     </div>
 
     <!-- Navigation -->
@@ -484,7 +486,6 @@
       const disconnectBtn = document.getElementById('disconnect-btn');
       if (walletInfo && walletInfo.account && walletInfo.account.address) {
         connectButton.classList.add('hidden');
-        // Clear previous content to avoid duplication
         walletAddressDiv.innerHTML = '';
         walletAddressDiv.textContent = `Wallet Address: ${walletInfo.account.address}`;
         walletAddressDiv.style.display = 'block';
@@ -493,6 +494,7 @@
           showNotification('Wallet connected! +500 bonus points!');
           userPoints = parseInt(userPoints) + 500;
           localStorage.setItem('points', userPoints);
+          updateUserPoints();
           localStorage.setItem('walletConnected', 'true');
         }
         document.getElementById('total-points').textContent = userPoints.toLocaleString();
@@ -528,11 +530,58 @@
       document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
       document.getElementById(`page${pageNumber}`).classList.add('active');
       document.querySelectorAll('.nav-btn')[pageNumber - 1].classList.add('active');
+      if (pageNumber === 4) {
+        loadLeaderboard();
+      }
     }
 
     // Manage tasks and points
     let userPoints = localStorage.getItem('points') || 0;
     let referrals = 0;
+
+    // Register user on load
+    async function registerUser() {
+      if (userId !== 'anonymous') {
+        try {
+          const response = await fetch('/user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId, name: userName, points: parseInt(userPoints) })
+          });
+          const data = await response.json();
+          if (data.status === 'success') {
+            console.log('User registered:', userId);
+          } else {
+            showNotification(data.message);
+          }
+        } catch (error) {
+          console.error("Error registering user:", error);
+          showNotification("Error registering user");
+        }
+      }
+    }
+
+    // Update user points on server
+    async function updateUserPoints() {
+      if (userId !== 'anonymous') {
+        try {
+          const response = await fetch('/user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId, name: userName, points: parseInt(userPoints) })
+          });
+          const data = await response.json();
+          if (data.status === 'success') {
+            console.log('User points updated:', userPoints);
+          } else {
+            showNotification(data.message);
+          }
+        } catch (error) {
+          console.error("Error updating points:", error);
+          showNotification("Error updating points");
+        }
+      }
+    }
 
     // Fetch referral count from server
     async function fetchReferrals() {
@@ -558,16 +607,16 @@
           const response = await fetch('/referral', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ referrer_id: refId, referred_id: userId })
+            body: JSON.stringify({ referrer_id: refId, referred_id: userId, referred_name: userName })
           });
           const data = await response.json();
           if (data.status === 'success') {
             showNotification('Referral successful! Referrer earned 500 points!');
             referrals = data.referrals;
-            localStorage.setItem('referrals', referrals);
             document.getElementById('referrals').textContent = referrals;
             document.getElementById('friends-invited').textContent = referrals;
             document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
+            await updateUserPoints();
           } else {
             showNotification(data.message);
           }
@@ -575,6 +624,31 @@
           console.error("Error processing referral:", error);
           showNotification("Error processing referral");
         }
+      }
+    }
+
+    // Load leaderboard from server
+    async function loadLeaderboard() {
+      try {
+        const response = await fetch('/leaderboard');
+        const leaderboardData = await response.json();
+        const leaderboardList = document.getElementById('leaderboard-list');
+        leaderboardList.innerHTML = '';
+        if (leaderboardData.length === 0) {
+          leaderboardList.innerHTML = '<li>No players yet. Invite friends to join the leaderboard!</li>';
+        } else {
+          leaderboardData.forEach((player, index) => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+              <span><span class="rank">#${index + 1}</span> ${player.name}</span>
+              <span><span class="points">${player.points.toLocaleString()} pts</span> | <span class="referrals">${player.referrals} refs</span></span>
+            `;
+            leaderboardList.appendChild(li);
+          });
+        }
+      } catch (error) {
+        console.error("Error loading leaderboard:", error);
+        showNotification("Error loading leaderboard");
       }
     }
 
@@ -601,6 +675,7 @@
         localStorage.setItem('points', userPoints);
         localStorage.setItem(platform, 'completed');
         document.getElementById('total-points').textContent = userPoints.toLocaleString();
+        updateUserPoints();
         showNotification(`Task completed! +${points} points!`);
       }, 20000); // 20 seconds delay
     }
@@ -614,46 +689,6 @@
         showNotification('Link: ' + link);
       });
     }
-
-    // Leaderboard with real names and fake referrals
-    const realNames = [
-      "James Smith", "Emma Johnson", "Liam Brown", "Olivia Davis", "Noah Wilson",
-      "Sophia Moore", "Lucas Taylor", "Isabella Anderson", "Mason Thomas", "Ava Jackson",
-      "Ethan White", "Mia Harris", "Alexander Martin", "Charlotte Thompson", "Henry Garcia",
-      "Amelia Martinez", "Daniel Lee", "Harper Clark", "William Rodriguez", "Evelyn Lewis",
-      // Add more names to reach 100
-      "Michael Walker", "Emily Young", "Benjamin Hall", "Chloe Allen", "Jacob King",
-      "Sofia Wright", "Logan Scott", "Aria Green", "Jack Adams", "Ella Baker",
-      "David Nelson", "Lily Carter", "Joseph Mitchell", "Grace Perez", "Samuel Roberts",
-      "Hannah Turner", "Matthew Phillips", "Julia Campbell", "Andrew Parker", "Zoey Evans",
-      "Christopher Edwards", "Natalie Collins", "Joshua Stewart", "Madison Sanchez", 
-      "Ryan Morris", "Victoria Rogers", "Nathan Reed", "Abigail Cook", "Dylan Morgan",
-      "Elizabeth Bell", "Gabriel Murphy", "Avery Bailey", "Owen Rivera", "Scarlett Cooper",
-      "Caleb Richardson", "Addison Cox", "Luke Howard", "Brooklyn Ward", "Elijah Brooks",
-      "Zoe Kelly", "Isaac Sanders", "Layla Price", "Levi Bennett", "Mila Gray",
-      "Sebastian Wood", "Ellie Barnes", "Carter Ross", "Aubrey Russell", "Jaxon Hughes",
-      "Camila Foster", "Wyatt Myers", "Penelope Long", "Hunter Powell", "Riley Patel",
-      "Landon Flores", "Hazel Griffin", "Lincoln Hayes", "Violet Myers", "Mason Dixon",
-      "Stella Ford", "Easton Bryant", "Paisley Tucker", "Julian Hunt", "Sadie Dunn",
-      "Grayson Stone", "Leah Andrews", "Charles Duncan", "Skylar Fisher", "Thomas Wallace",
-      "Aurora Gibson", "Gabriel Lane", "Clara West", "Eli Hudson", "Nora Ford",
-      "Connor Perry", "Lydia Wells", "Asher Knight", "Savannah Black", "Isaac Watts",
-      "Eleanor Reese", "Hudson Porter", "Madelyn Dean"
-    ];
-    const leaderboardData = Array.from({length: 100}, (_, i) => ({
-      name: realNames[i],
-      points: Math.floor(Math.random() * 10000) + 1000,
-      referrals: Math.floor(Math.random() * 11) // Random referrals between 0 and 10
-    })).sort((a, b) => b.points - a.points);
-    const leaderboardList = document.getElementById('leaderboard-list');
-    leaderboardData.forEach((player, index) => {
-      const li = document.createElement('li');
-      li.innerHTML = `
-        <span><span class="rank">#${index + 1}</span> ${player.name}</span>
-        <span><span class="points">${player.points.toLocaleString()} pts</span> | <span class="referrals">${player.referrals} refs</span></span>
-      `;
-      leaderboardList.appendChild(li);
-    });
 
     // Notifications
     function showNotification(message) {
@@ -706,6 +741,7 @@
           button.disabled = true;
         }
       });
+      registerUser();
       handleReferral();
       initializeWallet();
     });
