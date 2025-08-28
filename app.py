@@ -50,10 +50,12 @@ def handle_referral():
                 referrals_db[referrer_id] = []
             if referred_id not in referrals_db[referrer_id]:
                 referrals_db[referrer_id].append(referred_id)
+                # تحديث قاعدة المتصدرين للمُحيل
                 if referrer_id not in leaderboard_db:
                     leaderboard_db[referrer_id] = {'name': 'Anonymous', 'points': 0, 'referrals': 0}
-                leaderboard_db[referrer_id]['points'] += 500
+                leaderboard_db[referrer_id]['points'] += 500  # +500 نقاط لكل إحالة
                 leaderboard_db[referrer_id]['referrals'] = len(referrals_db[referrer_id])
+                # إضافة المُحال إلى قاعدة المتصدرين إذا لم يكن موجودًا
                 if referred_id not in leaderboard_db:
                     leaderboard_db[referred_id] = {'name': referred_name, 'points': points, 'referrals': 0}
                 print(f"Referral recorded: {referrer_id} -> {referred_id}, Referrals: {len(referrals_db[referrer_id])}")
@@ -85,8 +87,9 @@ def get_leaderboard():
         }
         for user_id, data in leaderboard_db.items()
     ]
+    # ترتيب حسب النقاط (تنازلي)
     leaderboard.sort(key=lambda x: x['points'], reverse=True)
-    return jsonify(leaderboard[:100])
+    return jsonify(leaderboard[:100])  # إرجاع أول 100 مستخدم فقط
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
