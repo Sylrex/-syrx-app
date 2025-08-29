@@ -98,13 +98,46 @@ def update_user():
                     INSERT INTO users (user_id, name, points, referrals)
                     VALUES (%s, %s, %s, %s)
                     ON CONFLICT (user_id)
-                    DO UPDATE SET name = EXCLUDED.name, points = EXCLUDED.points;
+                    DO UPDATE SET name = EXCLUDED.name, points = EXCLUDED.points
+                    RETURNING points, referrals;
                 """, (user_id, name, points, 0))
+                result = cur.fetchone()
                 conn.commit()
                 print(f"User updated: {user_id}, Points: {points}, Name: {name}")
-                return jsonify({"status": "success", "message": "User updated"})
+                return jsonify({
+                    "status": "success",
+                    "message": "User updated",
+                    "points": result[0],
+                    "referrals": result[1]
+                })
     except Exception as e:
         print(f"Error updating user: {e}")
+        return jsonify({"status": "error", "message": str(e)})
+
+@app.route('/user', methods=['GET'])
+def get_user():
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({"status": "error", "message": "Invalid user_id"})
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT points, referrals, name
+                    FROM users
+                    WHERE user_id = %s;
+                """, (user_id,))
+                result = cur.fetchone()
+                if result:
+                    return jsonify({
+                        "status": "success",
+                        "points": result[0],
+                        "referrals": result[1],
+                        "name": result[2]
+                    })
+                return jsonify({"status": "error", "message": "User not found"})
+    except Exception as e:
+        print(f"Error fetching user: {e}")
         return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/referral', methods=['GET', 'POST'])
@@ -114,17 +147,18 @@ def handle_referral():
         referrer_id = data.get('referrer_id')
         referred_id = data.get('referred_id')
         referred_name = data.get('referred_name', 'Anonymous')
-        points = data.get('points', 0)
         if not (referrer_id and referred_id and referrer_id != referred_id):
             return jsonify({"status": "error", "message": "Invalid data or same user"})
         try:
             with get_db_connection() as conn:
                 with conn.cursor() as cur:
+                    # إنشاء المستخدم المُحال (إن لم يكن موجوداً)
                     cur.execute("""
                         INSERT INTO users (user_id, name, points, referrals)
                         VALUES (%s, %s, %s, %s)
                         ON CONFLICT (user_id) DO NOTHING;
-                    """, (referred_id, referred_name, points, 0))
+                    """, (referred_id, referred_name, 0, 0))
+                    # تسجيل الإحالة
                     cur.execute("""
                         INSERT INTO referrals (referrer_id, referred_id)
                         VALUES (%s, %s)
@@ -133,6 +167,7 @@ def handle_referral():
                     """, (referrer_id, referred_id))
                     result = cur.fetchone()
                     if result:
+                        # إضافة 500 نقطة و+1 إحالة للمحيل
                         cur.execute("""
                             UPDATE users
                             SET points = points + 500,
