@@ -376,12 +376,12 @@
           <div class="stat-label">Referrals</div>
         </div>
       </div>
-      <button id="daily-checkin-btn" class="daily-checkin-btn" onchange="dailyCheckIn()">تسجيل دخول يومي 🎁 (+100 pts)</button>
+      <button id="daily-checkin-btn" class="daily-checkin-btn" onclick="dailyCheckIn()">تسجيل دخول يومي 🎁 (+100 pts)</button>
       <div id="ton-connect"></div>
       <div id="wallet-address"></div>
     </div>
 
-    <!-- Page regions: Tasks -->
+    <!-- Page 2: Tasks -->
     <div id="page2" class="page">
       <h2>Daily Tasks 📋</h2>
       <div class="task">
@@ -557,7 +557,7 @@
         await tonConnectUI.disconnect();
         handleDisconnection();
         showNotification('Wallet disconnected!');
-      } catch (erroraspect) {
+      } catch (error) {
         console.error("Disconnect error:", error);
         showNotification("Disconnect error: " + error.message);
       }
@@ -827,4 +827,4 @@
     });
   </script>
 </body>
-                                                        </html>
+          </html>
