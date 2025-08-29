@@ -7,9 +7,10 @@ from psycopg2 import pool
 from contextlib import contextmanager
 
 app = Flask(__name__)
-CORS(app)  # دعم CORS للسماح بالطلبات من الـ frontend
+CORS(app)
 
-# إعداد Connection Pool باستخدام متغير بيئي
+# إعداد Connection Pool
+db_pool = None
 try:
     url = urlparse.urlparse(os.environ.get('DATABASE_URL', 'postgres://postgres:YOUR_PASSWORD@YOUR_HOST:5432/sylrex1'))
     db_pool = psycopg2.pool.SimpleConnectionPool(
@@ -26,6 +27,8 @@ except Exception as e:
 
 @contextmanager
 def get_db_connection():
+    if not db_pool:
+        raise Exception("Database pool not initialized")
     conn = None
     try:
         conn = db_pool.getconn()
@@ -34,7 +37,7 @@ def get_db_connection():
         if conn:
             db_pool.putconn(conn)
 
-# تنفيذ ملف init_db.sql عند بدء التطبيق
+# تنفيذ init_db.sql عند بدء التطبيق
 def init_db():
     try:
         with get_db_connection() as conn:
@@ -49,7 +52,6 @@ def init_db():
     except Exception as e:
         print(f"Error initializing database: {e}")
 
-# نفّذ تهيئة قاعدة البيانات عند بدء التطبيق
 init_db()
 
 @app.route('/')
@@ -87,14 +89,11 @@ def update_user():
     user_id = data.get('user_id')
     name = data.get('name', 'Anonymous')
     points = data.get('points', 0)
-    
     if not user_id:
         return jsonify({"status": "error", "message": "Invalid user_id"})
-
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                # إدراج أو تحديث المستخدم
                 cur.execute("""
                     INSERT INTO users (user_id, name, points, referrals)
                     VALUES (%s, %s, %s, %s)
@@ -116,31 +115,24 @@ def handle_referral():
         referred_id = data.get('referred_id')
         referred_name = data.get('referred_name', 'Anonymous')
         points = data.get('points', 0)
-
         if not (referrer_id and referred_id and referrer_id != referred_id):
             return jsonify({"status": "error", "message": "Invalid data or same user"})
-
         try:
             with get_db_connection() as conn:
                 with conn.cursor() as cur:
-                    # إدراج المستخدم المُحال إذا غير موجود
                     cur.execute("""
                         INSERT INTO users (user_id, name, points, referrals)
                         VALUES (%s, %s, %s, %s)
                         ON CONFLICT (user_id) DO NOTHING;
                     """, (referred_id, referred_name, points, 0))
-
-                    # إدراج الإحالة
                     cur.execute("""
                         INSERT INTO referrals (referrer_id, referred_id)
                         VALUES (%s, %s)
                         ON CONFLICT (referrer_id, referred_id) DO NOTHING
                         RETURNING id;
                     """, (referrer_id, referred_id))
-
                     result = cur.fetchone()
                     if result:
-                        # تحديث نقاط المُحيل (+500) وعدد الإحالات
                         cur.execute("""
                             UPDATE users
                             SET points = points + 500,
@@ -161,12 +153,10 @@ def handle_referral():
         except Exception as e:
             print(f"Error processing referral: {e}")
             return jsonify({"status": "error", "message": str(e)})
-
     elif request.method == 'GET':
         referrer_id = request.args.get('referrer_id')
         if not referrer_id:
             return jsonify({"referrals": 0, "points": 0})
-
         try:
             with get_db_connection() as conn:
                 with conn.cursor() as cur:
