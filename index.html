@@ -91,6 +91,38 @@
       transform: translateY(-2px);
       box-shadow: 0 6px 20px rgba(0,0,0,0.3);
     }
+    .daily-checkin-btn {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 25px;
+      font-size: 1.1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+      margin: 20px 0;
+      animation: pulse 2s infinite;
+    }
+    .daily-checkin-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3), 0 0 20px rgba(255, 107, 107, 0.5);
+    }
+    .daily-checkin-btn:disabled {
+      background: #666;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+      animation: none;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
     #wallet-address {
       background: rgba(255, 255, 255, 0.9);
       color: #333;
@@ -344,11 +376,12 @@
           <div class="stat-label">Referrals</div>
         </div>
       </div>
+      <button id="daily-checkin-btn" class="daily-checkin-btn" onchange="dailyCheckIn()">تسجيل دخول يومي 🎁 (+100 pts)</button>
       <div id="ton-connect"></div>
       <div id="wallet-address"></div>
     </div>
 
-    <!-- Page 2: Tasks -->
+    <!-- Page regions: Tasks -->
     <div id="page2" class="page">
       <h2>Daily Tasks 📋</h2>
       <div class="task">
@@ -524,7 +557,7 @@
         await tonConnectUI.disconnect();
         handleDisconnection();
         showNotification('Wallet disconnected!');
-      } catch (error) {
+      } catch (erroraspect) {
         console.error("Disconnect error:", error);
         showNotification("Disconnect error: " + error.message);
       }
@@ -686,6 +719,32 @@
       }, 20000); // 20 seconds delay
     }
 
+    // Daily Check-In Function
+    function dailyCheckIn() {
+      const today = new Date().toISOString().split('T')[0]; // Current date (YYYY-MM-DD)
+      const lastCheckIn = localStorage.getItem('lastCheckIn');
+      const checkInButton = document.getElementById('daily-checkin-btn');
+
+      if (lastCheckIn === today) {
+        showNotification('لقد سجلت دخولك اليوم بالفعل!');
+        checkInButton.textContent = 'تم التسجيل اليوم ✅';
+        checkInButton.disabled = true;
+        return;
+      }
+
+      // Add 100 points for daily check-in
+      userPoints = parseInt(userPoints) + 100;
+      localStorage.setItem('points', userPoints);
+      localStorage.setItem('lastCheckIn', today);
+      document.getElementById('total-points').textContent = userPoints.toLocaleString();
+      updateUserPoints();
+      showNotification('تسجيل دخول يومي ناجح! +100 نقاط!');
+
+      // Update button state
+      checkInButton.textContent = 'تم التسجيل اليوم ✅';
+      checkInButton.disabled = true;
+    }
+
     // Copy referral link
     function copyReferralLink() {
       const link = document.getElementById('referral-link').textContent;
@@ -747,6 +806,16 @@
           button.disabled = true;
         }
       });
+
+      // Check daily check-in status on page load
+      const today = new Date().toISOString().split('T')[0];
+      const lastCheckIn = localStorage.getItem('lastCheckIn');
+      const checkInButton = document.getElementById('daily-checkin-btn');
+      if (lastCheckIn === today) {
+        checkInButton.textContent = 'تم التسجيل اليوم ✅';
+        checkInButton.disabled = true;
+      }
+
       registerUser();
       handleReferral();
       initializeWallet();
@@ -758,4 +827,4 @@
     });
   </script>
 </body>
-        </html>
+                                                        </html>
