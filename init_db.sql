@@ -1,9 +1,5 @@
--- حذف الجداول إذا كانت موجودة (اختياري، لإعادة الإنشاء)
-DROP TABLE IF EXISTS referrals;
-DROP TABLE IF EXISTS users;
-
 -- جدول المستخدمين
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     user_id VARCHAR(255) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     points INTEGER DEFAULT 0,
@@ -11,7 +7,7 @@ CREATE TABLE users (
 );
 
 -- جدول الإحالات
-CREATE TABLE referrals (
+CREATE TABLE IF NOT EXISTS referrals (
     id SERIAL PRIMARY KEY,
     referrer_id VARCHAR(255) NOT NULL,
     referred_id VARCHAR(255) NOT NULL,
