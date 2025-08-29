@@ -592,6 +592,13 @@
           console.log('Register user response:', data); // للتصحيح
           if (data.status === 'success') {
             console.log('User registered:', userId);
+            userPoints = data.points || 0;
+            referrals = data.referrals || 0;
+            localStorage.setItem('points', userPoints);
+            document.getElementById('total-points').textContent = userPoints.toLocaleString();
+            document.getElementById('referrals').textContent = referrals;
+            document.getElementById('friends-invited').textContent = referrals;
+            document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
           } else {
             showNotification(data.message);
           }
@@ -617,6 +624,13 @@
           console.log('Update points response:', data); // للتصحيح
           if (data.status === 'success') {
             console.log('User points updated:', userPoints);
+            userPoints = data.points || 0;
+            referrals = data.referrals || 0;
+            localStorage.setItem('points', userPoints);
+            document.getElementById('total-points').textContent = userPoints.toLocaleString();
+            document.getElementById('referrals').textContent = referrals;
+            document.getElementById('friends-invited').textContent = referrals;
+            document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
           } else {
             showNotification(data.message);
           }
@@ -629,19 +643,32 @@
       }
     }
 
-    // Fetch referral count from server
-    async function fetchReferrals() {
+    // Fetch user data from server (points and referrals)
+    async function fetchUserData() {
+      if (userId === 'anonymous') {
+        console.warn('Skipping fetch because userId is anonymous');
+        return;
+      }
       try {
-        const response = await fetch(`/referral?referrer_id=${userId}`);
+        const response = await fetch(`/user?user_id=${userId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data');
+        }
         const data = await response.json();
-        console.log('Fetched referrals:', data); // للتصحيح
-        referrals = data.referrals || 0;
-        document.getElementById('referrals').textContent = referrals;
-        document.getElementById('friends-invited').textContent = referrals;
-        document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
+        if (data.status === 'success') {
+          userPoints = data.points || 0;
+          referrals = data.referrals || 0;
+          localStorage.setItem('points', userPoints);
+          document.getElementById('total-points').textContent = userPoints.toLocaleString();
+          document.getElementById('referrals').textContent = referrals;
+          document.getElementById('friends-invited').textContent = referrals;
+          document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
+        } else {
+          showNotification('Error fetching user data: ' + data.message);
+        }
       } catch (error) {
-        console.error("Error fetching referrals:", error);
-        showNotification("Error fetching referral data");
+        console.error("Error fetching user data:", error);
+        showNotification("Error fetching user data");
       }
     }
 
@@ -661,11 +688,7 @@
           console.log('Referral response:', data); // للتصحيح
           if (data.status === 'success') {
             showNotification('Referral successful! Referrer earned 500 points!');
-            referrals = data.referrals;
-            document.getElementById('referrals').textContent = referrals;
-            document.getElementById('friends-invited').textContent = referrals;
-            document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
-            await updateUserPoints();
+            await fetchUserData(); // تحديث فوري للمحيل
           } else {
             showNotification(data.message);
           }
@@ -704,7 +727,6 @@
 
     // Initialize points and referrals
     document.getElementById('total-points').textContent = parseInt(userPoints).toLocaleString();
-    fetchReferrals();
 
     // Task completion with link opening and 20-second delay
     function completeTask(button, platform, points, link) {
@@ -828,8 +850,10 @@
       }
 
       registerUser();
+      fetchUserData(); // جلب النقاط والإحالات من الخادم عند التحميل
       handleReferral();
       initializeWallet();
+      setInterval(fetchUserData, 60000); // تحديث كل دقيقة للإحالات الجديدة
     });
 
     // Handle back button
