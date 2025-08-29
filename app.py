@@ -1,14 +1,56 @@
 from flask import Flask, send_file, render_template_string, Response, request, jsonify
 from flask_cors import CORS
 import os
+import urllib.parse as urlparse
+import psycopg2
+from psycopg2 import pool
+from contextlib import contextmanager
 
 app = Flask(__name__)
-CORS(app)  # إضافة CORS للسماح بالطلبات من الـ frontend
+CORS(app)  # دعم CORS للسماح بالطلبات من الـ frontend
 
-# قاعدة بيانات مؤقتة للإحالات
-referrals_db = {}
-# قاعدة بيانات مؤقتة للمتصدرين
-leaderboard_db = {}
+# إعداد Connection Pool باستخدام متغير بيئي
+try:
+    url = urlparse.urlparse(os.environ.get('DATABASE_URL', 'postgres://postgres:YOUR_PASSWORD@YOUR_HOST:5432/sylrex1'))
+    db_pool = psycopg2.pool.SimpleConnectionPool(
+        1, 20,
+        dbname=url.path[1:],
+        user=url.username,
+        password=url.password,
+        host=url.hostname,
+        port=url.port
+    )
+    print("Database pool initialized successfully")
+except Exception as e:
+    print(f"Error initializing database pool: {e}")
+
+@contextmanager
+def get_db_connection():
+    conn = None
+    try:
+        conn = db_pool.getconn()
+        yield conn
+    finally:
+        if conn:
+            db_pool.putconn(conn)
+
+# تنفيذ ملف init_db.sql عند بدء التطبيق
+def init_db():
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                if os.path.exists('init_db.sql'):
+                    with open('init_db.sql', 'r') as file:
+                        cur.execute(file.read())
+                    conn.commit()
+                    print("Database initialized successfully with init_db.sql")
+                else:
+                    print("init_db.sql not found, skipping database initialization")
+    except Exception as e:
+        print(f"Error initializing database: {e}")
+
+# نفّذ تهيئة قاعدة البيانات عند بدء التطبيق
+init_db()
 
 @app.route('/')
 def index():
@@ -45,15 +87,26 @@ def update_user():
     user_id = data.get('user_id')
     name = data.get('name', 'Anonymous')
     points = data.get('points', 0)
-    if user_id:
-        leaderboard_db[user_id] = {
-            'name': name,
-            'points': points,
-            'referrals': len(referrals_db.get(user_id, []))
-        }
-        print(f"User updated: {user_id}, Points: {points}, Name: {name}")
-        return jsonify({"status": "success", "message": "User updated"})
-    return jsonify({"status": "error", "message": "Invalid user_id"})
+    
+    if not user_id:
+        return jsonify({"status": "error", "message": "Invalid user_id"})
+
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                # إدراج أو تحديث المستخدم
+                cur.execute("""
+                    INSERT INTO users (user_id, name, points, referrals)
+                    VALUES (%s, %s, %s, %s)
+                    ON CONFLICT (user_id)
+                    DO UPDATE SET name = EXCLUDED.name, points = EXCLUDED.points;
+                """, (user_id, name, points, 0))
+                conn.commit()
+                print(f"User updated: {user_id}, Points: {points}, Name: {name}")
+                return jsonify({"status": "success", "message": "User updated"})
+    except Exception as e:
+        print(f"Error updating user: {e}")
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/referral', methods=['GET', 'POST'])
 def handle_referral():
@@ -63,48 +116,98 @@ def handle_referral():
         referred_id = data.get('referred_id')
         referred_name = data.get('referred_name', 'Anonymous')
         points = data.get('points', 0)
-        if referrer_id and referred_id and referrer_id != referred_id:
-            if referrer_id not in referrals_db:
-                referrals_db[referrer_id] = []
-            if referred_id not in referrals_db[referrer_id]:
-                referrals_db[referrer_id].append(referred_id)
-                if referrer_id not in leaderboard_db:
-                    leaderboard_db[referrer_id] = {'name': 'Anonymous', 'points': 0, 'referrals': 0}
-                leaderboard_db[referrer_id]['points'] += 500
-                leaderboard_db[referrer_id]['referrals'] = len(referrals_db[referrer_id])
-                if referred_id not in leaderboard_db:
-                    leaderboard_db[referred_id] = {'name': referred_name, 'points': points, 'referrals': 0}
-                print(f"Referral recorded: {referrer_id} -> {referred_id}, Referrals: {len(referrals_db[referrer_id])}")
-                return jsonify({
-                    "status": "success",
-                    "message": "Referral recorded",
-                    "referrals": len(referrals_db[referrer_id]),
-                    "points": leaderboard_db[referrer_id]['points']
-                })
-            return jsonify({"status": "error", "message": "User already referred"})
-        return jsonify({"status": "error", "message": "Invalid data or same user"})
+
+        if not (referrer_id and referred_id and referrer_id != referred_id):
+            return jsonify({"status": "error", "message": "Invalid data or same user"})
+
+        try:
+            with get_db_connection() as conn:
+                with conn.cursor() as cur:
+                    # إدراج المستخدم المُحال إذا غير موجود
+                    cur.execute("""
+                        INSERT INTO users (user_id, name, points, referrals)
+                        VALUES (%s, %s, %s, %s)
+                        ON CONFLICT (user_id) DO NOTHING;
+                    """, (referred_id, referred_name, points, 0))
+
+                    # إدراج الإحالة
+                    cur.execute("""
+                        INSERT INTO referrals (referrer_id, referred_id)
+                        VALUES (%s, %s)
+                        ON CONFLICT (referrer_id, referred_id) DO NOTHING
+                        RETURNING id;
+                    """, (referrer_id, referred_id))
+
+                    result = cur.fetchone()
+                    if result:
+                        # تحديث نقاط المُحيل (+500) وعدد الإحالات
+                        cur.execute("""
+                            UPDATE users
+                            SET points = points + 500,
+                                referrals = referrals + 1
+                            WHERE user_id = %s
+                            RETURNING points, referrals;
+                        """, (referrer_id,))
+                        updated = cur.fetchone()
+                        conn.commit()
+                        print(f"Referral recorded: {referrer_id} -> {referred_id}, Referrals: {updated[1]}, Points: {updated[0]}")
+                        return jsonify({
+                            "status": "success",
+                            "message": "Referral recorded",
+                            "referrals": updated[1],
+                            "points": updated[0]
+                        })
+                    return jsonify({"status": "error", "message": "User already referred"})
+        except Exception as e:
+            print(f"Error processing referral: {e}")
+            return jsonify({"status": "error", "message": str(e)})
+
     elif request.method == 'GET':
         referrer_id = request.args.get('referrer_id')
-        if referrer_id:
-            return jsonify({
-                "referrals": len(referrals_db.get(referrer_id, [])),
-                "points": leaderboard_db.get(referrer_id, {'points': 0})['points']
-            })
-        return jsonify({"referrals": 0, "points": 0})
+        if not referrer_id:
+            return jsonify({"referrals": 0, "points": 0})
+
+        try:
+            with get_db_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute("""
+                        SELECT points, referrals
+                        FROM users
+                        WHERE user_id = %s;
+                    """, (referrer_id,))
+                    result = cur.fetchone()
+                    if result:
+                        return jsonify({"referrals": result[1], "points": result[0]})
+                    return jsonify({"referrals": 0, "points": 0})
+        except Exception as e:
+            print(f"Error fetching referrals: {e}")
+            return jsonify({"status": "error", "message": str(e)})
 
 @app.route('/leaderboard', methods=['GET'])
 def get_leaderboard():
-    leaderboard = [
-        {
-            'user_id': user_id,
-            'name': data['name'],
-            'points': data['points'],
-            'referrals': data['referrals']
-        }
-        for user_id, data in leaderboard_db.items()
-    ]
-    leaderboard.sort(key=lambda x: x['points'], reverse=True)
-    return jsonify(leaderboard[:100])
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT user_id, name, points, referrals
+                    FROM users
+                    ORDER BY points DESC
+                    LIMIT 100;
+                """)
+                leaderboard = [
+                    {
+                        'user_id': row[0],
+                        'name': row[1],
+                        'points': row[2],
+                        'referrals': row[3]
+                    }
+                    for row in cur.fetchall()
+                ]
+                print(f"Leaderboard fetched: {len(leaderboard)} users")
+                return jsonify(leaderboard)
+    except Exception as e:
+        print(f"Error fetching leaderboard: {e}")
+        return jsonify({"status": "error", "message": str(e)})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
