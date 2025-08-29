@@ -472,6 +472,7 @@
 
     // Generate referral link
     const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
+    console.log('User ID:', userId); // للتصحيح
     const referralLink = `https://t.me/SYRXApp_bot/SYRXApp?start=ref_${userId}`;
     document.getElementById('referral-link').textContent = referralLink;
 
@@ -588,6 +589,7 @@
             body: JSON.stringify({ user_id: userId, name: userName, points: parseInt(userPoints) })
           });
           const data = await response.json();
+          console.log('Register user response:', data); // للتصحيح
           if (data.status === 'success') {
             console.log('User registered:', userId);
           } else {
@@ -597,6 +599,8 @@
           console.error("Error registering user:", error);
           showNotification("Error registering user");
         }
+      } else {
+        console.warn('Skipping user registration because userId is anonymous');
       }
     }
 
@@ -610,6 +614,7 @@
             body: JSON.stringify({ user_id: userId, name: userName, points: parseInt(userPoints) })
           });
           const data = await response.json();
+          console.log('Update points response:', data); // للتصحيح
           if (data.status === 'success') {
             console.log('User points updated:', userPoints);
           } else {
@@ -619,6 +624,8 @@
           console.error("Error updating points:", error);
           showNotification("Error updating points");
         }
+      } else {
+        console.warn('Skipping update because userId is anonymous');
       }
     }
 
@@ -627,6 +634,7 @@
       try {
         const response = await fetch(`/referral?referrer_id=${userId}`);
         const data = await response.json();
+        console.log('Fetched referrals:', data); // للتصحيح
         referrals = data.referrals || 0;
         document.getElementById('referrals').textContent = referrals;
         document.getElementById('friends-invited').textContent = referrals;
@@ -641,6 +649,7 @@
     async function handleReferral() {
       const urlParams = new URLSearchParams(window.location.search);
       const refId = urlParams.get('start')?.replace('ref_', '');
+      console.log('Referral ID extracted:', refId); // للتصحيح
       if (refId && refId !== userId && userId !== 'anonymous') {
         try {
           const response = await fetch('/referral', {
@@ -649,6 +658,7 @@
             body: JSON.stringify({ referrer_id: refId, referred_id: userId, referred_name: userName })
           });
           const data = await response.json();
+          console.log('Referral response:', data); // للتصحيح
           if (data.status === 'success') {
             showNotification('Referral successful! Referrer earned 500 points!');
             referrals = data.referrals;
@@ -671,6 +681,7 @@
       try {
         const response = await fetch('/leaderboard');
         const leaderboardData = await response.json();
+        console.log('Leaderboard data:', leaderboardData); // للتصحيح
         const leaderboardList = document.getElementById('leaderboard-list');
         leaderboardList.innerHTML = '';
         if (leaderboardData.length === 0) {
@@ -827,4 +838,4 @@
     });
   </script>
 </body>
-          </html>
+  </html>
