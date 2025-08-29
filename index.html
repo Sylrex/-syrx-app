@@ -458,7 +458,7 @@
   <!-- Load Telegram Web Apps API -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <!-- Load TON Connect -->
-  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+  <script src="https://unpkg.com/@tonconnect/ui@2.0.5/dist/tonconnect-ui.min.js"></script>
   <script>
     // Initialize Telegram Web App
     const tg = window.Telegram.WebApp;
@@ -491,18 +491,28 @@
             platforms: ["ios", "android", "macos", "windows", "linux"]
           }
         ]
+      },
+      uiOptions: {
+        twaReturnUrl: 'https://t.me/SYRXApp_bot/SYRXApp' // إعادة التوجيه إلى التطبيق بعد الاتصال
       }
     });
 
     tonConnectUI.uiOptions = {
-      buttonRootId: "ton-connect"
+      buttonRootId: "ton-connect",
+      actionsConfiguration: {
+        modals: ['before'],
+        skipRedirectToWallet: false
+      }
     };
 
     // Check connection status on load
     function initializeWallet() {
+      console.log('Initializing wallet...'); // للتصحيح
       if (tonConnectUI.wallet) {
+        console.log('Wallet already connected:', tonConnectUI.wallet); // للتصحيح
         handleConnection(tonConnectUI.wallet);
       } else {
+        console.log('No wallet connected on init'); // للتصحيح
         handleDisconnection();
       }
     }
@@ -510,8 +520,13 @@
     // Handle connection status changes
     tonConnectUI.onStatusChange(
       walletInfo => {
-        console.log("Connection status:", walletInfo);
-        handleConnection(walletInfo);
+        console.log("Connection status changed:", walletInfo); // للتصحيح
+        if (walletInfo && walletInfo.account && walletInfo.account.address) {
+          handleConnection(walletInfo);
+          tonConnectUI.closeModal(); // إغلاق نافذة TON Connect صراحةً
+        } else {
+          handleDisconnection();
+        }
       },
       error => {
         console.error("Connection error:", error);
@@ -521,9 +536,22 @@
     );
 
     function handleConnection(walletInfo) {
+      console.log('Handling connection:', walletInfo); // للتصحيح
       const connectButton = document.getElementById('ton-connect');
       const walletAddressDiv = document.getElementById('wallet-address');
       const disconnectBtn = document.getElementById('disconnect-btn');
+      if (!connectButton) {
+        console.error('Connect button not found! Check #ton-connect element'); // للتصحيح
+        return;
+      }
+      if (!walletAddressDiv) {
+        console.error('Wallet address div not found! Check #wallet-address element'); // للتصحيح
+        return;
+      }
+      if (!disconnectBtn) {
+        console.error('Disconnect button not found! Check #disconnect-btn element'); // للتصحيح
+        return;
+      }
       if (walletInfo && walletInfo.account && walletInfo.account.address) {
         connectButton.classList.add('hidden');
         walletAddressDiv.innerHTML = '';
@@ -538,18 +566,33 @@
           localStorage.setItem('walletConnected', 'true');
         }
         document.getElementById('total-points').textContent = userPoints.toLocaleString();
+        console.log('Wallet connected, UI updated'); // للتصحيح
       } else {
+        console.warn('Invalid walletInfo, treating as disconnected'); // للتصحيح
         handleDisconnection();
       }
     }
 
     function handleDisconnection() {
+      console.log('Handling disconnection'); // للتصحيح
       const connectButton = document.getElementById('ton-connect');
       const walletAddressDiv = document.getElementById('wallet-address');
       const disconnectBtn = document.getElementById('disconnect-btn');
-      connectButton.classList.remove('hidden');
-      walletAddressDiv.style.display = 'none';
-      disconnectBtn.classList.add('hidden');
+      if (connectButton) {
+        connectButton.classList.remove('hidden');
+      } else {
+        console.error('Connect button not found during disconnection'); // للتصحيح
+      }
+      if (walletAddressDiv) {
+        walletAddressDiv.style.display = 'none';
+      } else {
+        console.error('Wallet address div not found during disconnection'); // للتصحيح
+      }
+      if (disconnectBtn) {
+        disconnectBtn.classList.add('hidden');
+      } else {
+        console.error('Disconnect button not found during disconnection'); // للتصحيح
+      }
       localStorage.removeItem('walletConnected');
     }
 
@@ -875,4 +918,4 @@
     });
   </script>
 </body>
-          </html>
+  </html>
