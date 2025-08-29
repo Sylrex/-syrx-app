@@ -1,7 +1,9 @@
 from flask import Flask, send_file, render_template_string, Response, request, jsonify
+from flask_cors import CORS
 import os
 
 app = Flask(__name__)
+CORS(app)  # إضافة CORS للسماح بالطلبات من الـ frontend
 
 # قاعدة بيانات مؤقتة للإحالات
 referrals_db = {}
@@ -37,6 +39,22 @@ def serve_static(filename):
     except Exception as e:
         return Response(f"Error: {str(e)}", status=500)
 
+@app.route('/user', methods=['POST'])
+def update_user():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    name = data.get('name', 'Anonymous')
+    points = data.get('points', 0)
+    if user_id:
+        leaderboard_db[user_id] = {
+            'name': name,
+            'points': points,
+            'referrals': len(referrals_db.get(user_id, []))
+        }
+        print(f"User updated: {user_id}, Points: {points}, Name: {name}")
+        return jsonify({"status": "success", "message": "User updated"})
+    return jsonify({"status": "error", "message": "Invalid user_id"})
+
 @app.route('/referral', methods=['GET', 'POST'])
 def handle_referral():
     if request.method == 'POST':
@@ -50,12 +68,10 @@ def handle_referral():
                 referrals_db[referrer_id] = []
             if referred_id not in referrals_db[referrer_id]:
                 referrals_db[referrer_id].append(referred_id)
-                # تحديث قاعدة المتصدرين للمُحيل
                 if referrer_id not in leaderboard_db:
                     leaderboard_db[referrer_id] = {'name': 'Anonymous', 'points': 0, 'referrals': 0}
-                leaderboard_db[referrer_id]['points'] += 500  # +500 نقاط لكل إحالة
+                leaderboard_db[referrer_id]['points'] += 500
                 leaderboard_db[referrer_id]['referrals'] = len(referrals_db[referrer_id])
-                # إضافة المُحال إلى قاعدة المتصدرين إذا لم يكن موجودًا
                 if referred_id not in leaderboard_db:
                     leaderboard_db[referred_id] = {'name': referred_name, 'points': points, 'referrals': 0}
                 print(f"Referral recorded: {referrer_id} -> {referred_id}, Referrals: {len(referrals_db[referrer_id])}")
@@ -69,9 +85,9 @@ def handle_referral():
         return jsonify({"status": "error", "message": "Invalid data or same user"})
     elif request.method == 'GET':
         referrer_id = request.args.get('referrer_id')
-        if referrer_id in referrals_db:
+        if referrer_id:
             return jsonify({
-                "referrals": len(referrals_db[referrer_id]),
+                "referrals": len(referrals_db.get(referrer_id, [])),
                 "points": leaderboard_db.get(referrer_id, {'points': 0})['points']
             })
         return jsonify({"referrals": 0, "points": 0})
@@ -87,9 +103,8 @@ def get_leaderboard():
         }
         for user_id, data in leaderboard_db.items()
     ]
-    # ترتيب حسب النقاط (تنازلي)
     leaderboard.sort(key=lambda x: x['points'], reverse=True)
-    return jsonify(leaderboard[:100])  # إرجاع أول 100 مستخدم فقط
+    return jsonify(leaderboard[:100])
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
