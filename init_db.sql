@@ -1,13 +1,17 @@
--- إنشاء جدول المستخدمين إذا لم يكن موجودًا
-CREATE TABLE IF NOT EXISTS users (
+-- حذف الجداول القديمة نهائياً مع CASCADE للتأكد من إزالة أي ارتباطات
+DROP TABLE IF EXISTS referrals CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+
+-- إنشاء جدول المستخدمين
+CREATE TABLE users (
     user_id VARCHAR(255) PRIMARY KEY,
-    name VARCHAR(255) NOT NULL DEFAULT 'Anonymous',
+    name VARCHAR(255) NOT NULL,
     points INTEGER DEFAULT 0,
     referrals INTEGER DEFAULT 0
 );
 
--- إنشاء جدول الإحالات إذا لم يكن موجودًا
-CREATE TABLE IF NOT EXISTS referrals (
+-- إنشاء جدول الإحالات
+CREATE TABLE referrals (
     id SERIAL PRIMARY KEY,
     referrer_id VARCHAR(255) NOT NULL,
     referred_id VARCHAR(255) NOT NULL,
