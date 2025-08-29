@@ -679,18 +679,31 @@
       console.log('Referral ID extracted:', refId); // للتصحيح
       if (refId && refId !== userId && userId !== 'anonymous') {
         try {
-          const response = await fetch('/referral', {
+          // تسجيل المستخدم المُحال أولاً
+          const userResponse = await fetch('/user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId, name: userName, points: 0 })
+          });
+          const userData = await userResponse.json();
+          console.log('User registration response:', userData); // للتصحيح
+          if (userData.status !== 'success') {
+            showNotification('Error registering referred user: ' + userData.message);
+            return;
+          }
+          // تسجيل الإحالة
+          const referralResponse = await fetch('/referral', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ referrer_id: refId, referred_id: userId, referred_name: userName })
           });
-          const data = await response.json();
-          console.log('Referral response:', data); // للتصحيح
-          if (data.status === 'success') {
+          const referralData = await referralResponse.json();
+          console.log('Referral response:', referralData); // للتصحيح
+          if (referralData.status === 'success') {
             showNotification('Referral successful! Referrer earned 500 points!');
             await fetchUserData(); // تحديث فوري للمحيل
           } else {
-            showNotification(data.message);
+            showNotification(referralData.message);
           }
         } catch (error) {
           console.error("Error processing referral:", error);
@@ -850,7 +863,7 @@
       }
 
       registerUser();
-      fetchUserData(); // جلب النقاط والإحالات من الخادم عند التحميل
+      fetchUserData();
       handleReferral();
       initializeWallet();
       setInterval(fetchUserData, 60000); // تحديث كل دقيقة للإحالات الجديدة
@@ -862,4 +875,4 @@
     });
   </script>
 </body>
-  </html>
+          </html>
