@@ -1,12 +1,12 @@
--- جدول المستخدمين
+-- إنشاء جدول المستخدمين إذا لم يكن موجودًا
 CREATE TABLE IF NOT EXISTS users (
     user_id VARCHAR(255) PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL DEFAULT 'Anonymous',
     points INTEGER DEFAULT 0,
     referrals INTEGER DEFAULT 0
 );
 
--- جدول الإحالات
+-- إنشاء جدول الإحالات إذا لم يكن موجودًا
 CREATE TABLE IF NOT EXISTS referrals (
     id SERIAL PRIMARY KEY,
     referrer_id VARCHAR(255) NOT NULL,
