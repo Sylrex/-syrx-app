@@ -103,7 +103,7 @@ def update_user():
                 """, (user_id, name, points, 0))
                 result = cur.fetchone()
                 conn.commit()
-                print(f"User updated: {user_id}, Points: {points}, Name: {name}")
+                print(f"User updated: {user_id}, Points: {points}, Name: {name}, Referrals: {result[1]}")
                 return jsonify({
                     "status": "success",
                     "message": "User updated",
@@ -216,7 +216,7 @@ def get_leaderboard():
                 cur.execute("""
                     SELECT user_id, name, points, referrals
                     FROM users
-                    ORDER BY points DESC
+                    ORDER BY points DESC, referrals DESC
                     LIMIT 100;
                 """)
                 leaderboard = [
@@ -229,7 +229,9 @@ def get_leaderboard():
                     for row in cur.fetchall()
                 ]
                 print(f"Leaderboard fetched: {len(leaderboard)} users")
-                return jsonify(leaderboard)
+                response = jsonify(leaderboard)
+                response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+                return response
     except Exception as e:
         print(f"Error fetching leaderboard: {e}")
         return jsonify({"status": "error", "message": str(e)})
