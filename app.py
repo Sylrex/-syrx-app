@@ -7,7 +7,7 @@ from psycopg2 import pool
 from contextlib import contextmanager
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})  # تحسين CORS للسماح لكل الأصول
 
 # إعداد Connection Pool
 db_pool = None
@@ -103,7 +103,7 @@ def update_user():
                 """, (user_id, name, points, 0))
                 result = cur.fetchone()
                 conn.commit()
-                print(f"User updated: {user_id}, Points: {points}, Name: {name}, Referrals: {result[1]}")
+                print(f"User updated: {user_id}, Points: {points}, Name: {name}, Referrals: {result[1]}")  # لوج تحسين
                 return jsonify({
                     "status": "success",
                     "message": "User updated",
@@ -177,7 +177,7 @@ def handle_referral():
                         """, (referrer_id,))
                         updated = cur.fetchone()
                         conn.commit()
-                        print(f"Referral recorded: {referrer_id} -> {referred_id}, Referrals: {updated[1]}, Points: {updated[0]}")
+                        print(f"Referral recorded: {referrer_id} -> {referred_id}, Referrals: {updated[1]}, Points: {updated[0]}")  # لوج تحسين
                         return jsonify({
                             "status": "success",
                             "message": "Referral recorded",
@@ -228,7 +228,7 @@ def get_leaderboard():
                     }
                     for row in cur.fetchall()
                 ]
-                print(f"Leaderboard fetched: {len(leaderboard)} users")
+                print(f"Leaderboard fetched: {len(leaderboard)} users - Details: {leaderboard}")  # لوج تحسين للتصحيح
                 response = jsonify(leaderboard)
                 response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
                 return response
