@@ -479,27 +479,35 @@
 
     // تحميل TON Connect UI
     const tonConnectScript = document.createElement('script');
-    tonConnectScript.src = 'https://unpkg.com/@tonconnect/ui@2.0.5/dist/tonconnect-ui.min.js';
+    tonConnectScript.src = 'https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.0.5/dist/tonconnect-ui.min.js';
     tonConnectScript.async = true;
     tonConnectScript.onload = () => {
       console.log('TON Connect UI script loaded successfully');
       initializeTonConnect();
     };
     tonConnectScript.onerror = () => {
-      console.error('Failed to load TON Connect UI script');
+      console.error('Failed to load TON Connect UI script from jsDelivr');
       showNotification('خطأ: فشل تحميل مكتبة TON Connect. جرب إعادة تحميل الصفحة.');
       const fallbackScript = document.createElement('script');
       fallbackScript.src = 'https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js';
       fallbackScript.onload = () => {
-        console.log('Fallback TON Connect UI script loaded');
+        console.log('Fallback TON Connect UI script loaded from unpkg');
         initializeTonConnect();
       };
       fallbackScript.onerror = () => {
         console.error('Failed to load fallback TON Connect UI script');
-        showNotification('خطأ: فشل تحميل مكتبة TON Connect بالكامل. تواصل مع الدعم.');
+        showNotification('خطأ: فشل تحميل مكتبة TON Connect بالكامل. جرب الحل البديل.');
+        checkTelegramWallet();
       };
       document.head.appendChild(fallbackScript);
     };
+    setTimeout(() => {
+      if (!window.TON_CONNECT_UI) {
+        console.error('TON Connect UI script timed out');
+        showNotification('خطأ: تأخر تحميل مكتبة TON Connect');
+        tonConnectScript.onerror();
+      }
+    }, 10000);
     document.head.appendChild(tonConnectScript);
 
     // تهيئة TON Connect
@@ -508,6 +516,7 @@
       if (!window.TON_CONNECT_UI) {
         console.error('TON Connect UI not available');
         showNotification('خطأ: مكتبة TON Connect غير متاحة');
+        checkTelegramWallet();
         return;
       }
 
@@ -531,17 +540,8 @@
         }
       });
 
-      tonConnectUI.uiOptions = {
-        buttonRootId: 'ton-connect',
-        actionsConfiguration: {
-          modals: ['before', 'success', 'error'],
-          skipRedirectToWallet: false
-        }
-      };
-
       console.log('TON Connect UI initialized:', tonConnectUI);
 
-      // فحص حالة الاتصال عند التحميل
       function initializeWallet() {
         console.log('Initializing wallet...');
         tonConnectUI.getWallets().then(wallets => {
@@ -559,10 +559,9 @@
         });
       }
 
-      // مراقبة تغييرات حالة الاتصال
       tonConnectUI.onStatusChange(
         walletInfo => {
-          console.log('Connection status changed:', walletInfo);
+          console.log('Connection status changed:', JSON.stringify(walletInfo, null, 2));
           if (walletInfo && walletInfo.account && walletInfo.account.address) {
             console.log('Wallet connected, address:', walletInfo.account.address);
             handleConnection(walletInfo);
@@ -580,9 +579,8 @@
         }
       );
 
-      // التعامل مع الاتصال
       function handleConnection(walletInfo) {
-        console.log('Handling connection:', walletInfo);
+        console.log('Handling connection:', JSON.stringify(walletInfo, null, 2));
         const tonConnectDiv = document.getElementById('ton-connect');
         const walletAddressDiv = document.getElementById('wallet-address');
         const disconnectBtn = document.getElementById('disconnect-btn');
@@ -593,7 +591,7 @@
           return;
         }
 
-        let address = walletInfo?.account?.address || 'عنوان غير متاح';
+        let address = walletInfo?.account?.address || 'عنوان غير متاح (اختبار)';
         const shortAddress = address.length > 10 ? `${address.slice(0, 6)}...${address.slice(-4)}` : address;
 
         tonConnectDiv.classList.add('hidden');
@@ -614,7 +612,6 @@
         console.log('Wallet connected, UI updated:', shortAddress);
       }
 
-      // التعامل مع قطع الاتصال
       async function disconnectWallet() {
         try {
           console.log('Disconnecting wallet...');
@@ -627,7 +624,6 @@
         }
       }
 
-      // إعادة ضبط واجهة المستخدم عند قطع الاتصال
       function handleDisconnection() {
         console.log('Handling disconnection');
         const tonConnectDiv = document.getElementById('ton-connect');
@@ -648,22 +644,62 @@
         console.log('Wallet disconnected, UI reset');
       }
 
-      // تشغيل تهيئة المحفظة
       initializeWallet();
 
-      // أمر اختبار يدوي في Console
       window.testWalletConnection = () => {
         console.log('Testing wallet connection...');
         console.log('TON Connect UI available:', !!window.TON_CONNECT_UI);
         console.log('tonConnectUI:', tonConnectUI);
         console.log('Connected:', tonConnectUI.connected);
-        console.log('Wallet info:', tonConnectUI.wallet);
+        console.log('Wallet info:', JSON.stringify(tonConnectUI.wallet, null, 2));
         if (tonConnectUI.connected && tonConnectUI.wallet) {
           handleConnection(tonConnectUI.wallet);
+          showNotification('تم العثور على محفظة متصلة! جارٍ عرض العنوان...');
         } else {
           showNotification('لا توجد محفظة متصلة حاليًا');
         }
       };
+    }
+
+    // حل بديل باستخدام Telegram WebApp
+    function checkTelegramWallet() {
+      console.log('Checking Telegram WebApp wallet...');
+      const walletAddressDiv = document.getElementById('wallet-address');
+      const disconnectBtn = document.getElementById('disconnect-btn');
+      const tonConnectDiv = document.getElementById('ton-connect');
+
+      if (!tonConnectDiv || !walletAddressDiv || !disconnectBtn) {
+        console.error('DOM elements missing:', { tonConnectDiv, walletAddressDiv, disconnectBtn });
+        showNotification('خطأ: عناصر الواجهة غير موجودة');
+        return;
+      }
+
+      const walletInfo = window.Telegram.WebApp.initDataUnsafe?.wallet;
+      console.log('Telegram WebApp wallet info:', JSON.stringify(walletInfo, null, 2));
+      if (walletInfo && walletInfo.address) {
+        console.log('Telegram wallet found:', walletInfo.address);
+        const address = walletInfo.address;
+        const shortAddress = address.length > 10 ? `${address.slice(0, 6)}...${address.slice(-4)}` : address;
+        tonConnectDiv.classList.add('hidden');
+        walletAddressDiv.innerHTML = '';
+        walletAddressDiv.textContent = `محفظة متصلة: ${shortAddress}`;
+        walletAddressDiv.style.display = 'block';
+        disconnectBtn.classList.remove('hidden');
+        if (!localStorage.getItem('walletConnected')) {
+          showNotification('تم ربط المحفظة! +500 نقطة مكافأة!');
+          userPoints = parseInt(userPoints) + 500;
+          localStorage.setItem('points', userPoints);
+          updateUserPoints();
+          localStorage.setItem('walletConnected', 'true');
+        }
+        document.getElementById('total-points').textContent = userPoints.toLocaleString();
+      } else {
+        console.log('No Telegram wallet found');
+        walletAddressDiv.style.display = 'none';
+        disconnectBtn.classList.add('hidden');
+        tonConnectDiv.classList.remove('hidden');
+        showNotification('لم يتم العثور على محفظة في Telegram WebApp');
+      }
     }
 
     // Navigate between pages
