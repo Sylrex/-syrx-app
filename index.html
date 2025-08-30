@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -59,7 +59,7 @@
       width: 60px;
       height: 60px;
       border-radius: 50%;
-      margin-right: 15px;
+      margin-left: 15px;
       border: 3px solid #fff;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
@@ -198,13 +198,13 @@
     .task img {
       width: 32px;
       height: 32px;
-      margin-right: 10px;
+      margin-left: 10px;
     }
     .task h3 {
       margin: 0;
       color: #4ecdc4;
       flex-grow: 1;
-      text-align: left;
+      text-align: right;
     }
     .task p {
       margin: 10px 0;
@@ -363,96 +363,95 @@
       <div class="logo">SYRX</div>
       <div class="user-profile">
         <img id="user-photo" src="https://via.placeholder.com/60/4ecdc4/ffffff?text=👤" alt="User Photo">
-        <span id="user-name">Loading...</span>
+        <span id="user-name">جارٍ التحميل...</span>
       </div>
-      <h1>Welcome to SYRX App 🎉</h1>
+      <h1>مرحبًا بك في SYRX App 🎉</h1>
       <div class="stats">
         <div class="stat-item">
           <div class="stat-number" id="total-points">0</div>
-          <div class="stat-label">Total Points</div>
+          <div class="stat-label">إجمالي النقاط</div>
         </div>
         <div class="stat-item">
           <div class="stat-number" id="referrals">0</div>
-          <div class="stat-label">Referrals</div>
+          <div class="stat-label">الإحالات</div>
         </div>
       </div>
-      <button id="daily-checkin-btn" class="daily-checkin-btn" onclick="dailyCheckIn()">تسجيل دخول يومي 🎁 (+100 pts)</button>
+      <button id="daily-checkin-btn" class="daily-checkin-btn" onclick="dailyCheckIn()">تسجيل دخول يومي 🎁 (+100 نقاط)</button>
       <div id="ton-connect"></div>
       <div id="wallet-address"></div>
-      <button id="disconnect-btn" class="hidden" onclick="disconnectWallet()">Disconnect Wallet</button>
+      <button id="disconnect-btn" class="hidden" onclick="disconnectWallet()">قطع الاتصال بالمحفظة</button>
     </div>
 
     <!-- Page 2: Tasks -->
     <div id="page2" class="page">
-      <h2>Daily Tasks 📋</h2>
+      <h2>المهام اليومية 📋</h2>
       <div class="task">
         <img src="/telegram-icon.png" alt="Telegram Icon">
-        <h3>Follow on Telegram</h3>
-        <p><a href="https://t.me/SylrexOfficial" target="_blank">Join our official channel</a></p>
-        <button onclick="completeTask(this, 'telegram', 30, 'https://t.me/SylrexOfficial')">Complete (+30 pts)</button>
+        <h3>تابعنا على تليجرام</h3>
+        <p><a href="https://t.me/SylrexOfficial" target="_blank">انضم إلى قناتنا الرسمية</a></p>
+        <button onclick="completeTask(this, 'telegram', 30, 'https://t.me/SylrexOfficial')">إكمال (+30 نقاط)</button>
       </div>
       <div class="task">
         <img src="/x-icon.png" alt="X Icon">
-        <h3>Follow on X</h3>
-        <p><a href="https://x.com/SylrexOfficial?t=xMY6eEauM0DXY5VllXdT-w&s=09" target="_blank">Follow our official account</a></p>
-        <button onclick="completeTask(this, 'x', 35, 'https://x.com/SylrexOfficial?t=xMY6eEauM0DXY5VllXdT-w&s=09')">Complete (+35 pts)</button>
+        <h3>تابعنا على X</h3>
+        <p><a href="https://x.com/SylrexOfficial?t=xMY6eEauM0DXY5VllXdT-w&s=09" target="_blank">تابع حسابنا الرسمي</a></p>
+        <button onclick="completeTask(this, 'x', 35, 'https://x.com/SylrexOfficial?t=xMY6eEauM0DXY5VllXdT-w&s=09')">إكمال (+35 نقاط)</button>
       </div>
       <div class="task">
         <img src="/facebook-icon.png" alt="Facebook Icon">
-        <h3>Follow on Facebook</h3>
-        <p><a href="https://www.facebook.com/share/1JYzm6CGsS/" target="_blank">Follow our page</a></p>
-        <button onclick="completeTask(this, 'facebook', 40, 'https://www.facebook.com/share/1JYzm6CGsS/')">Complete (+40 pts)</button>
+        <h3>تابعنا على فيسبوك</h3>
+        <p><a href="https://www.facebook.com/share/1JYzm6CGsS/" target="_blank">تابع صفحتنا</a></p>
+        <button onclick="completeTask(this, 'facebook', 40, 'https://www.facebook.com/share/1JYzm6CGsS/')">إكمال (+40 نقاط)</button>
       </div>
       <div class="task">
         <img src="/youtube-icon.png" alt="YouTube Icon">
-        <h3>Subscribe on YouTube</h3>
-        <p><a href="https://www.youtube.com/@Sylrex_Official" target="_blank">Subscribe to our channel</a></p>
-        <button onclick="completeTask(this, 'youtube', 50, 'https://www.youtube.com/@SylrexOfficial')">Complete (+50 pts)</button>
+        <h3>اشترك في يوتيوب</h3>
+        <p><a href="https://www.youtube.com/@Sylrex_Official" target="_blank">اشترك في قناتنا</a></p>
+        <button onclick="completeTask(this, 'youtube', 50, 'https://www.youtube.com/@SylrexOfficial')">إكمال (+50 نقاط)</button>
       </div>
       <div class="task">
         <img src="/youtube-icon.png" alt="YouTube Icon">
-        <h3>Watch Video</h3>
-        <p><a href="https://youtube.com/shorts/rJanRSBlO24?si=IY9w1yFhKOfQtAmN" target="_blank">Watch our video</a></p>
-        <button onclick="completeTask(this, 'video', 50, 'https://youtube.com/shorts/rJanRSBlO24?si=IY9w1yFhKOfQtAmN')">شاهد الفيديو (+50 pts)</button>
+        <h3>شاهد فيديو</h3>
+        <p><a href="https://youtube.com/shorts/rJanRSBlO24?si=IY9w1yFhKOfQtAmN" target="_blank">شاهد فيديونا</a></p>
+        <button onclick="completeTask(this, 'video', 50, 'https://youtube.com/shorts/rJanRSBlO24?si=IY9w1yFhKOfQtAmN')">شاهد الفيديو (+50 نقاط)</button>
       </div>
-      <button id="disconnect-btn" class="hidden" onclick="disconnectWallet()">Disconnect Wallet</button>
     </div>
 
     <!-- Page 3: Invite -->
     <div id="page3" class="page">
-      <h2>Invite Friends 👥</h2>
+      <h2>ادعُ أصدقاءك 👥</h2>
       <div class="referral">
-        <p><strong>Your Referral Link:</strong></p>
+        <p><strong>رابط الإحالة الخاص بك:</strong></p>
         <div class="referral-code" id="referral-link"></div>
-        <button class="connect-btn" onclick="copyReferralLink()">Copy Link</button>
-        <p style="margin-top: 15px;">Earn <strong>500 points</strong> for each friend who joins!</p>
+        <button class="connect-btn" onclick="copyReferralLink()">نسخ الرابط</button>
+        <p style="margin-top: 15px;">اكسب <strong>500 نقطة</strong> لكل صديق ينضم!</p>
       </div>
       <div class="stats">
         <div class="stat-item">
           <div class="stat-number" id="friends-invited">0</div>
-          <div class="stat-label">Friends Invited</div>
+          <div class="stat-label">الأصدقاء المدعوون</div>
         </div>
         <div class="stat-item">
           <div class="stat-number" id="bonus-points">0</div>
-          <div class="stat-label">Bonus Points</div>
+          <div class="stat-label">نقاط المكافأة</div>
         </div>
       </div>
     </div>
 
     <!-- Page 4: Leaderboard -->
     <div id="page4" class="page">
-      <h2>Leaderboard 🏆</h2>
+      <h2>الترتيب 🏆</h2>
       <ul class="leaderboard" id="leaderboard-list">
-        <li>No players yet. Invite friends to join the leaderboard!</li>
+        <li>لا يوجد لاعبين بعد. ادعُ أصدقاءك للانضمام إلى الترتيب!</li>
       </ul>
     </div>
 
     <!-- Navigation -->
     <div class="navigation">
-      <button class="nav-btn active" onclick="showPage(1)">🏠 Home</button>
-      <button class="nav-btn" onclick="showPage(2)">📋 Tasks</button>
-      <button class="nav-btn" onclick="showPage(3)">👥 Invite</button>
-      <button class="nav-btn" onclick="showPage(4)">🏆 Rank</button>
+      <button class="nav-btn active" onclick="showPage(1)">🏠 الرئيسية</button>
+      <button class="nav-btn" onclick="showPage(2)">📋 المهام</button>
+      <button class="nav-btn" onclick="showPage(3)">👥 دعوة</button>
+      <button class="nav-btn" onclick="showPage(4)">🏆 الترتيب</button>
     </div>
   </div>
 
@@ -466,14 +465,14 @@
     tg.ready();
 
     // Display user name and photo
-    const userName = tg.initDataUnsafe?.user?.first_name || 'User';
+    const userName = tg.initDataUnsafe?.user?.first_name || 'مستخدم';
     document.getElementById('user-name').textContent = userName;
     const userPhoto = tg.initDataUnsafe?.user?.photo_url || 'https://via.placeholder.com/60/4ecdc4/ffffff?text=👤';
     document.getElementById('user-photo').src = userPhoto;
 
     // Generate referral link
     const userId = tg.initDataUnsafe?.user?.id || 'anonymous';
-    console.log('User ID:', userId); // للتصحيح
+    console.log('User ID:', userId);
     const referralLink = `https://t.me/SYRXApp_bot/SYRXApp?start=ref_${userId}`;
     document.getElementById('referral-link').textContent = referralLink;
 
@@ -494,22 +493,22 @@
         ]
       },
       uiOptions: {
-        twaReturnUrl: 'https://t.me/SYRXApp_bot/SYRXApp' // إعادة التوجيه إلى التطبيق بعد الاتصال
+        twaReturnUrl: 'https://t.me/SYRXApp_bot/SYRXApp'
       }
     });
 
     tonConnectUI.uiOptions = {
       buttonRootId: "ton-connect",
       actionsConfiguration: {
-        modals: ['before'],
+        modals: ['before', 'success', 'error'],
         skipRedirectToWallet: false
       }
     };
 
-    // Check connection status on load
+    // فحص حالة الاتصال عند التحميل
     function initializeWallet() {
       console.log('Initializing wallet...');
-      if (tonConnectUI.wallet) {
+      if (tonConnectUI.connected) {
         console.log('Wallet already connected:', tonConnectUI.wallet);
         handleConnection(tonConnectUI.wallet);
       } else {
@@ -518,42 +517,46 @@
       }
     }
 
-    // Handle connection status changes
+    // مراقبة تغييرات حالة الاتصال
     tonConnectUI.onStatusChange(
       walletInfo => {
         console.log("Connection status changed:", walletInfo);
         if (walletInfo && walletInfo.account && walletInfo.account.address) {
           handleConnection(walletInfo);
-          tonConnectUI.closeModal(); // إغلاق نافذة TON Connect
+          tonConnectUI.closeAllModals();
         } else {
           handleDisconnection();
         }
       },
       error => {
         console.error("Connection error:", error);
-        showNotification("Connection error: " + error.message);
+        showNotification("خطأ في الاتصال بالمحفظة: " + error.message);
         handleDisconnection();
       }
     );
 
+    // التعامل مع الاتصال
     function handleConnection(walletInfo) {
       console.log('Handling connection:', walletInfo);
       const tonConnectDiv = document.getElementById('ton-connect');
       const walletAddressDiv = document.getElementById('wallet-address');
       const disconnectBtn = document.getElementById('disconnect-btn');
+      
       if (walletInfo && walletInfo.account && walletInfo.account.address) {
         tonConnectDiv.classList.add('hidden');
-        walletAddressDiv.innerHTML = ''; // مسح أي محتوى سابق لتجنب التكرار
-        walletAddressDiv.textContent = `تم الاتصال: ${walletInfo.account.address}`;
+        walletAddressDiv.innerHTML = '';
+        walletAddressDiv.textContent = `محفظة متصلة: ${walletInfo.account.address.slice(0, 6)}...${walletInfo.account.address.slice(-4)}`;
         walletAddressDiv.style.display = 'block';
         disconnectBtn.classList.remove('hidden');
+        
         if (!localStorage.getItem('walletConnected')) {
-          showNotification('Wallet connected! +500 bonus points!');
+          showNotification('تم ربط المحفظة! +500 نقطة مكافأة!');
           userPoints = parseInt(userPoints) + 500;
           localStorage.setItem('points', userPoints);
           updateUserPoints();
           localStorage.setItem('walletConnected', 'true');
         }
+        
         document.getElementById('total-points').textContent = userPoints.toLocaleString();
         console.log('Wallet connected, UI updated');
       } else {
@@ -561,6 +564,19 @@
       }
     }
 
+    // التعامل مع قطع الاتصال
+    async function disconnectWallet() {
+      try {
+        await tonConnectUI.disconnect();
+        handleDisconnection();
+        showNotification('تم قطع الاتصال بالمحفظة!');
+      } catch (error) {
+        console.error("Disconnect error:", error);
+        showNotification("خطأ في قطع الاتصال: " + error.message);
+      }
+    }
+
+    // إعادة ضبط واجهة المستخدم عند قطع الاتصال
     function handleDisconnection() {
       console.log('Handling disconnection');
       const tonConnectDiv = document.getElementById('ton-connect');
@@ -570,17 +586,6 @@
       walletAddressDiv.style.display = 'none';
       disconnectBtn.classList.add('hidden');
       localStorage.removeItem('walletConnected');
-    }
-
-    async function disconnectWallet() {
-      try {
-        await tonConnectUI.disconnect();
-        handleDisconnection();
-        showNotification('Wallet disconnected!');
-      } catch (error) {
-        console.error("Disconnect error:", error);
-        showNotification("Disconnect error: " + error.message);
-      }
     }
 
     // Navigate between pages
@@ -618,17 +623,17 @@
             document.getElementById('referrals').textContent = referrals;
             document.getElementById('friends-invited').textContent = referrals;
             document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
-            loadLeaderboard(); // تحديث الليدربورد بعد التسجيل
+            loadLeaderboard();
           } else {
             showNotification(data.message);
           }
         } catch (error) {
           console.error("Error registering user:", error);
-          showNotification("Error registering user");
+          showNotification("خطأ في تسجيل المستخدم");
         }
       } else {
         console.warn('Skipping user registration because userId is anonymous');
-        loadLeaderboard(); // تحميل الليدربورد حتى لو anonymous
+        loadLeaderboard();
       }
     }
 
@@ -652,20 +657,20 @@
             document.getElementById('referrals').textContent = referrals;
             document.getElementById('friends-invited').textContent = referrals;
             document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
-            loadLeaderboard(); // تحديث الليدربورد بعد التحديث
+            loadLeaderboard();
           } else {
             showNotification(data.message);
           }
         } catch (error) {
           console.error("Error updating points:", error);
-          showNotification("Error updating points");
+          showNotification("خطأ في تحديث النقاط");
         }
       } else {
         console.warn('Skipping update because userId is anonymous');
       }
     }
 
-    // Fetch user data from server (points and referrals)
+    // Fetch user data from server
     async function fetchUserData() {
       if (userId === 'anonymous') {
         console.warn('Skipping fetch because userId is anonymous');
@@ -674,7 +679,7 @@
       try {
         const response = await fetch(`/user?user_id=${userId}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch user data');
+          throw new Error('فشل في جلب بيانات المستخدم');
         }
         const data = await response.json();
         if (data.status === 'success') {
@@ -685,13 +690,13 @@
           document.getElementById('referrals').textContent = referrals;
           document.getElementById('friends-invited').textContent = referrals;
           document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
-          loadLeaderboard(); // تحديث الليدربورد بعد جلب البيانات
+          loadLeaderboard();
         } else {
-          showNotification('Error fetching user data: ' + data.message);
+          showNotification('خطأ في جلب بيانات المستخدم: ' + data.message);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
-        showNotification("Error fetching user data");
+        showNotification("خطأ في جلب بيانات المستخدم");
       }
     }
 
@@ -702,7 +707,6 @@
       console.log('Referral ID extracted:', refId);
       if (refId && refId !== userId && userId !== 'anonymous') {
         try {
-          // تسجيل المستخدم المُحال أولاً
           const userResponse = await fetch('/user', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -711,10 +715,9 @@
           const userData = await userResponse.json();
           console.log('User registration response:', userData);
           if (userData.status !== 'success') {
-            showNotification('Error registering referred user: ' + userData.message);
+            showNotification('خطأ في تسجيل المستخدم المُحال: ' + userData.message);
             return;
           }
-          // تسجيل الإحالة
           const referralResponse = await fetch('/referral', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -723,15 +726,15 @@
           const referralData = await referralResponse.json();
           console.log('Referral response:', referralData);
           if (referralData.status === 'success') {
-            showNotification('Referral successful! Referrer earned 500 points!');
-            await fetchUserData(); // تحديث فوري للمحيل
-            loadLeaderboard(); // تحديث الليدربورد فورًا
+            showNotification('تم تسجيل الإحالة بنجاح! المحيل حصل على 500 نقطة!');
+            await fetchUserData();
+            loadLeaderboard();
           } else {
             showNotification(referralData.message);
           }
         } catch (error) {
           console.error("Error processing referral:", error);
-          showNotification("Error processing referral");
+          showNotification("خطأ في معالجة الإحالة");
         }
       }
     }
@@ -739,28 +742,29 @@
     // Load leaderboard from server
     async function loadLeaderboard() {
       try {
-        const response = await fetch('/leaderboard', {
-          cache: 'no-cache' // منع الكاش
+        const response = await fetch('https://syrx.onrender.com/leaderboard', {
+          cache: 'no-cache'
         });
+        if (!response.ok) throw new Error('فشل تحميل الترتيب');
         const leaderboardData = await response.json();
         console.log('Leaderboard data:', leaderboardData);
         const leaderboardList = document.getElementById('leaderboard-list');
         leaderboardList.innerHTML = '';
         if (leaderboardData.length === 0) {
-          leaderboardList.innerHTML = '<li>No players yet. Invite friends to join the leaderboard!</li>';
+          leaderboardList.innerHTML = '<li>لا يوجد لاعبين بعد. ادعُ أصدقاءك للانضمام إلى الترتيب!</li>';
         } else {
           leaderboardData.forEach((player, index) => {
             const li = document.createElement('li');
             li.innerHTML = `
               <span><span class="rank">#${index + 1}</span> ${player.name}</span>
-              <span><span class="points">${player.points.toLocaleString()} pts</span> | <span class="referrals">${player.referrals} refs</span></span>
+              <span><span class="points">${player.points.toLocaleString()} نقاط</span> | <span class="referrals">${player.referrals} إحالات</span></span>
             `;
             leaderboardList.appendChild(li);
           });
         }
       } catch (error) {
         console.error("Error loading leaderboard:", error);
-        showNotification("Error loading leaderboard");
+        showNotification("خطأ في تحميل الترتيب");
       }
     }
 
@@ -770,25 +774,25 @@
     // Task completion with link opening and 20-second delay
     function completeTask(button, platform, points, link) {
       if (localStorage.getItem(platform) === 'completed') {
-        showNotification("Task already completed!");
-        button.textContent = 'Completed ✅';
+        showNotification("المهمة مكتملة بالفعل!");
+        button.textContent = 'مكتمل ✅';
         button.style.background = '#4CAF50';
         button.disabled = true;
         return;
       }
-      button.textContent = 'Opening...';
+      button.textContent = 'جارٍ الفتح...';
       button.disabled = true;
       window.open(link, '_blank');
       setTimeout(() => {
-        button.textContent = 'Completed ✅';
+        button.textContent = 'مكتمل ✅';
         button.style.background = '#4CAF50';
         userPoints = parseInt(userPoints) + points;
         localStorage.setItem('points', userPoints);
         localStorage.setItem(platform, 'completed');
         document.getElementById('total-points').textContent = userPoints.toLocaleString();
         updateUserPoints();
-        showNotification(`Task completed! +${points} points!`);
-      }, 20000); // 20 seconds delay
+        showNotification(`تم إكمال المهمة! +${points} نقاط!`);
+      }, 20000);
     }
 
     // Daily Check-In Function
@@ -819,9 +823,9 @@
     function copyReferralLink() {
       const link = document.getElementById('referral-link').textContent;
       navigator.clipboard.writeText(link).then(() => {
-        showNotification('Referral link copied!');
+        showNotification('تم نسخ رابط الإحالة!');
       }).catch(() => {
-        showNotification('Link: ' + link);
+        showNotification('الرابط: ' + link);
       });
     }
 
@@ -871,13 +875,12 @@
       document.querySelectorAll('.task button').forEach(button => {
         const platform = button.getAttribute('onclick').match(/'([^']+)'/)[1];
         if (localStorage.getItem(platform) === 'completed') {
-          button.textContent = 'Completed ✅';
+          button.textContent = 'مكتمل ✅';
           button.style.background = '#4CAF50';
           button.disabled = true;
         }
       });
 
-      // Check daily check-in status on page load
       const today = new Date().toISOString().split('T')[0];
       const lastCheckIn = localStorage.getItem('lastCheckIn');
       const checkInButton = document.getElementById('daily-checkin-btn');
@@ -890,8 +893,8 @@
       fetchUserData();
       handleReferral();
       initializeWallet();
-      setInterval(fetchUserData, 60000); // تحديث كل دقيقة
-      setInterval(loadLeaderboard, 5000); // تحديث الليدربورد كل 5 ثواني
+      setInterval(fetchUserData, 60000);
+      setInterval(loadLeaderboard, 5000);
     });
 
     // Handle back button
