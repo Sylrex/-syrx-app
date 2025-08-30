@@ -379,6 +379,7 @@
       <button id="daily-checkin-btn" class="daily-checkin-btn" onclick="dailyCheckIn()">تسجيل دخول يومي 🎁 (+100 pts)</button>
       <div id="ton-connect"></div>
       <div id="wallet-address"></div>
+      <button id="disconnect-btn" class="hidden" onclick="disconnectWallet()">Disconnect Wallet</button>
     </div>
 
     <!-- Page 2: Tasks -->
@@ -507,12 +508,12 @@
 
     // Check connection status on load
     function initializeWallet() {
-      console.log('Initializing wallet...'); // للتصحيح
+      console.log('Initializing wallet...');
       if (tonConnectUI.wallet) {
-        console.log('Wallet already connected:', tonConnectUI.wallet); // للتصحيح
+        console.log('Wallet already connected:', tonConnectUI.wallet);
         handleConnection(tonConnectUI.wallet);
       } else {
-        console.log('No wallet connected on init'); // للتصحيح
+        console.log('No wallet connected on init');
         handleDisconnection();
       }
     }
@@ -520,10 +521,10 @@
     // Handle connection status changes
     tonConnectUI.onStatusChange(
       walletInfo => {
-        console.log("Connection status changed:", walletInfo); // للتصحيح
+        console.log("Connection status changed:", walletInfo);
         if (walletInfo && walletInfo.account && walletInfo.account.address) {
           handleConnection(walletInfo);
-          tonConnectUI.closeModal(); // إغلاق نافذة TON Connect صراحةً
+          tonConnectUI.closeModal(); // إغلاق نافذة TON Connect
         } else {
           handleDisconnection();
         }
@@ -536,26 +537,14 @@
     );
 
     function handleConnection(walletInfo) {
-      console.log('Handling connection:', walletInfo); // للتصحيح
-      const connectButton = document.getElementById('ton-connect');
+      console.log('Handling connection:', walletInfo);
+      const tonConnectDiv = document.getElementById('ton-connect');
       const walletAddressDiv = document.getElementById('wallet-address');
       const disconnectBtn = document.getElementById('disconnect-btn');
-      if (!connectButton) {
-        console.error('Connect button not found! Check #ton-connect element'); // للتصحيح
-        return;
-      }
-      if (!walletAddressDiv) {
-        console.error('Wallet address div not found! Check #wallet-address element'); // للتصحيح
-        return;
-      }
-      if (!disconnectBtn) {
-        console.error('Disconnect button not found! Check #disconnect-btn element'); // للتصحيح
-        return;
-      }
       if (walletInfo && walletInfo.account && walletInfo.account.address) {
-        connectButton.classList.add('hidden');
-        walletAddressDiv.innerHTML = '';
-        walletAddressDiv.textContent = `Wallet Address: ${walletInfo.account.address}`;
+        tonConnectDiv.classList.add('hidden');
+        walletAddressDiv.innerHTML = ''; // مسح أي محتوى سابق لتجنب التكرار
+        walletAddressDiv.textContent = `تم الاتصال: ${walletInfo.account.address}`;
         walletAddressDiv.style.display = 'block';
         disconnectBtn.classList.remove('hidden');
         if (!localStorage.getItem('walletConnected')) {
@@ -566,33 +555,20 @@
           localStorage.setItem('walletConnected', 'true');
         }
         document.getElementById('total-points').textContent = userPoints.toLocaleString();
-        console.log('Wallet connected, UI updated'); // للتصحيح
+        console.log('Wallet connected, UI updated');
       } else {
-        console.warn('Invalid walletInfo, treating as disconnected'); // للتصحيح
         handleDisconnection();
       }
     }
 
     function handleDisconnection() {
-      console.log('Handling disconnection'); // للتصحيح
-      const connectButton = document.getElementById('ton-connect');
+      console.log('Handling disconnection');
+      const tonConnectDiv = document.getElementById('ton-connect');
       const walletAddressDiv = document.getElementById('wallet-address');
       const disconnectBtn = document.getElementById('disconnect-btn');
-      if (connectButton) {
-        connectButton.classList.remove('hidden');
-      } else {
-        console.error('Connect button not found during disconnection'); // للتصحيح
-      }
-      if (walletAddressDiv) {
-        walletAddressDiv.style.display = 'none';
-      } else {
-        console.error('Wallet address div not found during disconnection'); // للتصحيح
-      }
-      if (disconnectBtn) {
-        disconnectBtn.classList.add('hidden');
-      } else {
-        console.error('Disconnect button not found during disconnection'); // للتصحيح
-      }
+      tonConnectDiv.classList.remove('hidden');
+      walletAddressDiv.style.display = 'none';
+      disconnectBtn.classList.add('hidden');
       localStorage.removeItem('walletConnected');
     }
 
@@ -632,7 +608,7 @@
             body: JSON.stringify({ user_id: userId, name: userName, points: parseInt(userPoints) })
           });
           const data = await response.json();
-          console.log('Register user response:', data); // للتصحيح
+          console.log('Register user response:', data);
           if (data.status === 'success') {
             console.log('User registered:', userId);
             userPoints = data.points || 0;
@@ -642,6 +618,7 @@
             document.getElementById('referrals').textContent = referrals;
             document.getElementById('friends-invited').textContent = referrals;
             document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
+            loadLeaderboard(); // تحديث الليدربورد بعد التسجيل
           } else {
             showNotification(data.message);
           }
@@ -651,6 +628,7 @@
         }
       } else {
         console.warn('Skipping user registration because userId is anonymous');
+        loadLeaderboard(); // تحميل الليدربورد حتى لو anonymous
       }
     }
 
@@ -664,7 +642,7 @@
             body: JSON.stringify({ user_id: userId, name: userName, points: parseInt(userPoints) })
           });
           const data = await response.json();
-          console.log('Update points response:', data); // للتصحيح
+          console.log('Update points response:', data);
           if (data.status === 'success') {
             console.log('User points updated:', userPoints);
             userPoints = data.points || 0;
@@ -674,6 +652,7 @@
             document.getElementById('referrals').textContent = referrals;
             document.getElementById('friends-invited').textContent = referrals;
             document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
+            loadLeaderboard(); // تحديث الليدربورد بعد التحديث
           } else {
             showNotification(data.message);
           }
@@ -706,6 +685,7 @@
           document.getElementById('referrals').textContent = referrals;
           document.getElementById('friends-invited').textContent = referrals;
           document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
+          loadLeaderboard(); // تحديث الليدربورد بعد جلب البيانات
         } else {
           showNotification('Error fetching user data: ' + data.message);
         }
@@ -719,7 +699,7 @@
     async function handleReferral() {
       const urlParams = new URLSearchParams(window.location.search);
       const refId = urlParams.get('start')?.replace('ref_', '');
-      console.log('Referral ID extracted:', refId); // للتصحيح
+      console.log('Referral ID extracted:', refId);
       if (refId && refId !== userId && userId !== 'anonymous') {
         try {
           // تسجيل المستخدم المُحال أولاً
@@ -729,7 +709,7 @@
             body: JSON.stringify({ user_id: userId, name: userName, points: 0 })
           });
           const userData = await userResponse.json();
-          console.log('User registration response:', userData); // للتصحيح
+          console.log('User registration response:', userData);
           if (userData.status !== 'success') {
             showNotification('Error registering referred user: ' + userData.message);
             return;
@@ -741,10 +721,11 @@
             body: JSON.stringify({ referrer_id: refId, referred_id: userId, referred_name: userName })
           });
           const referralData = await referralResponse.json();
-          console.log('Referral response:', referralData); // للتصحيح
+          console.log('Referral response:', referralData);
           if (referralData.status === 'success') {
             showNotification('Referral successful! Referrer earned 500 points!');
             await fetchUserData(); // تحديث فوري للمحيل
+            loadLeaderboard(); // تحديث الليدربورد فورًا
           } else {
             showNotification(referralData.message);
           }
@@ -758,9 +739,11 @@
     // Load leaderboard from server
     async function loadLeaderboard() {
       try {
-        const response = await fetch('/leaderboard');
+        const response = await fetch('/leaderboard', {
+          cache: 'no-cache' // منع الكاش
+        });
         const leaderboardData = await response.json();
-        console.log('Leaderboard data:', leaderboardData); // للتصحيح
+        console.log('Leaderboard data:', leaderboardData);
         const leaderboardList = document.getElementById('leaderboard-list');
         leaderboardList.innerHTML = '';
         if (leaderboardData.length === 0) {
@@ -810,7 +793,7 @@
 
     // Daily Check-In Function
     function dailyCheckIn() {
-      const today = new Date().toISOString().split('T')[0]; // Current date (YYYY-MM-DD)
+      const today = new Date().toISOString().split('T')[0];
       const lastCheckIn = localStorage.getItem('lastCheckIn');
       const checkInButton = document.getElementById('daily-checkin-btn');
 
@@ -821,7 +804,6 @@
         return;
       }
 
-      // Add 100 points for daily check-in
       userPoints = parseInt(userPoints) + 100;
       localStorage.setItem('points', userPoints);
       localStorage.setItem('lastCheckIn', today);
@@ -829,7 +811,6 @@
       updateUserPoints();
       showNotification('تسجيل دخول يومي ناجح! +100 نقاط!');
 
-      // Update button state
       checkInButton.textContent = 'تم التسجيل اليوم ✅';
       checkInButton.disabled = true;
     }
@@ -909,7 +890,8 @@
       fetchUserData();
       handleReferral();
       initializeWallet();
-      setInterval(fetchUserData, 60000); // تحديث كل دقيقة للإحالات الجديدة
+      setInterval(fetchUserData, 60000); // تحديث كل دقيقة
+      setInterval(loadLeaderboard, 5000); // تحديث الليدربورد كل 5 ثواني
     });
 
     // Handle back button
