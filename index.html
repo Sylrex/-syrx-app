@@ -18,11 +18,11 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      overflow: hidden;
+      overflow-y: auto; /* Allow scrolling to prevent content clipping */
     }
     .container {
       width: 100%;
-      max-width: 600px;
+      max-width: 800px; /* Increased for larger screens */
       min-height: 100vh;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 0;
@@ -76,6 +76,7 @@
     }
     #ton-connect {
       margin: 20px 0;
+      z-index: 10; /* Ensure TON Connect button is visible */
     }
     .connect-btn {
       background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
@@ -88,6 +89,7 @@
       cursor: pointer;
       transition: all 0.3s ease;
       box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      z-index: 10;
     }
     .connect-btn:hover {
       transform: translateY(-2px);
@@ -108,6 +110,7 @@
       overflow: hidden;
       margin: 20px 0;
       animation: pulse 2s infinite;
+      z-index: 10;
     }
     .daily-checkin-btn:hover {
       transform: translateY(-2px);
@@ -136,6 +139,7 @@
       max-width: 90%;
       text-align: center;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      z-index: 10; /* Ensure wallet address is visible */
     }
     .hidden {
       display: none !important;
@@ -146,12 +150,13 @@
       left: 50%;
       transform: translateX(-50%);
       width: 100%;
-      max-width: 600px;
+      max-width: 800px; /* Match container max-width */
       display: flex;
       justify-content: space-around;
       background: rgba(0, 0, 0, 0.8);
       padding: 15px 0;
       backdrop-filter: blur(10px);
+      z-index: 1000; /* High z-index to ensure visibility */
     }
     .nav-btn {
       background: rgba(255, 255, 255, 0.2);
@@ -163,6 +168,7 @@
       font-weight: bold;
       transition: all 0.3s ease;
       font-size: 0.9em;
+      z-index: 1000;
     }
     .nav-btn.active {
       background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
@@ -176,7 +182,7 @@
       width: 100%;
       flex-grow: 1;
       overflow-y: auto;
-      padding-bottom: 80px;
+      padding-bottom: 100px; /* Increased to prevent overlap with navigation */
     }
     .page.active {
       display: flex;
@@ -195,6 +201,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      z-index: 10;
     }
     .task img {
       width: 32px;
@@ -220,6 +227,7 @@
       cursor: pointer;
       font-weight: bold;
       transition: all 0.3s ease;
+      z-index: 10;
     }
     .task button:hover {
       transform: translateY(-1px);
@@ -238,6 +246,7 @@
       padding: 20px;
       border-radius: 15px;
       width: 90%;
+      z-index: 10;
     }
     .referral-code {
       background: rgba(255, 255, 255, 0.2);
@@ -257,6 +266,7 @@
       overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: #4ecdc4 #1e3c72;
+      z-index: 10;
     }
     .leaderboard li {
       background: rgba(255, 255, 255, 0.15);
@@ -287,6 +297,7 @@
       justify-content: space-around;
       width: 90%;
       margin: 20px 0;
+      z-index: 10;
     }
     .stat-item {
       text-align: center;
@@ -315,12 +326,16 @@
       font-weight: bold;
       transition: all 0.3s ease;
       margin: 10px;
+      z-index: 10;
     }
     #disconnect-btn:hover, #force-close-modal-btn:hover {
       transform: translateY(-1px);
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
     @media (max-width: 400px) {
+      .container {
+        max-width: 100%; /* Full width on small screens */
+      }
       .logo {
         width: 80px;
         height: 80px;
@@ -347,6 +362,9 @@
       .task img {
         width: 24px;
         height: 24px;
+      }
+      .navigation {
+        max-width: 100%; /* Match container on small screens */
       }
     }
     @media (min-width: 600px) {
@@ -380,9 +398,9 @@
       <button id="daily-checkin-btn" class="daily-checkin-btn" onclick="dailyCheckIn()">Daily Check-In 🎁 (+100 Points)</button>
       <div id="ton-connect"></div>
       <div id="wallet-address"></div>
-      <button id="check-wallet-btn" onclick="checkWalletStatus()">Check Wallet Status</button>
-      <button id="force-close-modal-btn" onclick="forceCloseModal()">Force Close Modal</button>
-      <button id="disconnect-btn" class="hidden" onclick="disconnectWallet()">Disconnect Wallet</button>
+      <button id="check-wallet-btn" class="connect-btn" onclick="checkWalletStatus()">Check Wallet Status</button>
+      <button id="force-close-modal-btn" class="connect-btn" onclick="forceCloseModal()">Force Close Modal</button>
+      <button id="disconnect-btn" class="hidden connect-btn" onclick="disconnectWallet()">Disconnect Wallet</button>
     </div>
 
     <!-- Page 2: Tasks -->
@@ -600,7 +618,7 @@
             } else {
               console.log('Polling: No wallet connected yet');
             }
-          }, 150); // Check every 150ms
+          }, 100); // Check every 100ms
         }).catch(error => {
           console.error('Error checking wallets:', error);
           showNotification('خطأ في التحقق من المحافظ: ' + error.message, true);
@@ -618,7 +636,7 @@
               console.log('Attempting to close modal after status change');
               tonConnectUI.closeModal();
               showNotification('تم إغلاق نافذة المحفظة', true);
-            }, 200); // Reduced delay
+            }, 100); // Reduced delay
           } else {
             console.warn('Invalid wallet info:', JSON.stringify(walletInfo, null, 2));
             handleDisconnection();
@@ -655,15 +673,21 @@
           // Force UI update
           requestAnimationFrame(() => {
             walletAddressDiv.style.display = 'block';
+            walletAddressDiv.style.visibility = 'visible'; // Ensure visibility
+            walletAddressDiv.style.opacity = '1'; // Ensure visibility
             disconnectBtn.classList.remove('hidden');
             console.log('UI updated: Wallet address displayed:', shortAddress);
             setTimeout(() => {
-              walletAddressDiv.style.display = 'block'; // Double-check UI update
+              walletAddressDiv.style.display = 'block';
+              walletAddressDiv.style.visibility = 'visible';
+              walletAddressDiv.style.opacity = '1';
               disconnectBtn.classList.remove('hidden');
               console.log('Secondary UI update check:', shortAddress);
             }, 100);
             setTimeout(() => {
-              walletAddressDiv.style.display = 'block'; // Triple-check UI update
+              walletAddressDiv.style.display = 'block';
+              walletAddressDiv.style.visibility = 'visible';
+              walletAddressDiv.style.opacity = '1';
               console.log('Tertiary UI update check:', shortAddress);
             }, 500);
           });
@@ -730,6 +754,8 @@
         requestAnimationFrame(() => {
           tonConnectDiv.style.display = 'block';
           walletAddressDiv.style.display = 'none';
+          walletAddressDiv.style.visibility = 'hidden';
+          walletAddressDiv.style.opacity = '0';
           disconnectBtn.classList.add('hidden');
           console.log('UI reset: Wallet disconnected');
         });
@@ -811,7 +837,7 @@
         padding: 15px 25px;
         border-radius: 25px;
         font-weight: bold;
-        z-index: 1000;
+        z-index: 2000; /* High z-index for notifications */
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         animation: slideDown 0.3s ease;
       `;
@@ -874,4 +900,4 @@
     });
   </script>
 </body>
-  </html>
+          </html>
