@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, warning-scale=1.0, user-scalable=no">
   <title>SYRX App</title>
   <!-- Removed favicon to avoid 404 error -->
   <!-- <link rel="icon" type="image/x-icon" href="/favicon.ico"> -->
@@ -841,9 +841,23 @@
         button.disabled = true;
         return;
       }
+
       button.textContent = 'Opening...';
       button.disabled = true;
-      window.open(link, '_blank');
+
+      // فتح الرابط باستخدام Telegram Web App
+      try {
+        Telegram.WebApp.openLink(link);
+        console.log('Opened task link via Telegram.WebApp.openLink:', link);
+      } catch (error) {
+        console.error('Error opening task link:', error);
+        // الرجوع إلى window.open في حالة فشل Telegram.WebApp.openLink
+        window.open(link, '_blank');
+        console.log('Fallback: Opened task link via window.open:', link);
+        showNotification('خطأ في فتح الرابط، جرب مرة أخرى', true);
+      }
+
+      // تأخير إكمال المهمة لمدة 20 ثانية
       setTimeout(() => {
         button.textContent = 'Completed ✅';
         button.style.background = '#4CAF50';
@@ -966,4 +980,4 @@
     });
   </script>
 </body>
-      </html>
+  </html>
