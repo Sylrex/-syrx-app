@@ -18,33 +18,34 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      overflow-y: auto; /* Allow scrolling */
+      overflow-y: auto;
     }
     .container {
       width: 100%;
-      max-width: 800px; /* Increased for larger screens */
+      max-width: 400px; /* Reduced for mobile */
       min-height: 100vh;
+      max-height: 100vh; /* Prevent over-expansion */
       background: rgba(255, 255, 255, 0.1);
       border-radius: 0;
-      padding: 20px;
+      padding: 15px;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
       align-items: center;
       backdrop-filter: blur(10px);
       position: relative;
-      overflow-y: auto; /* Allow container scrolling */
+      overflow-y: auto;
     }
     .logo {
-      width: 120px;
-      height: 120px;
-      margin: 20px 0;
+      width: 100px; /* Fixed size */
+      height: 100px;
+      margin: 15px 0;
       background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2em;
+      font-size: 1.8em;
       font-weight: bold;
       color: white;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
@@ -53,72 +54,76 @@
     .user-profile {
       display: flex;
       align-items: center;
-      margin: 15px 0;
+      margin: 10px 0;
       background: rgba(255, 255, 255, 0.1);
-      padding: 15px;
-      border-radius: 15px;
+      padding: 10px;
+      border-radius: 12px;
       backdrop-filter: blur(5px);
       z-index: 10;
+      width: 90%;
     }
     .user-profile img {
-      width: 60px;
-      height: 60px;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
-      margin-right: 15px;
-      border: 3px solid #fff;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      margin-right: 10px;
+      border: 2px solid #fff;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
     }
     .user-profile span {
-      font-size: 1.3em;
+      font-size: 1.1em;
       font-weight: bold;
     }
     h1, h2 {
-      font-size: 1.8em;
-      margin: 10px 0;
+      font-size: 1.5em;
+      margin: 8px 0;
       text-align: center;
       z-index: 10;
     }
     #ton-connect {
-      margin: 20px 0;
+      margin: 15px 0;
       z-index: 10;
     }
     .connect-btn {
       background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
       color: white;
       border: none;
-      padding: 15px 30px;
-      border-radius: 25px;
-      font-size: 1.1em;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 1em;
       font-weight: bold;
       cursor: pointer;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
       z-index: 10;
+      width: 90%;
+      max-width: 300px;
+      margin: 5px 0;
     }
     .connect-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     }
     .daily-checkin-btn {
       background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
       color: white;
       border: none;
-      padding: 15px 30px;
-      border-radius: 25px;
-      font-size: 1.1em;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 1em;
       font-weight: bold;
       cursor: pointer;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      position: relative;
-      overflow: hidden;
-      margin: 20px 0;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      margin: 15px 0;
       animation: pulse 2s infinite;
       z-index: 10;
+      width: 90%;
+      max-width: 300px;
     }
     .daily-checkin-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.3), 0 0 20px rgba(255, 107, 107, 0.5);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     }
     .daily-checkin-btn:disabled {
       background: #666;
@@ -135,16 +140,16 @@
     #wallet-address {
       background: rgba(255, 255, 255, 0.9);
       color: #333;
-      padding: 15px;
-      border-radius: 15px;
-      margin: 20px;
+      padding: 10px;
+      border-radius: 12px;
+      margin: 15px;
       word-break: break-all;
-      font-size: 0.9em;
+      font-size: 0.8em;
       max-width: 90%;
       text-align: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
       z-index: 10;
-      visibility: visible; /* Ensure visibility */
+      visibility: visible;
       opacity: 1;
     }
     .hidden {
@@ -156,25 +161,25 @@
       left: 50%;
       transform: translateX(-50%);
       width: 100%;
-      max-width: 800px; /* Match container max-width */
+      max-width: 400px; /* Match container */
       display: flex;
       justify-content: space-around;
       background: rgba(0, 0, 0, 0.8);
-      padding: 15px 0;
+      padding: 10px 0;
       backdrop-filter: blur(10px);
-      z-index: 2000; /* High z-index to ensure visibility */
+      z-index: 3000; /* High z-index */
     }
     .nav-btn {
       background: rgba(255, 255, 255, 0.2);
       color: white;
       border: none;
-      padding: 12px 20px;
-      border-radius: 20px;
+      padding: 8px 15px;
+      border-radius: 15px;
       cursor: pointer;
       font-weight: bold;
       transition: all 0.3s ease;
-      font-size: 0.9em;
-      z-index: 2000;
+      font-size: 0.8em;
+      z-index: 3000;
     }
     .nav-btn.active {
       background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
@@ -188,7 +193,7 @@
       width: 100%;
       flex-grow: 1;
       overflow-y: auto;
-      padding-bottom: 120px; /* Increased to prevent overlap with navigation */
+      padding-bottom: 150px; /* Increased to prevent overlap */
       z-index: 10;
     }
     .page.active {
@@ -198,9 +203,9 @@
     }
     .task {
       background: rgba(255, 255, 255, 0.15);
-      padding: 20px;
-      margin: 10px 0;
-      border-radius: 15px;
+      padding: 15px;
+      margin: 8px 0;
+      border-radius: 12px;
       width: 90%;
       text-align: center;
       backdrop-filter: blur(5px);
@@ -211,34 +216,37 @@
       z-index: 10;
     }
     .task img {
-      width: 32px;
-      height: 32px;
-      margin-right: 10px;
+      width: 24px;
+      height: 24px;
+      margin-right: 8px;
     }
     .task h3 {
       margin: 0;
       color: #4ecdc4;
       flex-grow: 1;
       text-align: left;
+      font-size: 1em;
     }
     .task p {
-      margin: 10px 0;
+      margin: 8px 0;
       opacity: 0.9;
+      font-size: 0.9em;
     }
     .task button {
       background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
       color: white;
       border: none;
-      padding: 10px 20px;
-      border-radius: 20px;
+      padding: 8px 15px;
+      border-radius: 15px;
       cursor: pointer;
       font-weight: bold;
       transition: all 0.3s ease;
       z-index: 10;
+      font-size: 0.9em;
     }
     .task button:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
     }
     .task button:disabled {
       background: #666;
@@ -246,30 +254,29 @@
       transform: none;
     }
     .referral {
-      margin: 20px 0;
-      font-size: 0.9em;
+      margin: 15px 0;
+      font-size: 0.8em;
       text-align: center;
       background: rgba(255, 255, 255, 0.1);
-      padding: 20px;
-      border-radius: 15px;
+      padding: 15px;
+      border-radius: 12px;
       width: 90%;
       z-index: 10;
     }
     .referral-code {
       background: rgba(255, 255, 255, 0.2);
-      padding: 10px;
-      border-radius: 10px;
-      margin: 10px 0;
+      padding: 8px;
+      border-radius: 8px;
+      margin: 8px 0;
       font-family: monospace;
-      font-size: 1.1em;
-      letter-spacing: 1px;
+      font-size: 1em;
     }
     .leaderboard {
       width: 90%;
       list-style: none;
       padding: 0;
       margin: 0;
-      max-height: 60vh;
+      max-height: 50vh;
       overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: #4ecdc4 #1e3c72;
@@ -277,9 +284,9 @@
     }
     .leaderboard li {
       background: rgba(255, 255, 255, 0.15);
-      padding: 15px;
-      margin: 8px 0;
-      border-radius: 15px;
+      padding: 12px;
+      margin: 6px 0;
+      border-radius: 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -289,7 +296,7 @@
     .leaderboard .rank {
       font-weight: bold;
       color: #4ecdc4;
-      font-size: 1.2em;
+      font-size: 1em;
     }
     .leaderboard .points {
       color: #ff6b6b;
@@ -297,49 +304,71 @@
     }
     .leaderboard .referrals {
       color: #4ecdc4;
-      font-size: 0.9em;
+      font-size: 0.8em;
     }
     .stats {
       display: flex;
       justify-content: space-around;
       width: 90%;
-      margin: 20px 0;
+      margin: 15px 0;
       z-index: 10;
     }
     .stat-item {
       text-align: center;
       background: rgba(255, 255, 255, 0.1);
-      padding: 15px;
-      border-radius: 15px;
+      padding: 12px;
+      border-radius: 12px;
       flex: 1;
-      margin: 0 5px;
+      margin: 0 4px;
     }
     .stat-number {
-      font-size: 2em;
+      font-size: 1.5em;
       font-weight: bold;
       color: #4ecdc4;
     }
     .stat-label {
-      font-size: 0.9em;
+      font-size: 0.8em;
       opacity: 0.8;
     }
     #disconnect-btn, #force-close-modal-btn {
       background: linear-gradient(45deg, #dc3545, #ff6b6b);
       color: white;
       border: none;
-      padding: 10px 20px;
-      border-radius: 20px;
+      padding: 8px 15px;
+      border-radius: 15px;
       cursor: pointer;
       font-weight: bold;
       transition: all 0.3s ease;
-      margin: 10px;
+      margin: 8px;
       z-index: 10;
+      width: 90%;
+      max-width: 300px;
     }
     #disconnect-btn:hover, #force-close-modal-btn:hover {
       transform: translateY(-1px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
     }
-    @media (max-width: 400px) {
+    .custom-btn { /* For new buttons */
+      background: linear-gradient(45deg, #4ecdc4, #ff6b6b);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      z-index: 10;
+      width: 90%;
+      max-width: 300px;
+      margin: 5px 0;
+    }
+    .custom-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    @media (max-width: 360px) {
       .container {
         max-width: 100%;
       }
@@ -353,22 +382,22 @@
         height: 40px;
       }
       .user-profile span {
-        font-size: 1em;
+        font-size: 0.9em;
       }
       h1 {
-        font-size: 1.5em;
+        font-size: 1.3em;
       }
       #wallet-address {
-        font-size: 0.8em;
-        padding: 8px;
+        font-size: 0.7em;
+        padding: 6px;
       }
       .nav-btn {
-        padding: 10px 15px;
-        font-size: 0.8em;
+        padding: 6px 10px;
+        font-size: 0.7em;
       }
       .task img {
-        width: 24px;
-        height: 24px;
+        width: 20px;
+        height: 20px;
       }
       .navigation {
         max-width: 100%;
@@ -376,8 +405,8 @@
     }
     @media (min-width: 600px) {
       .container {
-        border-radius: 15px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        border-radius: 12px;
+        box-shadow: 0 3px 15px rgba(0, 0, 0, 0.3);
       }
     }
   </style>
@@ -408,6 +437,9 @@
       <button id="check-wallet-btn" class="connect-btn" onclick="checkWalletStatus()">Check Wallet Status</button>
       <button id="force-close-modal-btn" class="connect-btn" onclick="forceCloseModal()">Force Close Modal</button>
       <button id="disconnect-btn" class="hidden connect-btn" onclick="disconnectWallet()">Disconnect Wallet</button>
+      <!-- Example new buttons (replace with your actual buttons) -->
+      <button class="custom-btn" onclick="alert('Custom Action 1')">Custom Button 1</button>
+      <button class="custom-btn" onclick="alert('Custom Action 2')">Custom Button 2</button>
     </div>
 
     <!-- Page 2: Tasks -->
@@ -452,7 +484,7 @@
         <p><strong>Your Referral Link:</strong></p>
         <div class="referral-code" id="referral-link"></div>
         <button class="connect-btn" onclick="copyReferralLink()">Copy Link</button>
-        <p style="margin-top: 15px;">Earn <strong>500 points</strong> for each friend who joins!</p>
+        <p style="margin-top: 10px;">Earn <strong>500 points</strong> for each friend who joins!</p>
       </div>
       <div class="stats">
         <div class="stat-item">
@@ -542,7 +574,7 @@
       if (window.TON_CONNECT_UI) {
         window.TON_CONNECT_UI.closeModal();
         showNotification('تم إغلاق النافذة يدويًا', true);
-        checkWalletStatus(); // Check status after closing modal
+        checkWalletStatus();
       } else {
         showNotification('خطأ: مكتبة TON Connect غير محملة', true);
       }
@@ -608,7 +640,7 @@
       tonConnectUI.on('beforeWalletLinkOpen', (link) => {
         console.log('Intercepted wallet link:', link);
         openWalletLink(link);
-        return false; // Prevent default redirect
+        return false;
       });
 
       // Check wallet connection on load
@@ -629,11 +661,11 @@
               console.log('Polling: Wallet connected:', JSON.stringify(tonConnectUI.wallet, null, 2));
               handleConnection(tonConnectUI.wallet);
               tonConnectUI.closeModal();
-              clearInterval(intervalId); // Stop polling after connection
+              clearInterval(intervalId);
             } else {
               console.log('Polling: No wallet connected yet');
             }
-          }, 80); // Check every 80ms
+          }, 50); // Check every 50ms
         }).catch(error => {
           console.error('Error checking wallets:', error);
           showNotification('خطأ في التحقق من المحافظ: ' + error.message, true);
@@ -651,7 +683,7 @@
               console.log('Attempting to close modal after status change');
               tonConnectUI.closeModal();
               showNotification('تم إغلاق نافذة المحفظة', true);
-            }, 80); // Reduced delay
+            }, 50); // Reduced delay
           } else {
             console.warn('Invalid wallet info:', JSON.stringify(walletInfo, null, 2));
             handleDisconnection();
@@ -698,13 +730,13 @@
               walletAddressDiv.style.opacity = '1';
               disconnectBtn.classList.remove('hidden');
               console.log('Secondary UI update check:', shortAddress);
-            }, 80);
+            }, 50);
             setTimeout(() => {
               walletAddressDiv.style.display = 'block';
               walletAddressDiv.style.visibility = 'visible';
               walletAddressDiv.style.opacity = '1';
               console.log('Tertiary UI update check:', shortAddress);
-            }, 400);
+            }, 300);
           });
 
           tonConnectUI.closeModal();
@@ -859,16 +891,16 @@
       const notification = document.createElement('div');
       notification.style.cssText = `
         position: fixed;
-        top: 20px;
+        top: 15px;
         left: 50%;
         transform: translateX(-50%);
         background: linear-gradient(45deg, #4CAF50, #45a049);
         color: white;
-        padding: 15px 25px;
-        border-radius: 25px;
+        padding: 10px 20px;
+        border-radius: 20px;
         font-weight: bold;
-        z-index: 3000; /* High z-index for notifications */
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        z-index: 4000; /* High z-index */
+        box-shadow: 0 3px 10px rgba(0,0,0,0.3);
         animation: slideDown 0.3s ease;
       `;
       notification.textContent = useArabic ? message : message;
@@ -891,7 +923,7 @@
             notification.parentNode.removeChild(notification);
           }
         }, 300);
-      }, 3000);
+      }, 2500);
     }
 
     // Initialize app
@@ -922,7 +954,7 @@
       document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
       document.getElementById(`page${pageNumber}`).classList.add('active');
       document.querySelectorAll('.nav-btn')[pageNumber - 1].classList.add('active');
-      ensureNavigationVisibility(); // Ensure navigation is visible after page switch
+      ensureNavigationVisibility();
     }
 
     // Handle back button
@@ -932,4 +964,4 @@
     });
   </script>
 </body>
-      </html>
+  </html>
