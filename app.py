@@ -7,7 +7,7 @@ from psycopg2 import pool
 from contextlib import contextmanager
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})  # تحسين CORS للسماح لكل الأصول
+CORS(app, resources={r"/*": {"origins": "*"}})  # السماح لكل الأصول للاختبار
 
 # إعداد Connection Pool
 db_pool = None
