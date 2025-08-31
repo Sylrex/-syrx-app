@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SYRX App</title>
-  <!-- Fix favicon 404 error -->
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <style>
     body {
@@ -306,7 +305,7 @@
       font-size: 0.9em;
       opacity: 0.8;
     }
-    #disconnect-btn {
+    #disconnect-btn, #force-close-modal-btn {
       background: linear-gradient(45deg, #dc3545, #ff6b6b);
       color: white;
       border: none;
@@ -317,7 +316,7 @@
       transition: all 0.3s ease;
       margin-top: 10px;
     }
-    #disconnect-btn:hover {
+    #disconnect-btn:hover, #force-close-modal-btn:hover {
       transform: translateY(-1px);
       box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
@@ -382,6 +381,7 @@
       <div id="ton-connect"></div>
       <div id="wallet-address"></div>
       <button id="check-wallet-btn" onclick="checkWalletStatus()">Check Wallet Status</button>
+      <button id="force-close-modal-btn" onclick="forceCloseModal()">Force Close Modal</button>
       <button id="disconnect-btn" class="hidden" onclick="disconnectWallet()">Disconnect Wallet</button>
     </div>
 
@@ -487,7 +487,7 @@
     tonConnectScript.onload = initializeTonConnect;
     tonConnectScript.onerror = () => {
       console.error('Failed to load TON Connect UI script');
-      showNotification('Error: Failed to load TON Connect library', true); // Arabic option
+      showNotification('خطأ: فشل تحميل مكتبة TON Connect', true);
     };
     document.head.appendChild(tonConnectScript);
 
@@ -504,12 +504,23 @@
       }
     }
 
+    // Force close modal
+    function forceCloseModal() {
+      console.log('Force closing modal');
+      if (window.TON_CONNECT_UI) {
+        window.TON_CONNECT_UI.closeModal();
+        showNotification('تم إغلاق النافذة يدويًا', true);
+      } else {
+        showNotification('خطأ: مكتبة TON Connect غير محملة', true);
+      }
+    }
+
     // Initialize TON Connect
     function initializeTonConnect() {
       console.log('TON Connect script loaded, initializing...');
       if (!window.TON_CONNECT_UI) {
         console.error('TON Connect UI not available');
-        showNotification('Error: TON Connect library not available', true);
+        showNotification('خطأ: مكتبة TON Connect غير متوفرة', true);
         return;
       }
 
@@ -570,10 +581,10 @@
             } else {
               console.log('Polling: No wallet connected yet');
             }
-          }, 1000); // Check every 1 second
+          }, 500); // Check every 0.5 seconds
         }).catch(error => {
           console.error('Error checking wallets:', error);
-          showNotification('Error checking wallets: ' + error.message, true);
+          showNotification('خطأ في التحقق من المحافظ: ' + error.message, true);
         });
       }
 
@@ -591,12 +602,12 @@
           } else {
             console.warn('Invalid wallet info:', walletInfo);
             handleDisconnection();
-            showNotification('Connection failed: Invalid wallet data', true);
+            showNotification('فشل الاتصال: بيانات المحفظة غير صالحة', true);
           }
         },
         error => {
           console.error('Connection error:', error);
-          showNotification('Wallet connection error: ' + error.message, true);
+          showNotification('خطأ في ربط المحفظة: ' + error.message, true);
           handleDisconnection();
         }
       );
@@ -610,7 +621,7 @@
 
         if (!tonConnectDiv || !walletAddressDiv || !disconnectBtn) {
           console.error('DOM elements missing:', { tonConnectDiv, walletAddressDiv, disconnectBtn });
-          showNotification('Error: UI elements not found', true);
+          showNotification('خطأ: عناصر الواجهة غير موجودة', true);
           return;
         }
 
@@ -632,7 +643,7 @@
           console.log('Modal close attempted');
 
           if (!localStorage.getItem('walletConnected')) {
-            showNotification('تم ربط المحفظة! +500 نقاط مكافأة!', true); // Arabic notification
+            showNotification('تم ربط المحفظة! +500 نقاط مكافأة!', true);
             userPoints = parseInt(userPoints) + 500;
             localStorage.setItem('points', userPoints);
             updateUserPoints();
@@ -644,7 +655,7 @@
         } else {
           console.warn('Invalid wallet info in handleConnection:', walletInfo);
           handleDisconnection();
-          showNotification('Failed to display wallet: Invalid data', true);
+          showNotification('فشل عرض المحفظة: بيانات غير صالحة', true);
         }
       }
 
@@ -655,10 +666,10 @@
           console.log('Manual check: Wallet connected:', tonConnectUI.wallet);
           handleConnection(tonConnectUI.wallet);
           tonConnectUI.closeModal();
-          showNotification('Wallet status confirmed!', true);
+          showNotification('تم تأكيد حالة المحفظة!', true);
         } else {
           console.log('Manual check: No wallet connected');
-          showNotification('No wallet connected currently', true);
+          showNotification('لا توجد محفظة متصلة حاليًا', true);
         }
       }
 
@@ -668,10 +679,10 @@
         try {
           await tonConnectUI.disconnect();
           handleDisconnection();
-          showNotification('Wallet disconnected!', true);
+          showNotification('تم قطع اتصال المحفظة!', true);
         } catch (error) {
           console.error('Disconnect error:', error);
-          showNotification('Error disconnecting wallet: ' + error.message, true);
+          showNotification('خطأ في قطع اتصال المحفظة: ' + error.message, true);
         }
       }
 
@@ -684,7 +695,7 @@
 
         if (!tonConnectDiv || !walletAddressDiv || !disconnectBtn) {
           console.error('DOM elements missing on disconnection:', { tonConnectDiv, walletAddressDiv, disconnectBtn });
-          showNotification('Error: UI elements not found', true);
+          showNotification('خطأ: عناصر الواجهة غير موجودة', true);
           return;
         }
 
@@ -703,88 +714,82 @@
       initializeWallet();
     }
 
-    // Navigate between pages
-    function showPage(pageNumber) {
-      document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(`page${pageNumber}`).classList.add('active');
-      document.querySelectorAll('.nav-btn')[pageNumber - 1].classList.add('active');
-      if (pageNumber === 4) {
-        loadLeaderboard();
-      }
-    }
-
     // Register user on load
     async function registerUser() {
-      if (userId !== 'anonymous') {
-        try {
-          const response = await fetch('/user', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: userId, name: userName, points: parseInt(userPoints) })
-          });
-          const data = await response.json();
-          console.log('Register user response:', data);
-          if (data.status === 'success') {
-            console.log('User registered:', userId);
-            userPoints = data.points || 0;
-            referrals = data.referrals || 0;
-            localStorage.setItem('points', userPoints);
-            document.getElementById('total-points').textContent = userPoints.toLocaleString();
-            document.getElementById('referrals').textContent = referrals;
-            document.getElementById('friends-invited').textContent = referrals;
-            document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
-            loadLeaderboard();
-          } else {
-            showNotification(data.message, true);
-          }
-        } catch (error) {
-          console.error('Error registering user:', error);
-          showNotification('Error registering user', true);
-        }
-      } else {
+      if (userId === 'anonymous') {
         console.warn('Skipping user registration because userId is anonymous');
-        loadLeaderboard();
+        showNotification('خطأ: معرف المستخدم غير متاح، جرب مرة أخرى', true);
+        return false;
+      }
+      try {
+        const response = await fetch('/user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: userId, name: userName, points: parseInt(userPoints) })
+        });
+        const data = await response.json();
+        console.log('Register user response:', data);
+        if (data.status === 'success') {
+          console.log('User registered:', userId);
+          userPoints = data.points || 0;
+          referrals = data.referrals || 0;
+          localStorage.setItem('points', userPoints);
+          document.getElementById('total-points').textContent = userPoints.toLocaleString();
+          document.getElementById('referrals').textContent = referrals;
+          document.getElementById('friends-invited').textContent = referrals;
+          document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
+          loadLeaderboard();
+          return true;
+        } else {
+          showNotification('خطأ في تسجيل المستخدم: ' + data.message, true);
+          return false;
+        }
+      } catch (error) {
+        console.error('Error registering user:', error);
+        showNotification('خطأ في تسجيل المستخدم', true);
+        return false;
       }
     }
 
     // Update user points on server
     async function updateUserPoints() {
-      if (userId !== 'anonymous') {
-        try {
-          const response = await fetch('/user', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: userId, name: userName, points: parseInt(userPoints) })
-          });
-          const data = await response.json();
-          console.log('Update points response:', data);
-          if (data.status === 'success') {
-            console.log('User points updated:', userPoints);
-            userPoints = data.points || 0;
-            referrals = data.referrals || 0;
-            localStorage.setItem('points', userPoints);
-            document.getElementById('total-points').textContent = userPoints.toLocaleString();
-            document.getElementById('referrals').textContent = referrals;
-            document.getElementById('friends-invited').textContent = referrals;
-            document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
-            loadLeaderboard();
-          } else {
-            showNotification(data.message, true);
-          }
-        } catch (error) {
-          console.error('Error updating points:', error);
-          showNotification('Error updating points', true);
-        }
-      } else {
+      if (userId === 'anonymous') {
         console.warn('Skipping update because userId is anonymous');
+        showNotification('خطأ: معرف المستخدم غير متاح، لا يمكن تحديث النقاط', true);
+        return;
+      }
+      try {
+        const response = await fetch('/user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: userId, name: userName, points: parseInt(userPoints) })
+        });
+        const data = await response.json();
+        console.log('Update points response:', data);
+        if (data.status === 'success') {
+          console.log('User points updated:', userPoints);
+          userPoints = data.points || 0;
+          referrals = data.referrals || 0;
+          localStorage.setItem('points', userPoints);
+          document.getElementById('total-points').textContent = userPoints.toLocaleString();
+          document.getElementById('referrals').textContent = referrals;
+          document.getElementById('friends-invited').textContent = referrals;
+          document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
+          loadLeaderboard();
+        } else {
+          showNotification('خطأ في تحديث النقاط: ' + data.message, true);
+        }
+      } catch (error) {
+        console.error('Error updating points:', error);
+        showNotification('خطأ في تحديث النقاط', true);
       }
     }
 
-    // Fetch user data from server
+    // Fetch user data from server with retry on "User not found"
     async function fetchUserData() {
       if (userId === 'anonymous') {
         console.warn('Skipping fetch because userId is anonymous');
+        showNotification('خطأ: معرف المستخدم غير متاح', true);
         return;
       }
       try {
@@ -802,12 +807,21 @@
           document.getElementById('friends-invited').textContent = referrals;
           document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
           loadLeaderboard();
+        } else if (data.message === 'User not found') {
+          console.warn('User not found, attempting to register...');
+          const registered = await registerUser();
+          if (registered) {
+            console.log('User registered, retrying fetchUserData...');
+            await fetchUserData(); // Retry after registration
+          } else {
+            showNotification('خطأ: فشل تسجيل المستخدم', true);
+          }
         } else {
-          showNotification('Error fetching user data: ' + data.message, true);
+          showNotification('خطأ في جلب بيانات المستخدم: ' + data.message, true);
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
-        showNotification('Error fetching user data', true);
+        showNotification('خطأ في جلب بيانات المستخدم', true);
       }
     }
 
@@ -826,7 +840,7 @@
           const userData = await userResponse.json();
           console.log('User registration response:', userData);
           if (userData.status !== 'success') {
-            showNotification('Error registering referred user: ' + userData.message, true);
+            showNotification('خطأ في تسجيل المستخدم المُحال: ' + userData.message, true);
             return;
           }
           const referralResponse = await fetch('/referral', {
@@ -837,7 +851,7 @@
           const referralData = await referralResponse.json();
           console.log('Referral response:', referralData);
           if (referralData.status === 'success') {
-            showNotification('Referral registered successfully! Referrer earned 500 points!', true);
+            showNotification('تم تسجيل الإحالة بنجاح! المُحيل حصل على 500 نقطة!', true);
             await fetchUserData();
             loadLeaderboard();
           } else {
@@ -845,7 +859,7 @@
           }
         } catch (error) {
           console.error('Error processing referral:', error);
-          showNotification('Error processing referral', true);
+          showNotification('خطأ في معالجة الإحالة', true);
         }
       }
     }
@@ -862,7 +876,7 @@
         const leaderboardList = document.getElementById('leaderboard-list');
         leaderboardList.innerHTML = '';
         if (leaderboardData.length === 0) {
-          leaderboardList.innerHTML = '<li>No players yet. Invite your friends to join the leaderboard!</li>';
+          leaderboardList.innerHTML = '<li>لا يوجد لاعبون بعد. ادعُ أصدقاءك للانضمام إلى لوحة الصدارة!</li>';
         } else {
           leaderboardData.forEach((player, index) => {
             const li = document.createElement('li');
@@ -875,7 +889,7 @@
         }
       } catch (error) {
         console.error('Error loading leaderboard:', error);
-        showNotification('Error loading leaderboard', true);
+        showNotification('خطأ في تحميل لوحة الصدارة', true);
       }
     }
 
@@ -885,7 +899,7 @@
     // Task completion with link opening and 20-second delay
     function completeTask(button, platform, points, link) {
       if (localStorage.getItem(platform) === 'completed') {
-        showNotification('Task already completed!', true);
+        showNotification('المهمة مكتملة بالفعل!', true);
         button.textContent = 'Completed ✅';
         button.style.background = '#4CAF50';
         button.disabled = true;
@@ -902,7 +916,7 @@
         localStorage.setItem(platform, 'completed');
         document.getElementById('total-points').textContent = userPoints.toLocaleString();
         updateUserPoints();
-        showNotification(`Task completed! +${points} points!`, true);
+        showNotification(`تم إكمال المهمة! +${points} نقاط!`, true);
       }, 20000);
     }
 
@@ -913,7 +927,7 @@
       const checkInButton = document.getElementById('daily-checkin-btn');
 
       if (lastCheckIn === today) {
-        showNotification('You already checked in today!', true);
+        showNotification('لقد سجلت دخولك اليوم بالفعل!', true);
         checkInButton.textContent = 'Checked In Today ✅';
         checkInButton.disabled = true;
         return;
@@ -924,7 +938,7 @@
       localStorage.setItem('lastCheckIn', today);
       document.getElementById('total-points').textContent = userPoints.toLocaleString();
       updateUserPoints();
-      showNotification('Daily check-in successful! +100 points!', true);
+      showNotification('تسجيل دخول يومي ناجح! +100 نقاط!', true);
 
       checkInButton.textContent = 'Checked In Today ✅';
       checkInButton.disabled = true;
@@ -934,9 +948,9 @@
     function copyReferralLink() {
       const link = document.getElementById('referral-link').textContent;
       navigator.clipboard.writeText(link).then(() => {
-        showNotification('Referral link copied!', true);
+        showNotification('تم نسخ رابط الإحالة!', true);
       }).catch(() => {
-        showNotification('Link: ' + link, true);
+        showNotification('الرابط: ' + link, true);
       });
     }
 
@@ -957,7 +971,7 @@
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         animation: slideDown 0.3s ease;
       `;
-      notification.textContent = useArabic ? message : message; // Use Arabic if specified
+      notification.textContent = useArabic ? message : message;
       if (!document.querySelector('#notification-styles')) {
         const style = document.createElement('style');
         style.id = 'notification-styles';
@@ -981,7 +995,7 @@
     }
 
     // Initialize app
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       console.log('DOM fully loaded, initializing app...');
       showPage(1);
       document.querySelectorAll('.task button').forEach(button => {
@@ -1001,8 +1015,9 @@
         checkInButton.disabled = true;
       }
 
-      registerUser();
-      fetchUserData();
+      // Ensure user is registered before fetching data
+      await registerUser();
+      await fetchUserData();
       handleReferral();
       setInterval(fetchUserData, 60000);
       setInterval(loadLeaderboard, 5000);
@@ -1014,4 +1029,4 @@
     });
   </script>
 </body>
-  </html>
+          </html>
