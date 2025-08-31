@@ -22,9 +22,9 @@
     }
     .container {
       width: 100%;
-      max-width: 400px; /* Reduced for mobile */
+      max-width: 400px;
       min-height: 100vh;
-      max-height: 100vh; /* Prevent over-expansion */
+      max-height: 100vh;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 0;
       padding: 15px;
@@ -37,7 +37,7 @@
       overflow-y: auto;
     }
     .logo {
-      width: 100px; /* Fixed size */
+      width: 100px;
       height: 100px;
       margin: 15px 0;
       background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
@@ -161,13 +161,13 @@
       left: 50%;
       transform: translateX(-50%);
       width: 100%;
-      max-width: 400px; /* Match container */
+      max-width: 400px;
       display: flex;
       justify-content: space-around;
       background: rgba(0, 0, 0, 0.8);
       padding: 10px 0;
       backdrop-filter: blur(10px);
-      z-index: 3000; /* High z-index */
+      z-index: 3000;
     }
     .nav-btn {
       background: rgba(255, 255, 255, 0.2);
@@ -193,7 +193,7 @@
       width: 100%;
       flex-grow: 1;
       overflow-y: auto;
-      padding-bottom: 150px; /* Increased to prevent overlap */
+      padding-bottom: 150px;
       z-index: 10;
     }
     .page.active {
@@ -330,7 +330,7 @@
       font-size: 0.8em;
       opacity: 0.8;
     }
-    #disconnect-btn, #force-close-modal-btn {
+    #disconnect-btn, #force-close-modal-btn, #retry-connect-btn {
       background: linear-gradient(45deg, #dc3545, #ff6b6b);
       color: white;
       border: none;
@@ -344,29 +344,9 @@
       width: 90%;
       max-width: 300px;
     }
-    #disconnect-btn:hover, #force-close-modal-btn:hover {
+    #disconnect-btn:hover, #force-close-modal-btn:hover, #retry-connect-btn:hover {
       transform: translateY(-1px);
       box-shadow: 0 3px 8px rgba(0,0,0,0.2);
-    }
-    .custom-btn { /* For new buttons */
-      background: linear-gradient(45deg, #4ecdc4, #ff6b6b);
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 20px;
-      font-size: 1em;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-      z-index: 10;
-      width: 90%;
-      max-width: 300px;
-      margin: 5px 0;
-    }
-    .custom-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     }
     @media (max-width: 360px) {
       .container {
@@ -415,7 +395,7 @@
   <div class="container">
     <!-- Page 1: Home -->
     <div id="page1" class="page active">
-      <div class="logo">SYRX</div> <!-- Fallback to text logo -->
+      <div class="logo">SYRX</div>
       <div class="user-profile">
         <img id="user-photo" src="https://via.placeholder.com/60/4ecdc4/ffffff?text=👤" alt="User Photo">
         <span id="user-name">Loading...</span>
@@ -436,10 +416,8 @@
       <div id="wallet-address"></div>
       <button id="check-wallet-btn" class="connect-btn" onclick="checkWalletStatus()">Check Wallet Status</button>
       <button id="force-close-modal-btn" class="connect-btn" onclick="forceCloseModal()">Force Close Modal</button>
+      <button id="retry-connect-btn" class="connect-btn" onclick="retryConnection()">Retry Connection</button>
       <button id="disconnect-btn" class="hidden connect-btn" onclick="disconnectWallet()">Disconnect Wallet</button>
-      <!-- Example new buttons (replace with your actual buttons) -->
-      <button class="custom-btn" onclick="alert('Custom Action 1')">Custom Button 1</button>
-      <button class="custom-btn" onclick="alert('Custom Action 2')">Custom Button 2</button>
     </div>
 
     <!-- Page 2: Tasks -->
@@ -545,6 +523,7 @@
     let referrals = 0;
 
     // Load TON Connect UI
+    let tonConnectUI = null;
     const tonConnectScript = document.createElement('script');
     tonConnectScript.src = 'https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js';
     tonConnectScript.onload = initializeTonConnect;
@@ -571,12 +550,29 @@
     // Force close modal
     function forceCloseModal() {
       console.log('Force closing modal');
-      if (window.TON_CONNECT_UI) {
-        window.TON_CONNECT_UI.closeModal();
+      if (tonConnectUI) {
+        tonConnectUI.closeModal();
         showNotification('تم إغلاق النافذة يدويًا', true);
         checkWalletStatus();
       } else {
         showNotification('خطأ: مكتبة TON Connect غير محملة', true);
+      }
+    }
+
+    // Retry TON Connect initialization
+    function retryConnection() {
+      console.log('Retrying TON Connect initialization');
+      if (tonConnectUI) {
+        tonConnectUI.disconnect().then(() => {
+          initializeTonConnect();
+          showNotification('جارٍ إعادة محاولة الاتصال...', true);
+        }).catch(error => {
+          console.error('Error during retry disconnect:', error);
+          showNotification('خطأ في إعادة المحاولة: ' + error.message, true);
+        });
+      } else {
+        initializeTonConnect();
+        showNotification('جارٍ إعادة محاولة الاتصال...', true);
       }
     }
 
@@ -590,7 +586,7 @@
       }
 
       // Test manifest availability with retry
-      function tryFetchManifest(attempts = 3, delay = 1000) {
+      function tryFetchManifest(attempts = 4, delay = 800) {
         fetch('https://syrx.onrender.com/tonconnect-manifest.json')
           .then(response => {
             if (!response.ok) throw new Error('Manifest not found');
@@ -600,15 +596,15 @@
             console.error('Error loading tonconnect-manifest.json:', error);
             if (attempts > 1) {
               console.log(`Retrying fetch (${attempts - 1} attempts left)...`);
-              setTimeout(() => tryFetchManifest(attempts - 1, delay * 2), delay);
+              setTimeout(() => tryFetchManifest(attempts - 1, delay * 1.5), delay);
             } else {
-              showNotification('خطأ: فشل تحميل ملف إعدادات TON Connect', true);
+              showNotification('خطأ: فشل تحميل ملف إعدادات TON Connect. جرب زر إعادة المحاولة', true);
             }
           });
       }
       tryFetchManifest();
 
-      const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+      tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
         manifestUrl: "https://syrx.onrender.com/tonconnect-manifest.json",
         walletsListConfiguration: {
           includeWallets: [
@@ -665,7 +661,7 @@
             } else {
               console.log('Polling: No wallet connected yet');
             }
-          }, 50); // Check every 50ms
+          }, 50);
         }).catch(error => {
           console.error('Error checking wallets:', error);
           showNotification('خطأ في التحقق من المحافظ: ' + error.message, true);
@@ -683,11 +679,11 @@
               console.log('Attempting to close modal after status change');
               tonConnectUI.closeModal();
               showNotification('تم إغلاق نافذة المحفظة', true);
-            }, 50); // Reduced delay
+            }, 50);
           } else {
             console.warn('Invalid wallet info:', JSON.stringify(walletInfo, null, 2));
             handleDisconnection();
-            showNotification('فشل الاتصال: بيانات المحفظة غير صالحة', true);
+            showNotification('فشل الاتصال: بيانات المحفظة غير صالحة. جرب زر إعادة المحاولة', true);
           }
         },
         error => {
@@ -703,9 +699,10 @@
         const tonConnectDiv = document.getElementById('ton-connect');
         const walletAddressDiv = document.getElementById('wallet-address');
         const disconnectBtn = document.getElementById('disconnect-btn');
+        const retryBtn = document.getElementById('retry-connect-btn');
 
-        if (!tonConnectDiv || !walletAddressDiv || !disconnectBtn) {
-          console.error('DOM elements missing:', { tonConnectDiv, walletAddressDiv, disconnectBtn });
+        if (!tonConnectDiv || !walletAddressDiv || !disconnectBtn || !retryBtn) {
+          console.error('DOM elements missing:', { tonConnectDiv, walletAddressDiv, disconnectBtn, retryBtn });
           showNotification('خطأ: عناصر الواجهة غير موجودة', true);
           return;
         }
@@ -723,12 +720,14 @@
             walletAddressDiv.style.visibility = 'visible';
             walletAddressDiv.style.opacity = '1';
             disconnectBtn.classList.remove('hidden');
+            retryBtn.classList.add('hidden');
             console.log('UI updated: Wallet address displayed:', shortAddress);
             setTimeout(() => {
               walletAddressDiv.style.display = 'block';
               walletAddressDiv.style.visibility = 'visible';
               walletAddressDiv.style.opacity = '1';
               disconnectBtn.classList.remove('hidden');
+              retryBtn.classList.add('hidden');
               console.log('Secondary UI update check:', shortAddress);
             }, 50);
             setTimeout(() => {
@@ -761,14 +760,15 @@
       // Manual wallet status check
       function checkWalletStatus() {
         console.log('Manual wallet status check triggered');
-        if (tonConnectUI.connected && tonConnectUI.wallet) {
+        if (tonConnectUI && tonConnectUI.connected && tonConnectUI.wallet) {
           console.log('Manual check: Wallet connected:', JSON.stringify(tonConnectUI.wallet, null, 2));
           handleConnection(tonConnectUI.wallet);
           tonConnectUI.closeModal();
           showNotification('تم تأكيد حالة المحفظة!', true);
         } else {
           console.log('Manual check: No wallet connected');
-          showNotification('لا توجد محفظة متصلة حاليًا', true);
+          showNotification('لا توجد محفظة متصلة حاليًا. جرب زر إعادة المحاولة', true);
+          document.getElementById('retry-connect-btn').classList.remove('hidden');
         }
       }
 
@@ -791,9 +791,10 @@
         const tonConnectDiv = document.getElementById('ton-connect');
         const walletAddressDiv = document.getElementById('wallet-address');
         const disconnectBtn = document.getElementById('disconnect-btn');
+        const retryBtn = document.getElementById('retry-connect-btn');
 
-        if (!tonConnectDiv || !walletAddressDiv || !disconnectBtn) {
-          console.error('DOM elements missing on disconnection:', { tonConnectDiv, walletAddressDiv, disconnectBtn });
+        if (!tonConnectDiv || !walletAddressDiv || !disconnectBtn || !retryBtn) {
+          console.error('DOM elements missing on disconnection:', { tonConnectDiv, walletAddressDiv, disconnectBtn, retryBtn });
           showNotification('خطأ: عناصر الواجهة غير موجودة', true);
           return;
         }
@@ -804,6 +805,7 @@
           walletAddressDiv.style.visibility = 'hidden';
           walletAddressDiv.style.opacity = '0';
           disconnectBtn.classList.add('hidden');
+          retryBtn.classList.remove('hidden');
           console.log('UI reset: Wallet disconnected');
         });
 
@@ -899,7 +901,7 @@
         padding: 10px 20px;
         border-radius: 20px;
         font-weight: bold;
-        z-index: 4000; /* High z-index */
+        z-index: 4000;
         box-shadow: 0 3px 10px rgba(0,0,0,0.3);
         animation: slideDown 0.3s ease;
       `;
