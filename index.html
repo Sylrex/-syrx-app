@@ -841,12 +841,18 @@
         button.disabled = true;
         return;
       }
-      button.textContent = 'Opening...';
-      button.disabled = true;
+
+      // فتح الرابط مباشرة دون تغيير نص الزر
       window.open(link, '_blank');
+
+      // تعطيل الزر لمنع النقر المتكرر
+      button.disabled = true;
+
+      // بعد 20 ثانية، تحديث حالة المهمة
       setTimeout(() => {
         button.textContent = 'Completed ✅';
         button.style.background = '#4CAF50';
+        button.disabled = true; // تأكيد تعطيل الزر
         userPoints = parseInt(userPoints) + points;
         localStorage.setItem('points', userPoints);
         localStorage.setItem(platform, 'completed');
