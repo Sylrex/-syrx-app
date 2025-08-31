@@ -12,14 +12,20 @@ CORS(app, resources={r"/*": {"origins": "*"}})  # تحسين CORS للسماح �
 # إعداد Connection Pool
 db_pool = None
 try:
-    url = urlparse.urlparse(os.environ.get('DATABASE_URL', 'postgres://postgres:YOUR_PASSWORD@YOUR_HOST:5432/sylrex1'))
+    db_url = os.environ.get('DATABASE_URL')
+    if not db_url:
+        raise Exception("DATABASE_URL not found in environment")
+    
+    url = urlparse.urlparse(db_url)
+    
     db_pool = psycopg2.pool.SimpleConnectionPool(
         1, 20,
         dbname=url.path[1:],
         user=url.username,
         password=url.password,
         host=url.hostname,
-        port=url.port
+        port=url.port,
+        sslmode='require'  # ضروري مع Render
     )
     print("Database pool initialized successfully")
 except Exception as e:
@@ -44,7 +50,10 @@ def init_db():
             with conn.cursor() as cur:
                 if os.path.exists('init_db.sql'):
                     with open('init_db.sql', 'r') as file:
-                        cur.execute(file.read())
+                        sql_commands = file.read().split(';')
+                        for cmd in sql_commands:
+                            if cmd.strip():
+                                cur.execute(cmd)
                     conn.commit()
                     print("Database initialized successfully with init_db.sql")
                 else:
@@ -103,7 +112,7 @@ def update_user():
                 """, (user_id, name, points, 0))
                 result = cur.fetchone()
                 conn.commit()
-                print(f"User updated: {user_id}, Points: {points}, Name: {name}, Referrals: {result[1]}")  # لوج تحسين
+                print(f"User updated: {user_id}, Points: {points}, Name: {name}, Referrals: {result[1]}")
                 return jsonify({
                     "status": "success",
                     "message": "User updated",
@@ -152,13 +161,11 @@ def handle_referral():
         try:
             with get_db_connection() as conn:
                 with conn.cursor() as cur:
-                    # إنشاء المستخدم المُحال (إن لم يكن موجوداً)
                     cur.execute("""
                         INSERT INTO users (user_id, name, points, referrals)
                         VALUES (%s, %s, %s, %s)
                         ON CONFLICT (user_id) DO NOTHING;
                     """, (referred_id, referred_name, 0, 0))
-                    # تسجيل الإحالة
                     cur.execute("""
                         INSERT INTO referrals (referrer_id, referred_id)
                         VALUES (%s, %s)
@@ -167,7 +174,6 @@ def handle_referral():
                     """, (referrer_id, referred_id))
                     result = cur.fetchone()
                     if result:
-                        # إضافة 500 نقطة و+1 إحالة للمحيل
                         cur.execute("""
                             UPDATE users
                             SET points = points + 500,
@@ -177,7 +183,7 @@ def handle_referral():
                         """, (referrer_id,))
                         updated = cur.fetchone()
                         conn.commit()
-                        print(f"Referral recorded: {referrer_id} -> {referred_id}, Referrals: {updated[1]}, Points: {updated[0]}")  # لوج تحسين
+                        print(f"Referral recorded: {referrer_id} -> {referred_id}, Referrals: {updated[1]}, Points: {updated[0]}")
                         return jsonify({
                             "status": "success",
                             "message": "Referral recorded",
@@ -228,7 +234,7 @@ def get_leaderboard():
                     }
                     for row in cur.fetchall()
                 ]
-                print(f"Leaderboard fetched: {len(leaderboard)} users - Details: {leaderboard}")  # لوج تحسين للتصحيح
+                print(f"Leaderboard fetched: {len(leaderboard)} users")
                 response = jsonify(leaderboard)
                 response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
                 return response
