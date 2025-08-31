@@ -2,7 +2,7 @@
 <html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, warning-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SYRX App</title>
   <style>
     body {
@@ -165,7 +165,7 @@
       background: rgba(0, 0, 0, 0.8);
       padding: 10px 0;
       backdrop-filter: blur(10px);
-      z-index: 3000;
+      z-index: 4000; /* زيادة z-index لضمان الظهور */
     }
     .nav-btn {
       background: rgba(255, 255, 255, 0.2);
@@ -177,7 +177,7 @@
       font-weight: bold;
       transition: all 0.3s ease;
       font-size: 0.8em;
-      z-index: 3000;
+      z-index: 4000;
     }
     .nav-btn.active {
       background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
@@ -422,31 +422,31 @@
     <div id="page2" class="page">
       <h2>Daily Tasks 📋</h2>
       <div class="task">
-        <img src="/telegram-icon.png" alt="Telegram Icon">
+        <img src="https://cdn-icons-png.flaticon.com/512/2111/2111728.png" alt="Telegram Icon">
         <h3>Follow us on Telegram</h3>
         <p><a href="https://t.me/SylrexOfficial" target="_blank">Join our official channel</a></p>
         <button onclick="completeTask(this, 'telegram', 30, 'https://t.me/SylrexOfficial')">Complete (+30 Points)</button>
       </div>
       <div class="task">
-        <img src="/x-icon.png" alt="X Icon">
+        <img src="https://cdn-icons-png.flaticon.com/512/733/733603.png" alt="X Icon">
         <h3>Follow us on X</h3>
         <p><a href="https://x.com/SylrexOfficial?t=xMY6eEauM0DXY5VllXdT-w&s=09" target="_blank">Follow our official account</a></p>
         <button onclick="completeTask(this, 'x', 35, 'https://x.com/SylrexOfficial?t=xMY6eEauM0DXY5VllXdT-w&s=09')">Complete (+35 Points)</button>
       </div>
       <div class="task">
-        <img src="/facebook-icon.png" alt="Facebook Icon">
+        <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook Icon">
         <h3>Follow us on Facebook</h3>
         <p><a href="https://www.facebook.com/share/1JYzm6CGsS/" target="_blank">Follow our page</a></p>
         <button onclick="completeTask(this, 'facebook', 40, 'https://www.facebook.com/share/1JYzm6CGsS/')">Complete (+40 Points)</button>
       </div>
       <div class="task">
-        <img src="/youtube-icon.png" alt="YouTube Icon">
+        <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YouTube Icon">
         <h3>Subscribe on YouTube</h3>
         <p><a href="https://www.youtube.com/@SylrexOfficial" target="_blank">Subscribe to our channel</a></p>
         <button onclick="completeTask(this, 'youtube', 50, 'https://www.youtube.com/@SylrexOfficial')">Complete (+50 Points)</button>
       </div>
       <div class="task">
-        <img src="/youtube-icon.png" alt="YouTube Icon">
+        <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YouTube Icon">
         <h3>Watch Video</h3>
         <p><a href="https://youtube.com/shorts/rJanRSBlO24?si=IY9w1yFhKOfQtAmN" target="_blank">Watch our video</a></p>
         <button onclick="completeTask(this, 'video', 50, 'https://youtube.com/shorts/rJanRSBlO24?si=IY9w1yFhKOfQtAmN')">Watch Video (+50 Points)</button>
@@ -734,7 +734,7 @@
         padding: 10px 20px;
         border-radius: 20px;
         font-weight: bold;
-        z-index: 4000;
+        z-index: 5000;
         box-shadow: 0 3px 10px rgba(0,0,0,0.3);
         animation: slideDown 0.3s ease;
       `;
@@ -1043,17 +1043,50 @@
         console.log('تم قطع اتصال المحفظة، وإعادة ضبط الواجهة');
       }
 
-      // التأكد من رؤية شريط التنقل
-      function ensureNavigationVisibility() {
-        const navigation = document.querySelector('.navigation');
-        if (navigation) {
-          navigation.style.display = 'flex';
-          navigation.style.visibility = 'visible';
-          navigation.style.opacity = '1';
-          console.log('تم التأكد من رؤية شريط التنقل');
-        } else {
-          console.error('شريط التنقل غير موجود');
-          showNotification('خطأ: شريط التنقل غير موجود', true);
+      // التنقل بين الصفحات
+      async function showPage(pageNumber) {
+        console.log(`محاولة عرض الصفحة ${pageNumber}`);
+        try {
+          document.querySelectorAll('.page').forEach(page => {
+            page.classList.remove('active');
+            page.style.display = 'none';
+          });
+          document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+          });
+
+          const targetPage = document.getElementById(`page${pageNumber}`);
+          const targetButton = document.querySelectorAll('.nav-btn')[pageNumber - 1];
+
+          if (targetPage && targetButton) {
+            targetPage.classList.add('active');
+            targetPage.style.display = 'flex';
+            targetButton.classList.add('active');
+            console.log(`تم عرض الصفحة ${pageNumber} بنجاح`);
+          } else {
+            console.error(`الصفحة ${pageNumber} أو الزر غير موجود`);
+            showNotification('خطأ: الصفحة أو زر التنقل غير موجود', true);
+          }
+
+          // التأكد من رؤية شريط التنقل
+          const navigation = document.querySelector('.navigation');
+          if (navigation) {
+            navigation.style.display = 'flex';
+            navigation.style.visibility = 'visible';
+            navigation.style.opacity = '1';
+            console.log('تم التأكد من رؤية شريط التنقل');
+          } else {
+            console.error('شريط التنقل غير موجود');
+            showNotification('خطأ: شريط التنقل غير موجود', true);
+          }
+
+          if (pageNumber === 4) {
+            await updateLeaderboard();
+            console.log('تم تحديث قائمة الترتيب عند عرض الصفحة 4');
+          }
+        } catch (error) {
+          console.error('خطأ في عرض الصفحة:', error);
+          showNotification('خطأ في التنقل بين الصفحات', true);
         }
       }
 
@@ -1101,28 +1134,26 @@
         }
 
         await updateLeaderboard();
+        console.log('تم تهيئة التطبيق بنجاح');
       });
 
-      // التنقل بين الصفحات
-      async function showPage(pageNumber) {
-        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById(`page${pageNumber}`).classList.add('active');
-        document.querySelectorAll('.nav-btn')[pageNumber - 1].classList.add('active');
-        ensureNavigationVisibility();
-        if (pageNumber === 4) {
-          await updateLeaderboard();
-        }
-      }
+      // إضافة معالجة أحداث صريحة لأزرار التنقل
+      document.querySelectorAll('.nav-btn').forEach((button, index) => {
+        button.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          console.log(`نقر على زر التنقل ${index + 1}`);
+          showPage(index + 1);
+        });
+      });
 
       // التعامل مع زر الرجوع
       window.addEventListener('popstate', () => {
+        console.log('تم تشغيل زر الرجوع');
         showPage(1);
-        ensureNavigationVisibility();
       });
 
       initializeWallet();
-      ensureNavigationVisibility();
     }
   </script>
 </body>
