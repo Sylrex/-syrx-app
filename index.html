@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, warning-scale=1.0, user-scalable=no">
   <title>SYRX App</title>
-  <!-- Removed favicon to avoid 404 error -->
-  <!-- <link rel="icon" type="image/x-icon" href="/favicon.ico"> -->
   <style>
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
@@ -480,7 +478,7 @@
     <div id="page4" class="page">
       <h2>Leaderboard 🏆</h2>
       <ul class="leaderboard" id="leaderboard-list">
-        <li>No players yet. Invite your friends to join the leaderboard!</li>
+        <!-- Leaderboard entries will be populated dynamically -->
       </ul>
     </div>
 
@@ -520,7 +518,210 @@
 
     // Manage tasks and points
     let userPoints = localStorage.getItem('points') || 0;
-    let referrals = 0;
+    let referrals = localStorage.getItem('referrals') || 0;
+
+    // Update Leaderboard Function
+    function updateLeaderboard() {
+      const leaderboardList = document.getElementById('leaderboard-list');
+      if (!leaderboardList) {
+        console.error('Leaderboard list element not found');
+        showNotification('خطأ: قائمة الترتيب غير موجودة', true);
+        return;
+      }
+
+      // Get current user data
+      const currentUser = {
+        id: userId,
+        name: userName,
+        points: parseInt(userPoints) || 0,
+        referrals: parseInt(referrals) || 0
+      };
+
+      // Get leaderboard data from localStorage (or backend in production)
+      let leaderboardData = JSON.parse(localStorage.getItem('leaderboard')) || [];
+      
+      // Update or add current user to leaderboard
+      const userIndex = leaderboardData.findIndex(user => user.id === currentUser.id);
+      if (userIndex !== -1) {
+        leaderboardData[userIndex] = currentUser;
+      } else {
+        leaderboardData.push(currentUser);
+      }
+
+      // Sort leaderboard by points (descending)
+      leaderboardData.sort((a, b) => b.points - a.points);
+
+      // Save updated leaderboard to localStorage
+      localStorage.setItem('leaderboard', JSON.stringify(leaderboardData));
+
+      // Update UI
+      leaderboardList.innerHTML = '';
+      if (leaderboardData.length === 0) {
+        leaderboardList.innerHTML = '<li>لا يوجد لاعبون بعد. ادعُ أصدقاءك للانضمام إلى قائمة الترتيب!</li>';
+      } else {
+        leaderboardData.forEach((user, index) => {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <span class="rank">${index + 1}. ${user.name}</span>
+            <span class="points">${user.points.toLocaleString()} نقاط</span>
+            <span class="referrals">${user.referrals} دعوات</span>
+          `;
+          leaderboardList.appendChild(li);
+        });
+      }
+
+      console.log('Leaderboard updated:', leaderboardData);
+
+      // Optional: In a production environment, send points to backend and fetch leaderboard
+      /*
+      fetch('https://your-backend-api/update-points', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${tg.initData}`
+        },
+        body: JSON.stringify({ userId, points: userPoints, referrals })
+      })
+        .then(response => response.json())
+        .then(() => {
+          fetch('https://your-backend-api/leaderboard', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${tg.initData}` }
+          })
+            .then(response => response.json())
+            .then(data => {
+              leaderboardList.innerHTML = '';
+              data.forEach((user, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                  <span class="rank">${index + 1}. ${user.name}</span>
+                  <span class="points">${user.points.toLocaleString()} نقاط</span>
+                  <span class="referrals">${user.referrals} دعوات</span>
+                `;
+                leaderboardList.appendChild(li);
+              });
+            })
+            .catch(error => {
+              console.error('Error fetching leaderboard:', error);
+              showNotification('خطأ في تحميل قائمة الترتيب', true);
+            });
+        })
+        .catch(error => {
+          console.error('Error updating points:', error);
+          showNotification('خطأ في تحديث النقاط', true);
+        });
+      */
+    }
+
+    // Task completion with link opening and 20-second delay
+    function completeTask(button, platform, points, link) {
+      if (localStorage.getItem(platform) === 'completed') {
+        showNotification('المهمة مكتملة بالفعل!', true);
+        button.textContent = 'Completed ✅';
+        button.style.background = '#4CAF50';
+        button.disabled = true;
+        return;
+      }
+
+      button.textContent = 'Opening...';
+      button.disabled = true;
+
+      // Open link using Telegram Web App
+      try {
+        Telegram.WebApp.openLink(link);
+        console.log('Opened task link via Telegram.WebApp.openLink:', link);
+      } catch (error) {
+        console.error('Error opening task link:', error);
+        window.open(link, '_blank');
+        console.log('Fallback: Opened task link via window.open:', link);
+        showNotification('خطأ في فتح الرابط، جرب مرة أخرى', true);
+      }
+
+      // Delay task completion for 20 seconds
+      setTimeout(() => {
+        button.textContent = 'Completed ✅';
+        button.style.background = '#4CAF50';
+        userPoints = parseInt(userPoints) + points;
+        localStorage.setItem('points', userPoints);
+        localStorage.setItem(platform, 'completed');
+        document.getElementById('total-points').textContent = userPoints.toLocaleString();
+        showNotification(`تم إكمال المهمة! +${points} نقاط!`, true);
+        updateLeaderboard(); // Update leaderboard after task completion
+      }, 20000);
+    }
+
+    // Daily Check-In Function
+    function dailyCheckIn() {
+      const today = new Date().toISOString().split('T')[0];
+      const lastCheckIn = localStorage.getItem('lastCheckIn');
+      const checkInButton = document.getElementById('daily-checkin-btn');
+
+      if (lastCheckIn === today) {
+        showNotification('لقد سجلت دخولك اليوم بالفعل!', true);
+        checkInButton.textContent = 'Checked In Today ✅';
+        checkInButton.disabled = true;
+        return;
+      }
+
+      userPoints = parseInt(userPoints) + 100;
+      localStorage.setItem('points', userPoints);
+      localStorage.setItem('lastCheckIn', today);
+      document.getElementById('total-points').textContent = userPoints.toLocaleString();
+      showNotification('تسجيل دخول يومي ناجح! +100 نقاط!', true);
+      checkInButton.textContent = 'Checked In Today ✅';
+      checkInButton.disabled = true;
+      updateLeaderboard(); // Update leaderboard after daily check-in
+    }
+
+    // Copy referral link
+    function copyReferralLink() {
+      const link = document.getElementById('referral-link').textContent;
+      navigator.clipboard.writeText(link).then(() => {
+        showNotification('تم نسخ رابط الإحالة!', true);
+      }).catch(() => {
+        showNotification('الرابط: ' + link, true);
+      });
+    }
+
+    // Notifications (Arabic by default)
+    function showNotification(message, useArabic = true) {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(45deg, #4CAF50, #45a049);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-weight: bold;
+        z-index: 4000;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+        animation: slideDown 0.3s ease;
+      `;
+      notification.textContent = useArabic ? message : message;
+      if (!document.querySelector('#notification-styles')) {
+        const style = document.createElement('style');
+        style.id = 'notification-styles';
+        style.textContent = `
+          @keyframes slideDown {
+            from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+      document.body.appendChild(notification);
+      setTimeout(() => {
+        notification.style.animation = 'slideDown 0.3s ease reverse';
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 300);
+      }, 2500);
+    }
 
     // Load TON Connect UI
     let tonConnectUI = null;
@@ -747,6 +948,7 @@
             localStorage.setItem('points', userPoints);
             document.getElementById('total-points').textContent = userPoints.toLocaleString();
             localStorage.setItem('walletConnected', 'true');
+            updateLeaderboard(); // Update leaderboard after wallet connection
           }
 
           console.log('Wallet connected, UI updated:', shortAddress);
@@ -832,116 +1034,6 @@
       ensureNavigationVisibility();
     }
 
-    // Task completion with link opening and 20-second delay
-    function completeTask(button, platform, points, link) {
-      if (localStorage.getItem(platform) === 'completed') {
-        showNotification('المهمة مكتملة بالفعل!', true);
-        button.textContent = 'Completed ✅';
-        button.style.background = '#4CAF50';
-        button.disabled = true;
-        return;
-      }
-
-      button.textContent = 'Opening...';
-      button.disabled = true;
-
-      // فتح الرابط باستخدام Telegram Web App
-      try {
-        Telegram.WebApp.openLink(link);
-        console.log('Opened task link via Telegram.WebApp.openLink:', link);
-      } catch (error) {
-        console.error('Error opening task link:', error);
-        // الرجوع إلى window.open في حالة فشل Telegram.WebApp.openLink
-        window.open(link, '_blank');
-        console.log('Fallback: Opened task link via window.open:', link);
-        showNotification('خطأ في فتح الرابط، جرب مرة أخرى', true);
-      }
-
-      // تأخير إكمال المهمة لمدة 20 ثانية
-      setTimeout(() => {
-        button.textContent = 'Completed ✅';
-        button.style.background = '#4CAF50';
-        userPoints = parseInt(userPoints) + points;
-        localStorage.setItem('points', userPoints);
-        localStorage.setItem(platform, 'completed');
-        document.getElementById('total-points').textContent = userPoints.toLocaleString();
-        showNotification(`تم إكمال المهمة! +${points} نقاط!`, true);
-      }, 20000);
-    }
-
-    // Daily Check-In Function
-    function dailyCheckIn() {
-      const today = new Date().toISOString().split('T')[0];
-      const lastCheckIn = localStorage.getItem('lastCheckIn');
-      const checkInButton = document.getElementById('daily-checkin-btn');
-
-      if (lastCheckIn === today) {
-        showNotification('لقد سجلت دخولك اليوم بالفعل!', true);
-        checkInButton.textContent = 'Checked In Today ✅';
-        checkInButton.disabled = true;
-        return;
-      }
-
-      userPoints = parseInt(userPoints) + 100;
-      localStorage.setItem('points', userPoints);
-      localStorage.setItem('lastCheckIn', today);
-      document.getElementById('total-points').textContent = userPoints.toLocaleString();
-      showNotification('تسجيل دخول يومي ناجح! +100 نقاط!', true);
-
-      checkInButton.textContent = 'Checked In Today ✅';
-      checkInButton.disabled = true;
-    }
-
-    // Copy referral link
-    function copyReferralLink() {
-      const link = document.getElementById('referral-link').textContent;
-      navigator.clipboard.writeText(link).then(() => {
-        showNotification('تم نسخ رابط الإحالة!', true);
-      }).catch(() => {
-        showNotification('الرابط: ' + link, true);
-      });
-    }
-
-    // Notifications (Arabic by default)
-    function showNotification(message, useArabic = true) {
-      const notification = document.createElement('div');
-      notification.style.cssText = `
-        position: fixed;
-        top: 15px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: linear-gradient(45deg, #4CAF50, #45a049);
-        color: white;
-        padding: 10px 20px;
-        border-radius: 20px;
-        font-weight: bold;
-        z-index: 4000;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-        animation: slideDown 0.3s ease;
-      `;
-      notification.textContent = useArabic ? message : message;
-      if (!document.querySelector('#notification-styles')) {
-        const style = document.createElement('style');
-        style.id = 'notification-styles';
-        style.textContent = `
-          @keyframes slideDown {
-            from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
-            to { transform: translateX(-50%) translateY(0); opacity: 1; }
-          }
-        `;
-        document.head.appendChild(style);
-      }
-      document.body.appendChild(notification);
-      setTimeout(() => {
-        notification.style.animation = 'slideDown 0.3s ease reverse';
-        setTimeout(() => {
-          if (notification.parentNode) {
-            notification.parentNode.removeChild(notification);
-          }
-        }, 300);
-      }, 2500);
-    }
-
     // Initialize app
     document.addEventListener('DOMContentLoaded', () => {
       console.log('DOM fully loaded, initializing app...');
@@ -962,6 +1054,9 @@
         checkInButton.textContent = 'Checked In Today ✅';
         checkInButton.disabled = true;
       }
+
+      // Initialize leaderboard on app load
+      updateLeaderboard();
     });
 
     // Navigate between pages
@@ -971,6 +1066,9 @@
       document.getElementById(`page${pageNumber}`).classList.add('active');
       document.querySelectorAll('.nav-btn')[pageNumber - 1].classList.add('active');
       ensureNavigationVisibility();
+      if (pageNumber === 4) {
+        updateLeaderboard(); // Refresh leaderboard when navigating to page4
+      }
     }
 
     // Handle back button
