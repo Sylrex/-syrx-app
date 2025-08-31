@@ -80,6 +80,7 @@ def serve_manifest():
     try:
         return send_file('tonconnect-manifest.json')
     except FileNotFoundError:
+        print("Error: tonconnect-manifest.json not found")
         return Response("Error: tonconnect-manifest.json not found", status=404)
 
 @app.route('/<path:filename>')
@@ -88,8 +89,10 @@ def serve_static(filename):
         if os.path.exists(filename):
             return send_file(filename)
         else:
+            print(f"Error: {filename} not found")
             return Response(f"Error: {filename} not found", status=404)
     except Exception as e:
+        print(f"Error serving static file {filename}: {e}")
         return Response(f"Error: {str(e)}", status=500)
 
 @app.route('/user', methods=['POST'])
