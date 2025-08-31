@@ -406,7 +406,7 @@
       <div class="task">
         <img src="/youtube-icon.png" alt="YouTube Icon">
         <h3>اشترك في يوتيوب</h3>
-        <p><a href="https://www.youtube.com/@Sylrex_Official" target="_blank">اشترك في قناتنا</a></p>
+        <p><a href="https://www.youtube.com/@SylrexOfficial" target="_blank">اشترك في قناتنا</a></p>
         <button onclick="completeTask(this, 'youtube', 50, 'https://www.youtube.com/@SylrexOfficial')">إكمال (+50 نقاط)</button>
       </div>
       <div class="task">
@@ -512,7 +512,7 @@
           ]
         },
         uiOptions: {
-          twaReturnUrl: 'https://t.me/SYRXApp_bot/SYRXApp'
+          twaReturnUrl: 'https://t.me/SYRXApp_bot' // <--- تعديل: تبسيط twaReturnUrl
         }
       });
 
@@ -548,7 +548,7 @@
           if (walletInfo && walletInfo.account && walletInfo.account.address) {
             console.log('Wallet info received:', walletInfo.account.address);
             handleConnection(walletInfo);
-            tonConnectUI.closeAllModals();
+            setTimeout(() => tonConnectUI.closeModal(), 1000); // <--- تعديل: استخدام closeModal مع تأخير احتياطي
           } else {
             console.warn('Invalid wallet info:', walletInfo);
             handleDisconnection();
@@ -583,6 +583,7 @@
           walletAddressDiv.textContent = `محفظة متصلة: ${shortAddress}`;
           walletAddressDiv.style.display = 'block';
           disconnectBtn.classList.remove('hidden');
+          tonConnectUI.closeModal(); // <--- تعديل: إغلاق المودال هنا أيضاً كاحتياطي
 
           if (!localStorage.getItem('walletConnected')) {
             showNotification('تم ربط المحفظة! +500 نقطة مكافأة!');
