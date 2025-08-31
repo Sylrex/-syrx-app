@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SYRX App</title>
+  <!-- Fix favicon 404 error -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <style>
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
@@ -59,7 +61,7 @@
       width: 60px;
       height: 60px;
       border-radius: 50%;
-      margin-right: 15px; /* Changed from margin-left for LTR */
+      margin-right: 15px;
       border: 3px solid #fff;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
@@ -198,13 +200,13 @@
     .task img {
       width: 32px;
       height: 32px;
-      margin-right: 10px; /* Changed from margin-left for LTR */
+      margin-right: 10px;
     }
     .task h3 {
       margin: 0;
       color: #4ecdc4;
       flex-grow: 1;
-      text-align: left; /* Changed from right for LTR */
+      text-align: left;
     }
     .task p {
       margin: 10px 0;
@@ -461,6 +463,7 @@
     // Initialize Telegram Web App
     const tg = window.Telegram.WebApp;
     tg.ready();
+    console.log('Telegram Web App initialized:', tg.initDataUnsafe);
 
     // Display user name and photo
     const userName = tg.initDataUnsafe?.user?.first_name || 'User';
@@ -484,17 +487,20 @@
     tonConnectScript.onload = initializeTonConnect;
     tonConnectScript.onerror = () => {
       console.error('Failed to load TON Connect UI script');
-      showNotification('Error: Failed to load TON Connect library');
+      showNotification('Error: Failed to load TON Connect library', true); // Arabic option
     };
     document.head.appendChild(tonConnectScript);
 
     // Function to open wallet links using Telegram Web App
     function openWalletLink(url) {
+      console.log('Attempting to open wallet link:', url);
       try {
         Telegram.WebApp.openLink(url);
+        console.log('Opened wallet link via Telegram.WebApp.openLink');
       } catch (error) {
         console.error('Error opening wallet link:', error);
         window.open(url, '_blank');
+        console.log('Fallback: Opened wallet link via window.open');
       }
     }
 
@@ -503,7 +509,7 @@
       console.log('TON Connect script loaded, initializing...');
       if (!window.TON_CONNECT_UI) {
         console.error('TON Connect UI not available');
-        showNotification('Error: TON Connect library not available');
+        showNotification('Error: TON Connect library not available', true);
         return;
       }
 
@@ -535,27 +541,39 @@
         }
       };
 
+      // Force open wallet links via Telegram
+      tonConnectUI.on('beforeWalletLinkOpen', (link) => {
+        console.log('Intercepted wallet link:', link);
+        openWalletLink(link);
+        return false; // Prevent default TON Connect redirect
+      });
+
       // Check wallet connection on load
       function initializeWallet() {
         console.log('Initializing wallet...');
         tonConnectUI.getWallets().then(wallets => {
+          console.log('Available wallets:', wallets);
           if (tonConnectUI.connected && tonConnectUI.wallet) {
-            console.log('Wallet already connected:', tonConnectUI.wallet);
+            console.log('Wallet already connected on init:', tonConnectUI.wallet);
             handleConnection(tonConnectUI.wallet);
           } else {
             console.log('No wallet connected on init');
             handleDisconnection();
           }
-          // Periodic check for connection status
-          setInterval(() => {
+          // Aggressive polling for connection status
+          const intervalId = setInterval(() => {
             if (tonConnectUI.connected && tonConnectUI.wallet) {
+              console.log('Polling: Wallet connected:', tonConnectUI.wallet);
               handleConnection(tonConnectUI.wallet);
               tonConnectUI.closeModal();
+              clearInterval(intervalId); // Stop polling after connection
+            } else {
+              console.log('Polling: No wallet connected yet');
             }
-          }, 2000); // Check every 2 seconds
+          }, 1000); // Check every 1 second
         }).catch(error => {
           console.error('Error checking wallets:', error);
-          showNotification('Error checking wallets: ' + error.message);
+          showNotification('Error checking wallets: ' + error.message, true);
         });
       }
 
@@ -566,16 +584,19 @@
           if (walletInfo && walletInfo.account && walletInfo.account.address) {
             console.log('Wallet info received:', walletInfo.account.address);
             handleConnection(walletInfo);
-            setTimeout(() => tonConnectUI.closeModal(), 1000); // Delay modal close
+            setTimeout(() => {
+              console.log('Attempting to close modal after status change');
+              tonConnectUI.closeModal();
+            }, 1000); // Delay modal close
           } else {
             console.warn('Invalid wallet info:', walletInfo);
             handleDisconnection();
-            showNotification('Connection failed: Invalid wallet data');
+            showNotification('Connection failed: Invalid wallet data', true);
           }
         },
         error => {
           console.error('Connection error:', error);
-          showNotification('Wallet connection error: ' + error.message);
+          showNotification('Wallet connection error: ' + error.message, true);
           handleDisconnection();
         }
       );
@@ -589,7 +610,7 @@
 
         if (!tonConnectDiv || !walletAddressDiv || !disconnectBtn) {
           console.error('DOM elements missing:', { tonConnectDiv, walletAddressDiv, disconnectBtn });
-          showNotification('Error: UI elements not found');
+          showNotification('Error: UI elements not found', true);
           return;
         }
 
@@ -599,12 +620,19 @@
           const address = walletInfo.account.address;
           const shortAddress = address.length > 10 ? `${address.slice(0, 6)}...${address.slice(-4)}` : address;
           walletAddressDiv.textContent = `Connected Wallet: ${shortAddress}`;
-          walletAddressDiv.style.display = 'block';
-          disconnectBtn.style.display = 'block';
+          
+          // Force UI update
+          requestAnimationFrame(() => {
+            walletAddressDiv.style.display = 'block';
+            disconnectBtn.style.display = 'block';
+            console.log('UI updated: Wallet address displayed:', shortAddress);
+          });
+
           tonConnectUI.closeModal();
+          console.log('Modal close attempted');
 
           if (!localStorage.getItem('walletConnected')) {
-            showNotification('Wallet connected! +500 points bonus!');
+            showNotification('تم ربط المحفظة! +500 نقاط مكافأة!', true); // Arabic notification
             userPoints = parseInt(userPoints) + 500;
             localStorage.setItem('points', userPoints);
             updateUserPoints();
@@ -616,31 +644,34 @@
         } else {
           console.warn('Invalid wallet info in handleConnection:', walletInfo);
           handleDisconnection();
-          showNotification('Failed to display wallet: Invalid data');
+          showNotification('Failed to display wallet: Invalid data', true);
         }
       }
 
       // Manual wallet status check
       function checkWalletStatus() {
+        console.log('Manual wallet status check triggered');
         if (tonConnectUI.connected && tonConnectUI.wallet) {
           console.log('Manual check: Wallet connected:', tonConnectUI.wallet);
           handleConnection(tonConnectUI.wallet);
           tonConnectUI.closeModal();
+          showNotification('Wallet status confirmed!', true);
         } else {
           console.log('Manual check: No wallet connected');
-          showNotification('No wallet connected currently');
+          showNotification('No wallet connected currently', true);
         }
       }
 
       // Handle disconnection
       async function disconnectWallet() {
+        console.log('Disconnecting wallet...');
         try {
           await tonConnectUI.disconnect();
           handleDisconnection();
-          showNotification('Wallet disconnected!');
+          showNotification('Wallet disconnected!', true);
         } catch (error) {
           console.error('Disconnect error:', error);
-          showNotification('Error disconnecting wallet: ' + error.message);
+          showNotification('Error disconnecting wallet: ' + error.message, true);
         }
       }
 
@@ -653,13 +684,17 @@
 
         if (!tonConnectDiv || !walletAddressDiv || !disconnectBtn) {
           console.error('DOM elements missing on disconnection:', { tonConnectDiv, walletAddressDiv, disconnectBtn });
-          showNotification('Error: UI elements not found');
+          showNotification('Error: UI elements not found', true);
           return;
         }
 
-        tonConnectDiv.style.display = 'block';
-        walletAddressDiv.style.display = 'none';
-        disconnectBtn.style.display = 'none';
+        requestAnimationFrame(() => {
+          tonConnectDiv.style.display = 'block';
+          walletAddressDiv.style.display = 'none';
+          disconnectBtn.style.display = 'none';
+          console.log('UI reset: Wallet disconnected');
+        });
+
         localStorage.removeItem('walletConnected');
         console.log('Wallet disconnected, UI reset');
       }
@@ -701,11 +736,11 @@
             document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
             loadLeaderboard();
           } else {
-            showNotification(data.message);
+            showNotification(data.message, true);
           }
         } catch (error) {
           console.error('Error registering user:', error);
-          showNotification('Error registering user');
+          showNotification('Error registering user', true);
         }
       } else {
         console.warn('Skipping user registration because userId is anonymous');
@@ -735,11 +770,11 @@
             document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
             loadLeaderboard();
           } else {
-            showNotification(data.message);
+            showNotification(data.message, true);
           }
         } catch (error) {
           console.error('Error updating points:', error);
-          showNotification('Error updating points');
+          showNotification('Error updating points', true);
         }
       } else {
         console.warn('Skipping update because userId is anonymous');
@@ -768,11 +803,11 @@
           document.getElementById('bonus-points').textContent = (referrals * 500).toLocaleString();
           loadLeaderboard();
         } else {
-          showNotification('Error fetching user data: ' + data.message);
+          showNotification('Error fetching user data: ' + data.message, true);
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
-        showNotification('Error fetching user data');
+        showNotification('Error fetching user data', true);
       }
     }
 
@@ -791,7 +826,7 @@
           const userData = await userResponse.json();
           console.log('User registration response:', userData);
           if (userData.status !== 'success') {
-            showNotification('Error registering referred user: ' + userData.message);
+            showNotification('Error registering referred user: ' + userData.message, true);
             return;
           }
           const referralResponse = await fetch('/referral', {
@@ -802,15 +837,15 @@
           const referralData = await referralResponse.json();
           console.log('Referral response:', referralData);
           if (referralData.status === 'success') {
-            showNotification('Referral registered successfully! Referrer earned 500 points!');
+            showNotification('Referral registered successfully! Referrer earned 500 points!', true);
             await fetchUserData();
             loadLeaderboard();
           } else {
-            showNotification(referralData.message);
+            showNotification(referralData.message, true);
           }
         } catch (error) {
           console.error('Error processing referral:', error);
-          showNotification('Error processing referral');
+          showNotification('Error processing referral', true);
         }
       }
     }
@@ -840,7 +875,7 @@
         }
       } catch (error) {
         console.error('Error loading leaderboard:', error);
-        showNotification('Error loading leaderboard');
+        showNotification('Error loading leaderboard', true);
       }
     }
 
@@ -850,7 +885,7 @@
     // Task completion with link opening and 20-second delay
     function completeTask(button, platform, points, link) {
       if (localStorage.getItem(platform) === 'completed') {
-        showNotification('Task already completed!');
+        showNotification('Task already completed!', true);
         button.textContent = 'Completed ✅';
         button.style.background = '#4CAF50';
         button.disabled = true;
@@ -867,7 +902,7 @@
         localStorage.setItem(platform, 'completed');
         document.getElementById('total-points').textContent = userPoints.toLocaleString();
         updateUserPoints();
-        showNotification(`Task completed! +${points} points!`);
+        showNotification(`Task completed! +${points} points!`, true);
       }, 20000);
     }
 
@@ -878,7 +913,7 @@
       const checkInButton = document.getElementById('daily-checkin-btn');
 
       if (lastCheckIn === today) {
-        showNotification('You already checked in today!');
+        showNotification('You already checked in today!', true);
         checkInButton.textContent = 'Checked In Today ✅';
         checkInButton.disabled = true;
         return;
@@ -889,7 +924,7 @@
       localStorage.setItem('lastCheckIn', today);
       document.getElementById('total-points').textContent = userPoints.toLocaleString();
       updateUserPoints();
-      showNotification('Daily check-in successful! +100 points!');
+      showNotification('Daily check-in successful! +100 points!', true);
 
       checkInButton.textContent = 'Checked In Today ✅';
       checkInButton.disabled = true;
@@ -899,14 +934,14 @@
     function copyReferralLink() {
       const link = document.getElementById('referral-link').textContent;
       navigator.clipboard.writeText(link).then(() => {
-        showNotification('Referral link copied!');
+        showNotification('Referral link copied!', true);
       }).catch(() => {
-        showNotification('Link: ' + link);
+        showNotification('Link: ' + link, true);
       });
     }
 
-    // Notifications
-    function showNotification(message) {
+    // Notifications (with Arabic option)
+    function showNotification(message, useArabic = false) {
       const notification = document.createElement('div');
       notification.style.cssText = `
         position: fixed;
@@ -922,7 +957,7 @@
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         animation: slideDown 0.3s ease;
       `;
-      notification.textContent = message;
+      notification.textContent = useArabic ? message : message; // Use Arabic if specified
       if (!document.querySelector('#notification-styles')) {
         const style = document.createElement('style');
         style.id = 'notification-styles';
@@ -947,6 +982,7 @@
 
     // Initialize app
     document.addEventListener('DOMContentLoaded', () => {
+      console.log('DOM fully loaded, initializing app...');
       showPage(1);
       document.querySelectorAll('.task button').forEach(button => {
         const platform = button.getAttribute('onclick').match(/'([^']+)'/)[1];
