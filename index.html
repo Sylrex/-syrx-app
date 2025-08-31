@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>SYRX App</title>
-  <!-- Removed favicon to avoid 404 error; re-add after uploading favicon.ico -->
+  <!-- Removed favicon to avoid 404 error -->
   <!-- <link rel="icon" type="image/x-icon" href="/favicon.ico"> -->
   <style>
     body {
@@ -18,7 +18,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      overflow-y: auto; /* Allow scrolling to prevent content clipping */
+      overflow-y: auto; /* Allow scrolling */
     }
     .container {
       width: 100%;
@@ -33,6 +33,7 @@
       align-items: center;
       backdrop-filter: blur(10px);
       position: relative;
+      overflow-y: auto; /* Allow container scrolling */
     }
     .logo {
       width: 120px;
@@ -47,6 +48,7 @@
       font-weight: bold;
       color: white;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      z-index: 10;
     }
     .user-profile {
       display: flex;
@@ -56,6 +58,7 @@
       padding: 15px;
       border-radius: 15px;
       backdrop-filter: blur(5px);
+      z-index: 10;
     }
     .user-profile img {
       width: 60px;
@@ -73,10 +76,11 @@
       font-size: 1.8em;
       margin: 10px 0;
       text-align: center;
+      z-index: 10;
     }
     #ton-connect {
       margin: 20px 0;
-      z-index: 10; /* Ensure TON Connect button is visible */
+      z-index: 10;
     }
     .connect-btn {
       background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
@@ -139,7 +143,9 @@
       max-width: 90%;
       text-align: center;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      z-index: 10; /* Ensure wallet address is visible */
+      z-index: 10;
+      visibility: visible; /* Ensure visibility */
+      opacity: 1;
     }
     .hidden {
       display: none !important;
@@ -156,7 +162,7 @@
       background: rgba(0, 0, 0, 0.8);
       padding: 15px 0;
       backdrop-filter: blur(10px);
-      z-index: 1000; /* High z-index to ensure visibility */
+      z-index: 2000; /* High z-index to ensure visibility */
     }
     .nav-btn {
       background: rgba(255, 255, 255, 0.2);
@@ -168,7 +174,7 @@
       font-weight: bold;
       transition: all 0.3s ease;
       font-size: 0.9em;
-      z-index: 1000;
+      z-index: 2000;
     }
     .nav-btn.active {
       background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
@@ -182,7 +188,8 @@
       width: 100%;
       flex-grow: 1;
       overflow-y: auto;
-      padding-bottom: 100px; /* Increased to prevent overlap with navigation */
+      padding-bottom: 120px; /* Increased to prevent overlap with navigation */
+      z-index: 10;
     }
     .page.active {
       display: flex;
@@ -334,7 +341,7 @@
     }
     @media (max-width: 400px) {
       .container {
-        max-width: 100%; /* Full width on small screens */
+        max-width: 100%;
       }
       .logo {
         width: 80px;
@@ -364,7 +371,7 @@
         height: 24px;
       }
       .navigation {
-        max-width: 100%; /* Match container on small screens */
+        max-width: 100%;
       }
     }
     @media (min-width: 600px) {
@@ -379,7 +386,7 @@
   <div class="container">
     <!-- Page 1: Home -->
     <div id="page1" class="page active">
-      <div class="logo">SYRX</div>
+      <div class="logo">SYRX</div> <!-- Fallback to text logo -->
       <div class="user-profile">
         <img id="user-photo" src="https://via.placeholder.com/60/4ecdc4/ffffff?text=👤" alt="User Photo">
         <span id="user-name">Loading...</span>
@@ -541,7 +548,7 @@
       }
     }
 
-    // Initialize TON Connect
+    // Initialize TON Connect with retry mechanism
     function initializeTonConnect() {
       console.log('TON Connect script loaded, initializing...');
       if (!window.TON_CONNECT_UI) {
@@ -550,16 +557,24 @@
         return;
       }
 
-      // Test manifest availability
-      fetch('https://syrx.onrender.com/tonconnect-manifest.json')
-        .then(response => {
-          if (!response.ok) throw new Error('Manifest not found');
-          console.log('tonconnect-manifest.json loaded successfully');
-        })
-        .catch(error => {
-          console.error('Error loading tonconnect-manifest.json:', error);
-          showNotification('خطأ: فشل تحميل ملف إعدادات TON Connect', true);
-        });
+      // Test manifest availability with retry
+      function tryFetchManifest(attempts = 3, delay = 1000) {
+        fetch('https://syrx.onrender.com/tonconnect-manifest.json')
+          .then(response => {
+            if (!response.ok) throw new Error('Manifest not found');
+            console.log('tonconnect-manifest.json loaded successfully');
+          })
+          .catch(error => {
+            console.error('Error loading tonconnect-manifest.json:', error);
+            if (attempts > 1) {
+              console.log(`Retrying fetch (${attempts - 1} attempts left)...`);
+              setTimeout(() => tryFetchManifest(attempts - 1, delay * 2), delay);
+            } else {
+              showNotification('خطأ: فشل تحميل ملف إعدادات TON Connect', true);
+            }
+          });
+      }
+      tryFetchManifest();
 
       const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
         manifestUrl: "https://syrx.onrender.com/tonconnect-manifest.json",
@@ -618,7 +633,7 @@
             } else {
               console.log('Polling: No wallet connected yet');
             }
-          }, 100); // Check every 100ms
+          }, 80); // Check every 80ms
         }).catch(error => {
           console.error('Error checking wallets:', error);
           showNotification('خطأ في التحقق من المحافظ: ' + error.message, true);
@@ -636,7 +651,7 @@
               console.log('Attempting to close modal after status change');
               tonConnectUI.closeModal();
               showNotification('تم إغلاق نافذة المحفظة', true);
-            }, 100); // Reduced delay
+            }, 80); // Reduced delay
           } else {
             console.warn('Invalid wallet info:', JSON.stringify(walletInfo, null, 2));
             handleDisconnection();
@@ -673,8 +688,8 @@
           // Force UI update
           requestAnimationFrame(() => {
             walletAddressDiv.style.display = 'block';
-            walletAddressDiv.style.visibility = 'visible'; // Ensure visibility
-            walletAddressDiv.style.opacity = '1'; // Ensure visibility
+            walletAddressDiv.style.visibility = 'visible';
+            walletAddressDiv.style.opacity = '1';
             disconnectBtn.classList.remove('hidden');
             console.log('UI updated: Wallet address displayed:', shortAddress);
             setTimeout(() => {
@@ -683,13 +698,13 @@
               walletAddressDiv.style.opacity = '1';
               disconnectBtn.classList.remove('hidden');
               console.log('Secondary UI update check:', shortAddress);
-            }, 100);
+            }, 80);
             setTimeout(() => {
               walletAddressDiv.style.display = 'block';
               walletAddressDiv.style.visibility = 'visible';
               walletAddressDiv.style.opacity = '1';
               console.log('Tertiary UI update check:', shortAddress);
-            }, 500);
+            }, 400);
           });
 
           tonConnectUI.closeModal();
@@ -764,8 +779,23 @@
         console.log('Wallet disconnected, UI reset');
       }
 
-      // Start wallet initialization
+      // Ensure navigation visibility
+      function ensureNavigationVisibility() {
+        const navigation = document.querySelector('.navigation');
+        if (navigation) {
+          navigation.style.display = 'flex';
+          navigation.style.visibility = 'visible';
+          navigation.style.opacity = '1';
+          console.log('Navigation visibility ensured');
+        } else {
+          console.error('Navigation element not found');
+          showNotification('خطأ: شريط التنقل غير موجود', true);
+        }
+      }
+
+      // Start wallet initialization and ensure navigation
       initializeWallet();
+      ensureNavigationVisibility();
     }
 
     // Task completion with link opening and 20-second delay
@@ -837,7 +867,7 @@
         padding: 15px 25px;
         border-radius: 25px;
         font-weight: bold;
-        z-index: 2000; /* High z-index for notifications */
+        z-index: 3000; /* High z-index for notifications */
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         animation: slideDown 0.3s ease;
       `;
@@ -892,12 +922,14 @@
       document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
       document.getElementById(`page${pageNumber}`).classList.add('active');
       document.querySelectorAll('.nav-btn')[pageNumber - 1].classList.add('active');
+      ensureNavigationVisibility(); // Ensure navigation is visible after page switch
     }
 
     // Handle back button
     window.addEventListener('popstate', () => {
       showPage(1);
+      ensureNavigationVisibility();
     });
   </script>
 </body>
-          </html>
+      </html>
