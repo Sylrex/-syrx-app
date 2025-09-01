@@ -424,31 +424,31 @@
     <div id="page2" class="page">
       <h2>Daily Tasks 📋</h2>
       <div class="task">
-        <img src="/telegram-icon.png" alt="Telegram Icon">
+        <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="Telegram Icon">
         <h3>Follow us on Telegram</h3>
         <p><a href="https://t.me/SylrexOfficial" target="_blank">Join our official channel</a></p>
         <button onclick="completeTask(this, 'telegram', 30, 'https://t.me/SylrexOfficial')">Complete (+30 Points)</button>
       </div>
       <div class="task">
-        <img src="/x-icon.png" alt="X Icon">
+        <img src="https://cdn-icons-png.flaticon.com/512/5968/5968958.png" alt="X Icon">
         <h3>Follow us on X</h3>
         <p><a href="https://x.com/SylrexOfficial?t=xMY6eEauM0DXY5VllXdT-w&s=09" target="_blank">Follow our official account</a></p>
         <button onclick="completeTask(this, 'x', 35, 'https://x.com/SylrexOfficial?t=xMY6eEauM0DXY5VllXdT-w&s=09')">Complete (+35 Points)</button>
       </div>
       <div class="task">
-        <img src="/facebook-icon.png" alt="Facebook Icon">
+        <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" alt="Facebook Icon">
         <h3>Follow us on Facebook</h3>
         <p><a href="https://www.facebook.com/share/1JYzm6CGsS/" target="_blank">Follow our page</a></p>
         <button onclick="completeTask(this, 'facebook', 40, 'https://www.facebook.com/share/1JYzm6CGsS/')">Complete (+40 Points)</button>
       </div>
       <div class="task">
-        <img src="/youtube-icon.png" alt="YouTube Icon">
+        <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YouTube Icon">
         <h3>Subscribe on YouTube</h3>
         <p><a href="https://www.youtube.com/@SylrexOfficial" target="_blank">Subscribe to our channel</a></p>
         <button onclick="completeTask(this, 'youtube', 50, 'https://www.youtube.com/@SylrexOfficial')">Complete (+50 Points)</button>
       </div>
       <div class="task">
-        <img src="/youtube-icon.png" alt="YouTube Icon">
+        <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YouTube Icon">
         <h3>Watch Video</h3>
         <p><a href="https://youtube.com/shorts/rJanRSBlO24?si=IY9w1yFhKOfQtAmN" target="_blank">Watch our video</a></p>
         <button onclick="completeTask(this, 'video', 50, 'https://youtube.com/shorts/rJanRSBlO24?si=IY9w1yFhKOfQtAmN')">Watch Video (+50 Points)</button>
@@ -841,23 +841,33 @@
         button.disabled = true;
         return;
       }
+
+      // تغيير نص الزر إلى "جاري الفتح..." فور الضغط
       button.textContent = 'جاري الفتح...';
       button.disabled = true;
+
+      // محاولة فتح الرابط باستخدام Telegram Web App
       try {
-        tg.openLink(link);  // استخدام tg.openLink للتوافق مع Telegram Web App
+        tg.openLink(link); // فتح الرابط فورًا عبر Telegram
+        console.log(`Opening link via tg.openLink: ${link}`);
       } catch (error) {
-        console.error('Error opening link:', error);
-        window.open(link, '_blank');  // fallback إذا فشل
+        console.error('Error opening link with tg.openLink:', error);
+        window.open(link, '_blank'); // fallback إذا فشل
+        console.log(`Fallback: Opening link via window.open: ${link}`);
+        showNotification('خطأ في فتح الرابط، جرب مرة أخرى', true);
       }
+
+      // بعد 20 ثانية، إكمال المهمة
       setTimeout(() => {
         button.textContent = 'تم الإكمال ✅';
         button.style.background = '#4CAF50';
+        button.disabled = true;
         userPoints = parseInt(userPoints) + points;
         localStorage.setItem('points', userPoints);
         localStorage.setItem(platform, 'completed');
         document.getElementById('total-points').textContent = userPoints.toLocaleString();
         showNotification(`تم إكمال المهمة! +${points} نقاط!`, true);
-      }, 20000);  // 20 ثانية بالضبط
+      }, 20000); // 20 ثانية
     }
 
     // Daily Check-In Function
