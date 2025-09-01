@@ -836,23 +836,28 @@
     function completeTask(button, platform, points, link) {
       if (localStorage.getItem(platform) === 'completed') {
         showNotification('المهمة مكتملة بالفعل!', true);
-        button.textContent = 'Completed ✅';
+        button.textContent = 'تم الإكمال ✅';
         button.style.background = '#4CAF50';
         button.disabled = true;
         return;
       }
-      button.textContent = 'Opening...';
+      button.textContent = 'جاري الفتح...';
       button.disabled = true;
-      window.open(link, '_blank');
+      try {
+        tg.openLink(link);  // استخدام tg.openLink للتوافق مع Telegram Web App
+      } catch (error) {
+        console.error('Error opening link:', error);
+        window.open(link, '_blank');  // fallback إذا فشل
+      }
       setTimeout(() => {
-        button.textContent = 'Completed ✅';
+        button.textContent = 'تم الإكمال ✅';
         button.style.background = '#4CAF50';
         userPoints = parseInt(userPoints) + points;
         localStorage.setItem('points', userPoints);
         localStorage.setItem(platform, 'completed');
         document.getElementById('total-points').textContent = userPoints.toLocaleString();
         showNotification(`تم إكمال المهمة! +${points} نقاط!`, true);
-      }, 20000);
+      }, 20000);  // 20 ثانية بالضبط
     }
 
     // Daily Check-In Function
@@ -935,7 +940,7 @@
       document.querySelectorAll('.task button').forEach(button => {
         const platform = button.getAttribute('onclick').match(/'([^']+)'/)[1];
         if (localStorage.getItem(platform) === 'completed') {
-          button.textContent = 'Completed ✅';
+          button.textContent = 'تم الإكمال ✅';
           button.style.background = '#4CAF50';
           button.disabled = true;
         }
