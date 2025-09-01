@@ -522,6 +522,20 @@
     let userPoints = localStorage.getItem('points') || 0;
     let referrals = 0;
 
+    // Ensure navigation visibility
+    function ensureNavigationVisibility() {
+      const navigation = document.querySelector('.navigation');
+      if (navigation) {
+        navigation.style.display = 'flex';
+        navigation.style.visibility = 'visible';
+        navigation.style.opacity = '1';
+        console.log('Navigation visibility ensured');
+      } else {
+        console.error('Navigation element not found');
+        showNotification('خطأ: شريط التنقل غير موجود', true);
+      }
+    }
+
     // Load TON Connect UI
     let tonConnectUI = null;
     const tonConnectScript = document.createElement('script');
@@ -537,8 +551,8 @@
     function openWalletLink(url) {
       console.log('Attempting to open wallet link:', url);
       try {
-        Telegram.WebApp.openLink(url);
-        console.log('Opened wallet link via Telegram.WebApp.openLink');
+        tg.openLink(url);
+        console.log('Opened wallet link via tg.openLink');
       } catch (error) {
         console.error('Error opening wallet link:', error);
         window.open(url, '_blank');
@@ -582,6 +596,7 @@
       if (!window.TON_CONNECT_UI) {
         console.error('TON Connect UI not available');
         showNotification('خطأ: مكتبة TON Connect غير متوفرة', true);
+        setTimeout(() => retryConnection(), 2000); // Retry after 2 seconds
         return;
       }
 
@@ -604,232 +619,233 @@
       }
       tryFetchManifest();
 
-      tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-        manifestUrl: "https://syrx.onrender.com/tonconnect-manifest.json",
-        walletsListConfiguration: {
-          includeWallets: [
-            {
-              appName: "telegram-wallet",
-              name: "Wallet",
-              imageUrl: "https://wallet.tg/images/logo-288.png",
-              aboutUrl: "https://wallet.tg/",
-              universalLink: "https://t.me/wallet/start",
-              bridgeUrl: "https://bridge.tonapi.io/bridge",
-              platforms: ["ios", "android", "macos", "windows", "linux"]
-            }
-          ]
-        },
-        uiOptions: {
-          twaReturnUrl: 'https://t.me/SYRXApp_bot'
-        }
-      });
-
-      tonConnectUI.uiOptions = {
-        buttonRootId: "ton-connect",
-        actionsConfiguration: {
-          modals: ['before', 'success', 'error'],
-          skipRedirectToWallet: false
-        }
-      };
-
-      // Intercept wallet links
-      tonConnectUI.on('beforeWalletLinkOpen', (link) => {
-        console.log('Intercepted wallet link:', link);
-        openWalletLink(link);
-        return false;
-      });
-
-      // Check wallet connection on load
-      function initializeWallet() {
-        console.log('Initializing wallet...');
-        tonConnectUI.getWallets().then(wallets => {
-          console.log('Available wallets:', JSON.stringify(wallets, null, 2));
-          if (tonConnectUI.connected && tonConnectUI.wallet) {
-            console.log('Wallet already connected on init:', JSON.stringify(tonConnectUI.wallet, null, 2));
-            handleConnection(tonConnectUI.wallet);
-          } else {
-            console.log('No wallet connected on init');
-            handleDisconnection();
+      try {
+        tonConnectUI = new window.TON_CONNECT_UI.TonConnectUI({
+          manifestUrl: "https://syrx.onrender.com/tonconnect-manifest.json",
+          walletsListConfiguration: {
+            includeWallets: [
+              {
+                appName: "telegram-wallet",
+                name: "Wallet",
+                imageUrl: "https://wallet.tg/images/logo-288.png",
+                aboutUrl: "https://wallet.tg/",
+                universalLink: "https://t.me/wallet/start",
+                bridgeUrl: "https://bridge.tonapi.io/bridge",
+                platforms: ["ios", "android", "macos", "windows", "linux"]
+              }
+            ]
+          },
+          uiOptions: {
+            twaReturnUrl: 'https://t.me/SYRXApp_bot'
           }
-          // Aggressive polling for connection status
-          const intervalId = setInterval(() => {
-            if (tonConnectUI.connected && tonConnectUI.wallet) {
-              console.log('Polling: Wallet connected:', JSON.stringify(tonConnectUI.wallet, null, 2));
-              handleConnection(tonConnectUI.wallet);
-              tonConnectUI.closeModal();
-              clearInterval(intervalId);
-            } else {
-              console.log('Polling: No wallet connected yet');
-            }
-          }, 50);
-        }).catch(error => {
-          console.error('Error checking wallets:', error);
-          showNotification('خطأ في التحقق من المحافظ: ' + error.message, true);
         });
-      }
 
-      // Monitor connection status changes
-      tonConnectUI.onStatusChange(
-        walletInfo => {
-          console.log('Connection status changed:', JSON.stringify(walletInfo, null, 2));
-          if (walletInfo && walletInfo.account && walletInfo.account.address && typeof walletInfo.account.address === 'string') {
-            console.log('Wallet info received:', walletInfo.account.address);
-            handleConnection(walletInfo);
-            setTimeout(() => {
-              console.log('Attempting to close modal after status change');
-              tonConnectUI.closeModal();
-              showNotification('تم إغلاق نافذة المحفظة', true);
-            }, 50);
-          } else {
-            console.warn('Invalid wallet info:', JSON.stringify(walletInfo, null, 2));
-            handleDisconnection();
-            showNotification('فشل الاتصال: بيانات المحفظة غير صالحة. جرب زر إعادة المحاولة', true);
+        tonConnectUI.uiOptions = {
+          buttonRootId: "ton-connect",
+          actionsConfiguration: {
+            modals: ['before', 'success', 'error'],
+            skipRedirectToWallet: false
           }
-        },
-        error => {
-          console.error('Connection error:', error);
-          showNotification('خطأ في ربط المحفظة: ' + error.message, true);
-          handleDisconnection();
+        };
+
+        // Intercept wallet links
+        tonConnectUI.on('beforeWalletLinkOpen', (link) => {
+          console.log('Intercepted wallet link:', link);
+          openWalletLink(link);
+          return false;
+        });
+
+        // Check wallet connection on load
+        function initializeWallet() {
+          console.log('Initializing wallet...');
+          tonConnectUI.getWallets().then(wallets => {
+            console.log('Available wallets:', JSON.stringify(wallets, null, 2));
+            if (tonConnectUI.connected && tonConnectUI.wallet) {
+              console.log('Wallet already connected on init:', JSON.stringify(tonConnectUI.wallet, null, 2));
+              handleConnection(tonConnectUI.wallet);
+            } else {
+              console.log('No wallet connected on init');
+              handleDisconnection();
+            }
+            // Aggressive polling for connection status
+            const intervalId = setInterval(() => {
+              if (tonConnectUI.connected && tonConnectUI.wallet) {
+                console.log('Polling: Wallet connected:', JSON.stringify(tonConnectUI.wallet, null, 2));
+                handleConnection(tonConnectUI.wallet);
+                tonConnectUI.closeModal();
+                clearInterval(intervalId);
+              } else {
+                console.log('Polling: No wallet connected yet');
+              }
+            }, 50);
+          }).catch(error => {
+            console.error('Error checking wallets:', error);
+            showNotification('خطأ في التحقق من المحافظ: ' + error.message, true);
+          });
         }
-      );
 
-      // Handle connection
-      function handleConnection(walletInfo) {
-        console.log('Handling connection:', JSON.stringify(walletInfo, null, 2));
-        const tonConnectDiv = document.getElementById('ton-connect');
-        const walletAddressDiv = document.getElementById('wallet-address');
-        const disconnectBtn = document.getElementById('disconnect-btn');
-        const retryBtn = document.getElementById('retry-connect-btn');
-
-        if (!tonConnectDiv || !walletAddressDiv || !disconnectBtn || !retryBtn) {
-          console.error('DOM elements missing:', { tonConnectDiv, walletAddressDiv, disconnectBtn, retryBtn });
-          showNotification('خطأ: عناصر الواجهة غير موجودة', true);
-          return;
+        // Monitor connection status changes
+        if (tonConnectUI.onStatusChange) {
+          tonConnectUI.onStatusChange(
+            walletInfo => {
+              console.log('Connection status changed:', JSON.stringify(walletInfo, null, 2));
+              if (walletInfo && walletInfo.account && walletInfo.account.address && typeof walletInfo.account.address === 'string') {
+                console.log('Wallet info received:', walletInfo.account.address);
+                handleConnection(walletInfo);
+                setTimeout(() => {
+                  console.log('Attempting to close modal after status change');
+                  tonConnectUI.closeModal();
+                  showNotification('تم إغلاق نافذة المحفظة', true);
+                }, 50);
+              } else {
+                console.warn('Invalid wallet info:', JSON.stringify(walletInfo, null, 2));
+                handleDisconnection();
+                showNotification('فشل الاتصال: بيانات المحفظة غير صالحة. جرب زر إعادة المحاولة', true);
+              }
+            },
+            error => {
+              console.error('Connection error:', error);
+              showNotification('خطأ في ربط المحفظة: ' + error.message, true);
+              handleDisconnection();
+            }
+          );
+        } else {
+          console.error('tonConnectUI.onStatusChange is not available');
+          showNotification('خطأ: مكتبة TON Connect غير متوافقة. جرب إعادة تحميل الصفحة', true);
         }
 
-        if (walletInfo && walletInfo.account && walletInfo.account.address && typeof walletInfo.account.address === 'string') {
-          tonConnectDiv.style.display = 'none';
-          walletAddressDiv.innerHTML = '';
-          const address = walletInfo.account.address;
-          const shortAddress = address.length > 10 ? `${address.slice(0, 6)}...${address.slice(-4)}` : address;
-          walletAddressDiv.textContent = `Connected Wallet: ${shortAddress}`;
-          
-          // Force UI update
-          requestAnimationFrame(() => {
-            walletAddressDiv.style.display = 'block';
-            walletAddressDiv.style.visibility = 'visible';
-            walletAddressDiv.style.opacity = '1';
-            disconnectBtn.classList.remove('hidden');
-            retryBtn.classList.add('hidden');
-            console.log('UI updated: Wallet address displayed:', shortAddress);
-            setTimeout(() => {
+        // Handle connection
+        function handleConnection(walletInfo) {
+          console.log('Handling connection:', JSON.stringify(walletInfo, null, 2));
+          const tonConnectDiv = document.getElementById('ton-connect');
+          const walletAddressDiv = document.getElementById('wallet-address');
+          const disconnectBtn = document.getElementById('disconnect-btn');
+          const retryBtn = document.getElementById('retry-connect-btn');
+
+          if (!tonConnectDiv || !walletAddressDiv || !disconnectBtn || !retryBtn) {
+            console.error('DOM elements missing:', { tonConnectDiv, walletAddressDiv, disconnectBtn, retryBtn });
+            showNotification('خطأ: عناصر الواجهة غير موجودة', true);
+            return;
+          }
+
+          if (walletInfo && walletInfo.account && walletInfo.account.address && typeof walletInfo.account.address === 'string') {
+            tonConnectDiv.style.display = 'none';
+            walletAddressDiv.innerHTML = '';
+            const address = walletInfo.account.address;
+            const shortAddress = address.length > 10 ? `${address.slice(0, 6)}...${address.slice(-4)}` : address;
+            walletAddressDiv.textContent = `Connected Wallet: ${shortAddress}`;
+            
+            // Force UI update
+            requestAnimationFrame(() => {
               walletAddressDiv.style.display = 'block';
               walletAddressDiv.style.visibility = 'visible';
               walletAddressDiv.style.opacity = '1';
               disconnectBtn.classList.remove('hidden');
               retryBtn.classList.add('hidden');
-              console.log('Secondary UI update check:', shortAddress);
-            }, 50);
-            setTimeout(() => {
-              walletAddressDiv.style.display = 'block';
-              walletAddressDiv.style.visibility = 'visible';
-              walletAddressDiv.style.opacity = '1';
-              console.log('Tertiary UI update check:', shortAddress);
-            }, 300);
-          });
+              console.log('UI updated: Wallet address displayed:', shortAddress);
+              setTimeout(() => {
+                walletAddressDiv.style.display = 'block';
+                walletAddressDiv.style.visibility = 'visible';
+                walletAddressDiv.style.opacity = '1';
+                disconnectBtn.classList.remove('hidden');
+                retryBtn.classList.add('hidden');
+                console.log('Secondary UI update check:', shortAddress);
+              }, 50);
+              setTimeout(() => {
+                walletAddressDiv.style.display = 'block';
+                walletAddressDiv.style.visibility = 'visible';
+                walletAddressDiv.style.opacity = '1';
+                console.log('Tertiary UI update check:', shortAddress);
+              }, 300);
+            });
 
-          tonConnectUI.closeModal();
-          console.log('Modal close attempted');
+            tonConnectUI.closeModal();
+            console.log('Modal close attempted');
 
-          if (!localStorage.getItem('walletConnected')) {
-            showNotification('تم ربط المحفظة! +500 نقاط مكافأة!', true);
-            userPoints = parseInt(userPoints) + 500;
-            localStorage.setItem('points', userPoints);
-            document.getElementById('total-points').textContent = userPoints.toLocaleString();
-            localStorage.setItem('walletConnected', 'true');
+            if (!localStorage.getItem('walletConnected')) {
+              showNotification('تم ربط المحفظة! +500 نقاط مكافأة!', true);
+              userPoints = parseInt(userPoints) + 500;
+              localStorage.setItem('points', userPoints);
+              document.getElementById('total-points').textContent = userPoints.toLocaleString();
+              localStorage.setItem('walletConnected', 'true');
+            }
+
+            console.log('Wallet connected, UI updated:', shortAddress);
+          } else {
+            console.warn('Invalid wallet info in handleConnection:', JSON.stringify(walletInfo, null, 2));
+            handleDisconnection();
+            showNotification('فشل عرض المحفظة: بيانات غير صالحة', true);
+          }
+        }
+
+        // Manual wallet status check
+        function checkWalletStatus() {
+          console.log('Manual wallet status check triggered');
+          if (tonConnectUI && tonConnectUI.connected && tonConnectUI.wallet) {
+            console.log('Manual check: Wallet connected:', JSON.stringify(tonConnectUI.wallet, null, 2));
+            handleConnection(tonConnectUI.wallet);
+            tonConnectUI.closeModal();
+            showNotification('تم تأكيد حالة المحفظة!', true);
+          } else {
+            console.log('Manual check: No wallet connected');
+            showNotification('لا توجد محفظة متصلة حاليًا. جرب زر إعادة المحاولة', true);
+            document.getElementById('retry-connect-btn').classList.remove('hidden');
+          }
+        }
+
+        // Handle disconnection
+        async function disconnectWallet() {
+          console.log('Disconnecting wallet...');
+          try {
+            if (tonConnectUI && tonConnectUI.disconnect) {
+              await tonConnectUI.disconnect();
+              handleDisconnection();
+              showNotification('تم قطع اتصال المحفظة!', true);
+            } else {
+              console.error('tonConnectUI or disconnect method not available');
+              showNotification('خطأ: مكتبة TON Connect غير جاهزة', true);
+            }
+          } catch (error) {
+            console.error('Disconnect error:', error);
+            showNotification('خطأ في قطع اتصال المحفظة: ' + error.message, true);
+          }
+        }
+
+        // Reset UI on disconnection
+        function handleDisconnection() {
+          console.log('Handling disconnection');
+          const tonConnectDiv = document.getElementById('ton-connect');
+          const walletAddressDiv = document.getElementById('wallet-address');
+          const disconnectBtn = document.getElementById('disconnect-btn');
+          const retryBtn = document.getElementById('retry-connect-btn');
+
+          if (!tonConnectDiv || !walletAddressDiv || !disconnectBtn || !retryBtn) {
+            console.error('DOM elements missing on disconnection:', { tonConnectDiv, walletAddressDiv, disconnectBtn, retryBtn });
+            showNotification('خطأ: عناصر الواجهة غير موجودة', true);
+            return;
           }
 
-          console.log('Wallet connected, UI updated:', shortAddress);
-        } else {
-          console.warn('Invalid wallet info in handleConnection:', JSON.stringify(walletInfo, null, 2));
-          handleDisconnection();
-          showNotification('فشل عرض المحفظة: بيانات غير صالحة', true);
-        }
-      }
+          requestAnimationFrame(() => {
+            tonConnectDiv.style.display = 'block';
+            walletAddressDiv.style.display = 'none';
+            walletAddressDiv.style.visibility = 'hidden';
+            walletAddressDiv.style.opacity = '0';
+            disconnectBtn.classList.add('hidden');
+            retryBtn.classList.remove('hidden');
+            console.log('UI reset: Wallet disconnected');
+          });
 
-      // Manual wallet status check
-      function checkWalletStatus() {
-        console.log('Manual wallet status check triggered');
-        if (tonConnectUI && tonConnectUI.connected && tonConnectUI.wallet) {
-          console.log('Manual check: Wallet connected:', JSON.stringify(tonConnectUI.wallet, null, 2));
-          handleConnection(tonConnectUI.wallet);
-          tonConnectUI.closeModal();
-          showNotification('تم تأكيد حالة المحفظة!', true);
-        } else {
-          console.log('Manual check: No wallet connected');
-          showNotification('لا توجد محفظة متصلة حاليًا. جرب زر إعادة المحاولة', true);
-          document.getElementById('retry-connect-btn').classList.remove('hidden');
-        }
-      }
-
-      // Handle disconnection
-      async function disconnectWallet() {
-        console.log('Disconnecting wallet...');
-        try {
-          await tonConnectUI.disconnect();
-          handleDisconnection();
-          showNotification('تم قطع اتصال المحفظة!', true);
-        } catch (error) {
-          console.error('Disconnect error:', error);
-          showNotification('خطأ في قطع اتصال المحفظة: ' + error.message, true);
-        }
-      }
-
-      // Reset UI on disconnection
-      function handleDisconnection() {
-        console.log('Handling disconnection');
-        const tonConnectDiv = document.getElementById('ton-connect');
-        const walletAddressDiv = document.getElementById('wallet-address');
-        const disconnectBtn = document.getElementById('disconnect-btn');
-        const retryBtn = document.getElementById('retry-connect-btn');
-
-        if (!tonConnectDiv || !walletAddressDiv || !disconnectBtn || !retryBtn) {
-          console.error('DOM elements missing on disconnection:', { tonConnectDiv, walletAddressDiv, disconnectBtn, retryBtn });
-          showNotification('خطأ: عناصر الواجهة غير موجودة', true);
-          return;
+          localStorage.removeItem('walletConnected');
+          console.log('Wallet disconnected, UI reset');
         }
 
-        requestAnimationFrame(() => {
-          tonConnectDiv.style.display = 'block';
-          walletAddressDiv.style.display = 'none';
-          walletAddressDiv.style.visibility = 'hidden';
-          walletAddressDiv.style.opacity = '0';
-          disconnectBtn.classList.add('hidden');
-          retryBtn.classList.remove('hidden');
-          console.log('UI reset: Wallet disconnected');
-        });
-
-        localStorage.removeItem('walletConnected');
-        console.log('Wallet disconnected, UI reset');
+        // Start wallet initialization
+        initializeWallet();
+      } catch (error) {
+        console.error('Error initializing TON Connect UI:', error);
+        showNotification('خطأ في تهيئة TON Connect: ' + error.message, true);
+        setTimeout(() => retryConnection(), 2000); // Retry after 2 seconds
       }
-
-      // Ensure navigation visibility
-      function ensureNavigationVisibility() {
-        const navigation = document.querySelector('.navigation');
-        if (navigation) {
-          navigation.style.display = 'flex';
-          navigation.style.visibility = 'visible';
-          navigation.style.opacity = '1';
-          console.log('Navigation visibility ensured');
-        } else {
-          console.error('Navigation element not found');
-          showNotification('خطأ: شريط التنقل غير موجود', true);
-        }
-      }
-
-      // Start wallet initialization and ensure navigation
-      initializeWallet();
-      ensureNavigationVisibility();
     }
 
     // Task completion with link opening and 20-second delay
@@ -981,4 +997,4 @@
     });
   </script>
 </body>
-  </html>
+          </html>
